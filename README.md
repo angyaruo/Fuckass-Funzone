@@ -53,4 +53,4 @@ Earn tickets as you play and trade them for cabinet themes, Snake skins, Plinko 
 ```txt
 https://github.com/kittyafterdark/Fuckass-Funzone
 ```
-2. Paste it on Extensions > Add
+2. Paste it on the Extensions sidebar tab > Add Extensions
