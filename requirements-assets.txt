@@ -1,0 +1,3 @@
+# Only required to regenerate the PNGs; the installed extension has zero Python dependencies.
+Pillow>=10.0.0
+numpy>=1.26.0

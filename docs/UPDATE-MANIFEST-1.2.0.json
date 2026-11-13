@@ -1,0 +1,128 @@
+{
+  "name": "Bird Brain v1.2.0 incremental overwrite",
+  "base_version": "1.1.0",
+  "target_version": "1.2.0",
+  "how_to": "Back up existing data/extensions/bird_brain; extract the ZIP over the extensions directory so repo files overwrite in place. Unload/re-enable or re-import locally if required.",
+  "changed_files": [
+    {
+      "path": "README.md",
+      "previous_sha256": "9393f6c8ea149d6753d53a384790b7a9412af002c4a67dabc243bc518635ba07",
+      "new_sha256": "f943fc83dad871becbc83d341cb735ae9ba1ecc2ba2a22e9f19c3bbd1fda2661",
+      "size": 8532
+    },
+    {
+      "path": "assets/cover/sprite-preview.png",
+      "previous_sha256": "e17fce6a3a8af23efe48be5ca12353aca9fd0f2d4bbccfcbfb87330a348f046b",
+      "new_sha256": "342eeb1c955026f0484fe771ca693938a65d024bcf537da1038811c7b55acc0c",
+      "size": 788124
+    },
+    {
+      "path": "assets/sprites/flame_0.png",
+      "previous_sha256": null,
+      "new_sha256": "395bd45f943d617950496bd6499af668e3a9cae4a999800c947a5d5434867b6c",
+      "size": 9846
+    },
+    {
+      "path": "assets/sprites/flame_1.png",
+      "previous_sha256": null,
+      "new_sha256": "66df3b25f29f0ec85a62af5be40381e9e91121b088aba803076cec68aac1e075",
+      "size": 22162
+    },
+    {
+      "path": "assets/sprites/flame_2.png",
+      "previous_sha256": null,
+      "new_sha256": "d24c299cba756c39d91943289c4cc5dc79867631d35a044ca268ab791743f6d4",
+      "size": 28910
+    },
+    {
+      "path": "assets/sprites/manifest.json",
+      "previous_sha256": "f65e0ac8325d29d5958bff42b404769db1ca15da91272e205317a4b7ffd03d44",
+      "new_sha256": "202d32c70815583df787f9eb8636f5da665aca8965bbf2a49b6ab5af1a3487b6",
+      "size": 11477
+    },
+    {
+      "path": "assets/sprites/record_flag.png",
+      "previous_sha256": null,
+      "new_sha256": "38f46448e559300052664c2eb9d0aea9d4bfc912afc8dea3885cb92a7aa33d82",
+      "size": 32328
+    },
+    {
+      "path": "dist/frontend.js",
+      "previous_sha256": "720f23c8d6598a983c15cd161fe8c989f40a1cdc53724aeaa12b9111a51157df",
+      "new_sha256": "e797ac6ee5bfc6d327cb79898157ea9f7cdf6192b3a55216b067c3cbe24d9bd5",
+      "size": 3154425
+    },
+    {
+      "path": "docs/ASSET-ISOLATION.md",
+      "previous_sha256": "ad8f66d351570375e3e8d147afae383d18b2bef5ee3a686261573fa102329e59",
+      "new_sha256": "a2a959800514078668e97fef53408aa35283be40729387730e2d3db0c6bde330",
+      "size": 3024
+    },
+    {
+      "path": "docs/BUILD-VALIDATION.txt",
+      "previous_sha256": "c896bfc89274e4fb0cac2f80cac3b0f995143219e87e5832cba266147cbf1063",
+      "new_sha256": "5d938bd7aa3824aca531c3aec7f4be1fdc7de9c09121161f40121a0cfc952ea5",
+      "size": 815
+    },
+    {
+      "path": "docs/TESTING.md",
+      "previous_sha256": "c159b46d0ff293c42af55e323934108c40e26f848d3ae39ae6f248ffd2abadbd",
+      "new_sha256": "8226d17e37dd89ed1d36aae24b4f29b2951d48cb22467f9cfdb10d7c67beec83",
+      "size": 3960
+    },
+    {
+      "path": "package.json",
+      "previous_sha256": "721ab6f6ccbd9b15cde2443d78dc65553b42a7d54326436f829cdd79cb03bb1f",
+      "new_sha256": "699fad46816a23b21bb81d5e7fdc466d8f51f3d42af0a3e970d3905808607d41",
+      "size": 319
+    },
+    {
+      "path": "scripts/build.mjs",
+      "previous_sha256": "6b644c59bdbc87cc139a48a8cce525f46d226fc019ce2eadcb3a458179eac01a",
+      "new_sha256": "df93de7c2e0fd94c3e48ef781a71bd095df6d1e38a5483c2fa3c37eed476a84a",
+      "size": 2794
+    },
+    {
+      "path": "scripts/build_assets.py",
+      "previous_sha256": "e62e3bb9b192e43dadd60d6944095e638b480d5d81ee94b92046dcbc5e87b9d4",
+      "new_sha256": "3011a02cf770db1b6c5bd7d3d34260263a2d47cd7b3eb640a62c17be22cf3984",
+      "size": 13831
+    },
+    {
+      "path": "spindle.json",
+      "previous_sha256": "b8b2a0806b99b8f40f2620506c932df092582300db10dc9c12a36d4293da45b3",
+      "new_sha256": "c01ace0772979963d727f7553af7c1a7b5ec91268ee595f94aab88a51538607f",
+      "size": 370
+    },
+    {
+      "path": "src/engine.js",
+      "previous_sha256": "c720f1d21661afe7344f55e2225eed268a7653911a38179e409f508b37896a7f",
+      "new_sha256": "8762687ca8dfb38dc35d47b64b526f93142cf7434694b56880b3eb00e018acf2",
+      "size": 8471
+    },
+    {
+      "path": "src/frontend.js",
+      "previous_sha256": "339981d966a828f4afcc2f51d7ea624c68b9171dd2cd72e1b8762e1894b77e5c",
+      "new_sha256": "a5ba7cfc7a6315045e92aebf20700a3b6af805ad0b2d64177a208657e5744c4b",
+      "size": 27543
+    },
+    {
+      "path": "tests/assets.test.mjs",
+      "previous_sha256": "4f396f9b5043ad2e9525bdb14de22401d37041e3834bbd9210b80758ee6fe7c7",
+      "new_sha256": "1306bc15a05eafb98d19cbc4bf8cd77b98ae8f0e098ef84be3c5efd68a163706",
+      "size": 3387
+    },
+    {
+      "path": "tests/engine.test.mjs",
+      "previous_sha256": "c4b0dd733feacaeadce91d6373f754b0823eb514ef69307f4b0019014f2c7e12",
+      "new_sha256": "bac975894aaa4aa2065306a8ed16ce99d220a3f69775b90a05f39aa64402ef0a",
+      "size": 6158
+    },
+    {
+      "path": "tests/rendering.test.mjs",
+      "previous_sha256": null,
+      "new_sha256": "500730853c3c0e4a5bab81a0630492e1ca0fd156eb34324dd9eed92761238ba4",
+      "size": 2888
+    }
+  ]
+}

@@ -1,0 +1,835 @@
+[
+  {
+    "width": 6,
+    "rows": 7,
+    "board": [
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      }
+    ],
+    "hint": [
+      6,
+      7
+    ],
+    "status": "playing",
+    "score": 980,
+    "moves": 22
+  },
+  {
+    "width": 7,
+    "rows": 7,
+    "board": [
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      }
+    ],
+    "hint": [
+      7,
+      14
+    ],
+    "status": "playing",
+    "score": 980,
+    "moves": 22
+  },
+  {
+    "width": 8,
+    "rows": 7,
+    "board": [
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      }
+    ],
+    "hint": [
+      1,
+      2
+    ],
+    "status": "playing",
+    "score": 980,
+    "moves": 22
+  },
+  {
+    "width": 7,
+    "rows": 7,
+    "board": [
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      },
+      {
+        "kind": "heart",
+        "power": null
+      },
+      {
+        "kind": "star",
+        "power": null
+      },
+      {
+        "kind": "fish",
+        "power": null
+      },
+      {
+        "kind": "gem",
+        "power": null
+      },
+      {
+        "kind": "cookie",
+        "power": null
+      },
+      {
+        "kind": "cat",
+        "power": null
+      }
+    ],
+    "hint": null,
+    "status": "dead",
+    "score": 1460,
+    "moves": 37
+  }
+]

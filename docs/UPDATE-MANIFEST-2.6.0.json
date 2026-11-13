@@ -1,0 +1,57 @@
+{
+  "release": "2.6.0",
+  "base": "user-uploaded Fuckass Funzone.zip (2.5.0)",
+  "archive_root": "fuckass_funzone/repo/",
+  "format": "full cumulative source overlay with bundled dist and all original assets, docs, scripts, and regression tests",
+  "modified": [
+    "README.md",
+    "package.json",
+    "spindle.json",
+    "src/frontend.js",
+    "src/match3.js",
+    "src/match3-render.js",
+    "src/mini-games.js",
+    "src/mini-games-render.js",
+    "scripts/build.mjs",
+    "tests/lifecycle.test.mjs",
+    "dist/frontend.js"
+  ],
+  "added": [
+    "assets/funzone/arcade-tab.svg",
+    "docs/CHANGELOG-2.6.0.md",
+    "docs/backups-pre-2.6.0/build.mjs",
+    "docs/backups-pre-2.6.0/frontend.js",
+    "docs/backups-pre-2.6.0/match3-render.js",
+    "docs/backups-pre-2.6.0/match3.js",
+    "docs/backups-pre-2.6.0/mini-games-render.js",
+    "docs/backups-pre-2.6.0/mini-games.js",
+    "docs/backups-pre-2.6.0/package.json",
+    "docs/backups-pre-2.6.0/spindle.json",
+    "tests/timers-difficulty.test.mjs"
+  ],
+  "removed": [],
+  "backup_root": "docs/backups-pre-2.6.0/",
+  "validation": {
+    "tests_passed": 89,
+    "tests_failed": 0,
+    "build": "node scripts/build.mjs",
+    "tests": "node --test tests/*.test.mjs",
+    "asset_count": 71,
+    "bundle_sha256": "2b84267728d240488a23d0f98ce776ddacc2faddd0a0b3846533d94d20fc22ff"
+  },
+  "modified_file_sha256": {
+    "README.md": "1a9ea165309a53b8a12b593b4410ad016b5279e2106cef52552fa95ed0ed2db6",
+    "package.json": "56ef7f15d7709e378fa2735cfd53e7985da2ad7d127c06ecb1f18b56e5cf4711",
+    "spindle.json": "106eb475609524890e0f0ad4c525c4c8452162e391c6a33d0c8eaea35101a443",
+    "src/frontend.js": "747e1594d27fe85aecb185bf38f6ec2a5422dfb1b1db9348c311f06730087267",
+    "src/match3.js": "954f689370308daf14577b9ff6dd441d4a4117337b7ece94d63d9e6901a61ebc",
+    "src/match3-render.js": "5cb3b145e3f8021dafe9b45c682c031e9d740b5fcac9c580d39df523eb245b5c",
+    "src/mini-games.js": "f2c3510d96938ac71743c0e0c610978bbe146519a95b3cfa263592d09f1243fd",
+    "src/mini-games-render.js": "95073543e2347d23a7d8457305147f6b0abe90c3b240826eb12ba9f6ea34718a",
+    "scripts/build.mjs": "68fc633dfd08885633eb1c3de84fa6a548020b5c5526da549b1cc79b5bd5dca2",
+    "tests/lifecycle.test.mjs": "d474a6eaca4adfd07df3f3f33b2eb918550953a4da550a5a695a69607676c7b7",
+    "dist/frontend.js": "2b84267728d240488a23d0f98ce776ddacc2faddd0a0b3846533d94d20fc22ff"
+  },
+  "new_icon_sha256": "b4826865bcc718d398b06992733848fb385bdecef7b262c15d718a0ff7e6d98b",
+  "storage_compatibility": "Existing fuckass_funzone:v1:<extensionInstallationId> localStorage reused; additive validated timer/speed fields; no migration"
+}

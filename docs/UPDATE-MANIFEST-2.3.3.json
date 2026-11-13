@@ -1,0 +1,120 @@
+{
+  "release": "2.3.3",
+  "base": "2.3.2",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_added": [
+    {
+      "path": "README.md",
+      "sha256": "831019ee1adb09244e1f2d36e06ae1e2ab9e8688a10cd0c0b6769843bad9ad0b",
+      "bytes": 6420
+    },
+    {
+      "path": "assets/match3/vector/hint.svg",
+      "sha256": "f872aaa89c6a3d08a8ac0ebfd67ff240ce9dfa686024e4b169ea4c5dea98a1ea",
+      "bytes": 389
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "b1c20392c812b14bad212b33eb9c7bafe4f6da197fb97c94eba49818ea4e0a19",
+      "bytes": 4600320
+    },
+    {
+      "path": "docs/CHANGELOG-2.3.3.md",
+      "sha256": "a0dbd1b44309c2a55ac8d0255a1af70b240e8684c0a21baeda4de9ee97ef11e8",
+      "bytes": 1225
+    },
+    {
+      "path": "docs/backups-2.3.3/build.mjs.before",
+      "sha256": "f07d2bb698d42bdf484a097421a6259f8ac8c81204c20ebe7cbf255adf509a94",
+      "bytes": 7042
+    },
+    {
+      "path": "docs/backups-2.3.3/frontend.js.before",
+      "sha256": "7fb8336d03a0b27a1c67ba2070be09610e318bd97309a599ae952ba664ecd7fe",
+      "bytes": 42940
+    },
+    {
+      "path": "docs/backups-2.3.3/match3-render.js.before",
+      "sha256": "3050cb8f2358b5fc50607b3b29a7f7c86d8efd0cb69eaa65b5d0cd8e45208f89",
+      "bytes": 4755
+    },
+    {
+      "path": "docs/backups-2.3.3/match3.js.before",
+      "sha256": "b969049b02558e8f0a6151330826ae5e695a2f51efdf642faeb7d9ce90ee3eb7",
+      "bytes": 10786
+    },
+    {
+      "path": "docs/backups-2.3.3/reactions.js.before",
+      "sha256": "05d06c068f415eba77d4ed79f0643705d5dd92d827c0ed5501b0e848f496d696",
+      "bytes": 4363
+    },
+    {
+      "path": "docs/match3-preview-data.json",
+      "sha256": "d9b2d3879a6dcc13ecf0310033643ad5c6632ccbbd1ac27572e61188ad624da5",
+      "bytes": 12976
+    },
+    {
+      "path": "docs/match3-v2.3.3-hints-and-widths-preview.png",
+      "sha256": "d301c73f5a2b1a16302d49080dc3686561b61b300e6b132f285c104d1702d8a7",
+      "bytes": 231591
+    },
+    {
+      "path": "package.json",
+      "sha256": "e80649dcc4fb1d6745fc1e5ee0c3123e03781fe8625a84191521ad153a5a0c02",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "f08f9cf336edec06577932132ee407c505ffbba3ce549593a8ffae2a10505e71",
+      "bytes": 7150
+    },
+    {
+      "path": "scripts/make_match3_hint_preview.py",
+      "sha256": "94d83bbf68fb8d6eb1e9b9d511ee934783163337886f9b15ccf807a50ccba379",
+      "bytes": 3526
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "92289e04e1c88c85a2e26b5a8161314abccc5972acf1802c34f4fae1f99bd3b7",
+      "bytes": 418
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "c2f76237c079832a9876b31a9dc1cfb6b6ca9cdea4d6f887ea7dea7ee3294cfc",
+      "bytes": 46225
+    },
+    {
+      "path": "src/match3-render.js",
+      "sha256": "0f01cd21033f7bac22a4690ba6736f6ba0d881ec646ffea3d5cb01442d2ce1a6",
+      "bytes": 6226
+    },
+    {
+      "path": "src/match3.js",
+      "sha256": "aa1256e2828124ce94198508906412754907a70a40c191e777953f0764f4b2f9",
+      "bytes": 12746
+    },
+    {
+      "path": "src/reactions.js",
+      "sha256": "5bee7df7dca7597be7f98fc35f37db76c1a1476795a2f64d053f119b607b0177",
+      "bytes": 4573
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "c9330cbcdb5481f4ff8709ba54234546b47f970dabd8a8ede08c49a652c69762",
+      "bytes": 16186
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "741a3f32a205259e03a5c81d773991e4f915e0fbfb525ce02c88845956d6dc92",
+      "bytes": 11474
+    },
+    {
+      "path": "tests/match3-hints-width.test.mjs",
+      "sha256": "db8292d3fa7fca5e8ca5b1850820f3fafcf5d6fe8ebdfcbbb3bd951d036a680c",
+      "bytes": 5257
+    }
+  ],
+  "removed_files": [],
+  "note": "Source files are complete; overlay replaces only changed or new paths."
+}

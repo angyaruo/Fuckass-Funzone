@@ -1,0 +1,615 @@
+{
+  "version": 2,
+  "method": "seeded-connected-component-alpha",
+  "threshold": 80,
+  "assets": {
+    "bird_flap_0": {
+      "source": "bird",
+      "seed": [
+        180,
+        132
+      ],
+      "source_bounds": [
+        80,
+        61,
+        192,
+        129
+      ],
+      "component_pixels": 16865,
+      "size": [
+        201,
+        138
+      ],
+      "sha256": "6642f2175be62ad091e1d37292614f2e3bb119c55fe211d39ff43be394f6315c"
+    },
+    "bird_flap_1": {
+      "source": "bird",
+      "seed": [
+        395,
+        125
+      ],
+      "source_bounds": [
+        302,
+        56,
+        191,
+        133
+      ],
+      "component_pixels": 17972,
+      "size": [
+        200,
+        143
+      ],
+      "sha256": "d3f724d4fc15f922e0e988f2cfa506c4ffa06031f1864e41bd13a4cfe56144da"
+    },
+    "bird_flap_2": {
+      "source": "bird",
+      "seed": [
+        610,
+        112
+      ],
+      "source_bounds": [
+        528,
+        45,
+        188,
+        134
+      ],
+      "component_pixels": 17502,
+      "size": [
+        198,
+        143
+      ],
+      "sha256": "66ac9eefa86ac05b4b49fcabea8dedd41d770b99d64d2d4db3076a9dcda63c8e"
+    },
+    "bird_flap_3": {
+      "source": "bird",
+      "seed": [
+        850,
+        125
+      ],
+      "source_bounds": [
+        753,
+        54,
+        197,
+        131
+      ],
+      "component_pixels": 18015,
+      "size": [
+        206,
+        140
+      ],
+      "sha256": "83f45aa9fc32fc604d88d925e6dff2e86fd8743e7d156dbe96c9237385f8ae69"
+    },
+    "bird_flap_4": {
+      "source": "bird",
+      "seed": [
+        1100,
+        132
+      ],
+      "source_bounds": [
+        988,
+        57,
+        196,
+        130
+      ],
+      "component_pixels": 17445,
+      "size": [
+        205,
+        138
+      ],
+      "sha256": "c4dceb2f6a900cbef0fb0bdd00c5863bae252f42ebaa5c21ef403b53067cb305"
+    },
+    "bird_flap_5": {
+      "source": "bird",
+      "seed": [
+        1330,
+        123
+      ],
+      "source_bounds": [
+        1232,
+        59,
+        196,
+        130
+      ],
+      "component_pixels": 17600,
+      "size": [
+        204,
+        139
+      ],
+      "sha256": "6688899ebc484999696a970c4065809069b3e079377594d6b02b3b48dd7be331"
+    },
+    "bird_dizzy": {
+      "source": "bird",
+      "seed": [
+        1040,
+        280
+      ],
+      "source_bounds": [
+        942,
+        233,
+        184,
+        115
+      ],
+      "component_pixels": 14781,
+      "size": [
+        192,
+        124
+      ],
+      "sha256": "cb781f9157b742f49936f6d0a4ec394a1e969ad8cfcdc47b7de3aed744e6f61f"
+    },
+    "bird_dead": {
+      "source": "bird",
+      "seed": [
+        670,
+        466
+      ],
+      "source_bounds": [
+        554,
+        415,
+        189,
+        110
+      ],
+      "component_pixels": 12908,
+      "size": [
+        199,
+        119
+      ],
+      "sha256": "e197a551770cd2ddc28d684e714f33c2d5596ae7e9a13bc55d14e45f80300b37"
+    },
+    "gabi_fly_0": {
+      "source": "gabi",
+      "seed": [
+        220,
+        160
+      ],
+      "source_bounds": [
+        37,
+        17,
+        317,
+        286
+      ],
+      "component_pixels": 50970,
+      "size": [
+        248,
+        224
+      ],
+      "sha256": "f341eed49496a9f05e515ec19a9fdebb07493653b1cd153118911c81a64524fa"
+    },
+    "gabi_fly_1": {
+      "source": "gabi",
+      "seed": [
+        479,
+        160
+      ],
+      "source_bounds": [
+        332,
+        19,
+        311,
+        291
+      ],
+      "component_pixels": 51620,
+      "size": [
+        248,
+        231
+      ],
+      "sha256": "9a245151aabce634ace8527fcf87582fb8c01c2d6f109fab981935d4b8310ba1"
+    },
+    "gabi_fly_2": {
+      "source": "gabi",
+      "seed": [
+        770,
+        160
+      ],
+      "source_bounds": [
+        612,
+        18,
+        312,
+        291
+      ],
+      "component_pixels": 51485,
+      "size": [
+        248,
+        232
+      ],
+      "sha256": "79aedc508a752202d1516d44fa89c675df4e54df639fe9462a704e4899863831"
+    },
+    "gabi_fly_3": {
+      "source": "gabi",
+      "seed": [
+        1046,
+        158
+      ],
+      "source_bounds": [
+        896,
+        17,
+        303,
+        292
+      ],
+      "component_pixels": 50800,
+      "size": [
+        248,
+        239
+      ],
+      "sha256": "ce4c91e8b17465762f90a878f30372d9c62cfe3b625a3eb8180ae578a067238f"
+    },
+    "gabi_fly_4": {
+      "source": "gabi",
+      "seed": [
+        1342,
+        158
+      ],
+      "source_bounds": [
+        1183,
+        12,
+        291,
+        292
+      ],
+      "component_pixels": 50477,
+      "size": [
+        248,
+        248
+      ],
+      "sha256": "11bada5fbc608f4cf6392e8048ec485e9fde570461b0c97ba072d5f18f92d8ae"
+    },
+    "gabi_fly_5": {
+      "source": "gabi",
+      "seed": [
+        1596,
+        150
+      ],
+      "source_bounds": [
+        1447,
+        16,
+        301,
+        286
+      ],
+      "component_pixels": 50158,
+      "size": [
+        248,
+        236
+      ],
+      "sha256": "f6a0e4ff820bdfaaeb2df77cd2a19e18f3433240c394d200187fe404972a2eef"
+    },
+    "gabi_sleep": {
+      "source": "gabi",
+      "seed": [
+        152,
+        475
+      ],
+      "source_bounds": [
+        15,
+        333,
+        244,
+        249
+      ],
+      "component_pixels": 37879,
+      "size": [
+        242,
+        248
+      ],
+      "sha256": "f91eacdd30de19b0adb0ab9401d2752b796474ba74afddb10a0d65d7bb797b37"
+    },
+    "gabi_surprise": {
+      "source": "gabi",
+      "seed": [
+        385,
+        470
+      ],
+      "source_bounds": [
+        258,
+        334,
+        252,
+        240
+      ],
+      "component_pixels": 37765,
+      "size": [
+        248,
+        236
+      ],
+      "sha256": "7257d87ca862eacefa030c621b16029c3b004f6bdc9872889712ae3f7137f970"
+    },
+    "gabi_dizzy": {
+      "source": "gabi",
+      "seed": [
+        650,
+        457
+      ],
+      "source_bounds": [
+        517,
+        338,
+        253,
+        245
+      ],
+      "component_pixels": 41779,
+      "size": [
+        248,
+        239
+      ],
+      "sha256": "665d6d66aed6aebde8aaa572cf3f0e763ce1c4fc4e31b55f36a576277f43448b"
+    },
+    "gabi_hurt": {
+      "source": "gabi",
+      "seed": [
+        910,
+        480
+      ],
+      "source_bounds": [
+        770,
+        339,
+        275,
+        246
+      ],
+      "component_pixels": 39887,
+      "size": [
+        248,
+        222
+      ],
+      "sha256": "19366a7e65ad1bf87c84ba0a421f3de84ceab953a55552fb3a4ae1eba8cd1b93"
+    },
+    "gabi_crash": {
+      "source": "gabi",
+      "seed": [
+        1180,
+        470
+      ],
+      "source_bounds": [
+        1062,
+        341,
+        258,
+        233
+      ],
+      "component_pixels": 40172,
+      "size": [
+        248,
+        225
+      ],
+      "sha256": "d25b185888e8c40380be83485c0b0d1d432f6e2b6c44f0222f21053d9a57951a"
+    },
+    "gabi_dead": {
+      "source": "gabi",
+      "seed": [
+        1483,
+        499
+      ],
+      "source_bounds": [
+        1344,
+        412,
+        339,
+        163
+      ],
+      "component_pixels": 36965,
+      "size": [
+        248,
+        124
+      ],
+      "sha256": "ca08b3ca8e18ba2693c7538dc514260f3491d8f7c82f7f943ba7745facfcbb4f"
+    },
+    "cloud": {
+      "source": "bird",
+      "seed": [
+        720,
+        603
+      ],
+      "source_bounds": [
+        623,
+        542,
+        201,
+        118
+      ],
+      "component_pixels": 16580,
+      "size": [
+        210,
+        126
+      ],
+      "sha256": "dcf91c0e9cdc7166b8a60d3826ac3e3ba83371cea410c1eeab03224a6b65e1df"
+    },
+    "coin": {
+      "source": "bird",
+      "seed": [
+        1075,
+        620
+      ],
+      "source_bounds": [
+        1043,
+        569,
+        86,
+        87
+      ],
+      "component_pixels": 5921,
+      "size": [
+        95,
+        95
+      ],
+      "sha256": "ddecbe3b02e928bfb4483ebdcd290b7ad6cd37322be8e8d537e571cd0c3e86e4"
+    },
+    "star": {
+      "source": "bird",
+      "seed": [
+        1190,
+        623
+      ],
+      "source_bounds": [
+        1144,
+        557,
+        104,
+        99
+      ],
+      "component_pixels": 6739,
+      "size": [
+        113,
+        107
+      ],
+      "sha256": "fd8d20f88c11d1a12b80e93f307e39dc27c329478b83e9e3b930b48e4f23d669"
+    },
+    "bird_logo": {
+      "source": "gabi",
+      "seed": [
+        154,
+        800
+      ],
+      "source_bounds": [
+        24,
+        750,
+        315,
+        124
+      ],
+      "component_pixels": 31082,
+      "size": [
+        248,
+        105
+      ],
+      "sha256": "6b856c67be673db2551b18282d4d8ad006ac60c7c5b7d855203df4325fd39717"
+    },
+    "ready_banner": {
+      "source": "bird",
+      "seed": [
+        100,
+        758
+      ],
+      "source_bounds": [
+        70,
+        705,
+        363,
+        145
+      ],
+      "component_pixels": 40740,
+      "size": [
+        318,
+        132
+      ],
+      "sha256": "5f8904ac9d799ccb0c8c8be0f1a3bdfa7fa1ab3b7b969ef6b5a45829b556f0a9"
+    },
+    "game_over_banner": {
+      "source": "bird",
+      "seed": [
+        651,
+        784
+      ],
+      "source_bounds": [
+        475,
+        702,
+        355,
+        148
+      ],
+      "component_pixels": 42783,
+      "size": [
+        318,
+        138
+      ],
+      "sha256": "ed34fd6b7a1cccd18ce6a3b4199b54873377b747fccde48e061a99a39e30dc21"
+    },
+    "best_banner": {
+      "source": "bird",
+      "seed": [
+        1025,
+        779
+      ],
+      "source_bounds": [
+        847,
+        688,
+        348,
+        164
+      ],
+      "component_pixels": 38484,
+      "size": [
+        318,
+        154
+      ],
+      "sha256": "2c0ed32698e50660a39daf64224198611e945306edd9717130b84f3e89435178"
+    },
+    "flame_0": {
+      "source": "gabi",
+      "seed": [
+        573,
+        644
+      ],
+      "source_bounds": [
+        557,
+        612,
+        54,
+        62
+      ],
+      "component_pixels": 2098,
+      "size": [
+        70,
+        75
+      ],
+      "sha256": "395bd45f943d617950496bd6499af668e3a9cae4a999800c947a5d5434867b6c"
+    },
+    "flame_1": {
+      "source": "gabi",
+      "seed": [
+        635,
+        694
+      ],
+      "source_bounds": [
+        610,
+        608,
+        68,
+        147
+      ],
+      "component_pixels": 5490,
+      "size": [
+        84,
+        156
+      ],
+      "sha256": "66df3b25f29f0ec85a62af5be40381e9e91121b088aba803076cec68aac1e075"
+    },
+    "flame_2": {
+      "source": "gabi",
+      "seed": [
+        735,
+        675
+      ],
+      "source_bounds": [
+        685,
+        608,
+        88,
+        153
+      ],
+      "component_pixels": 7886,
+      "size": [
+        104,
+        166
+      ],
+      "sha256": "d24c299cba756c39d91943289c4cc5dc79867631d35a044ca268ab791743f6d4"
+    },
+    "record_flag": {
+      "source": "gabi",
+      "seed": [
+        1650,
+        660
+      ],
+      "source_bounds": [
+        1615,
+        587,
+        136,
+        174
+      ],
+      "component_pixels": 13466,
+      "size": [
+        145,
+        182
+      ],
+      "sha256": "38f46448e559300052664c2eb9d0aea9d4bfc912afc8dea3885cb92a7aa33d82"
+    },
+    "heart": {
+      "source": "bird",
+      "source_bounds": [
+        1267,
+        574,
+        81,
+        78
+      ],
+      "method": "curated-single-heart",
+      "size": [
+        87,
+        77
+      ],
+      "sha256": "04cc18c7a758f7a0c4f68de553908ddd60e602164ff9fe301bfb047233c676c8"
+    }
+  },
+  "source_sha256": {
+    "bird": "088ef7f4c44785ee0cc019da99a4fd65e593354fd6b557e04dcec6db699f7ae0",
+    "gabi": "973263117ee917e84574f190e1a935372e318b1b8e0982e2bb96622e7cfc1e9f"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "release": "2.6.3",
+  "base": "Fuckass Funzone v2.6.2 full cumulative source",
+  "archive_root": "fuckass_funzone/repo/",
+  "format": "full cumulative source archive (assets, scripts, tests, docs, generated dist and history)",
+  "behavior": "Gabi idle flies on frames 0–2; pressing selects 3/4/5 at 0/120/300ms; short release linger 160ms",
+  "modified": [
+    "README.md",
+    "dist/frontend.js",
+    "docs/TESTING.md",
+    "package.json",
+    "scripts/build.mjs",
+    "spindle.json",
+    "src/engine.js",
+    "src/frontend.js",
+    "tests/engine.test.mjs",
+    "tests/rendering.test.mjs"
+  ],
+  "added": [
+    "docs/CHANGELOG-2.6.3.md",
+    "docs/backups-pre-2.6.3/README.md",
+    "docs/backups-pre-2.6.3/docs/TESTING.md",
+    "docs/backups-pre-2.6.3/package.json",
+    "docs/backups-pre-2.6.3/scripts/build.mjs",
+    "docs/backups-pre-2.6.3/spindle.json",
+    "docs/backups-pre-2.6.3/src/engine.js",
+    "docs/backups-pre-2.6.3/src/frontend.js",
+    "docs/backups-pre-2.6.3/tests/engine.test.mjs",
+    "docs/backups-pre-2.6.3/tests/rendering.test.mjs",
+    "docs/UPDATE-MANIFEST-2.6.3.json"
+  ],
+  "backup_root": "docs/backups-pre-2.6.3/",
+  "original_modified_sha256": {
+    "README.md": "78b9de05204aa0e2438871466bff643ce20f6616ce3db3f36d0a79a7568e4cee",
+    "dist/frontend.js": "2e13aa56c46352d07fb9fdb5fa04f6a4f4b49d8bf290b10b09f2f83968681985",
+    "docs/TESTING.md": "03ed6cf90266a01a8c2c77d73c72f2ef606b32ac92b81662e194331d95d80e9b",
+    "package.json": "d87752d87ea21e7fe0c6accf01fb38a2ad267d56a21fd97dbad93684ffb5a209",
+    "scripts/build.mjs": "6957c9ec390dadd8c0816cf36ded854a5c2d02b83241c1591a9e3a1bcf554304",
+    "spindle.json": "d85eefc5959be17619421d1a4bdc42832b110e72b6e50bf064507ea13def2529",
+    "src/engine.js": "9306ecf698eeabfeea598dbe13e4e866f9d93bf6510ba283a14bdf9fb6d54786",
+    "src/frontend.js": "610e4a205511293062d4dd017f46a9af873b6af50d8598eaacc14c577e4a781a",
+    "tests/engine.test.mjs": "0077928896b418524535bc077e4e66daae056a881036e505461c1078b58f022b",
+    "tests/rendering.test.mjs": "8beb4332863c4176787d755c83e4cd6bf380e2f7dee7cb0bc271ea3dd3cf1ba3"
+  },
+  "updated_modified_sha256": {
+    "README.md": "f4ff3cc41cc10eefc338ea349ad7f53d23ad6eb31fadfffc0634df5fce246ea2",
+    "dist/frontend.js": "42d91465ccfade7124195d77d7f77e9067bee30fb76c805217595f39ddec147b",
+    "docs/TESTING.md": "76a3b53277dc79c114099d4027fe42d2c3b5a7e95c03a25e5298c1e2ab352e9f",
+    "package.json": "40476567fc691da80a16762f9c961f87b49ced43ad7e9f60fec514a390c2d2e4",
+    "scripts/build.mjs": "3bbdc9d453666e03d6414472048852420e8e903e139dcea87e28825e2a72ba7c",
+    "spindle.json": "679bddd936549db7c48418def905f9ac413f0b0fcb31f1665c36de3255917722",
+    "src/engine.js": "0ad462c4107dc755db56a796fda292ef6f5bb2dd7b458fb8ed962f07aa2b7baf",
+    "src/frontend.js": "889214c49506f3e0a11b99aa445952f2ca62915356b7cf19b3baed8939a265ba",
+    "tests/engine.test.mjs": "c99cf560db641d8d9c857c87deca2cb03187208d3f5f3274e578e69a1eee1395",
+    "tests/rendering.test.mjs": "b6619d9911475693ceb6c06f767005918fac5a3064db35c74a428492ea61614a"
+  },
+  "added_sha256": {
+    "docs/CHANGELOG-2.6.3.md": "68420fbd4d53c99db435eba0d0dfe677a758d71bcaaafe28dea5974448038cdd",
+    "docs/backups-pre-2.6.3/README.md": "78b9de05204aa0e2438871466bff643ce20f6616ce3db3f36d0a79a7568e4cee",
+    "docs/backups-pre-2.6.3/docs/TESTING.md": "03ed6cf90266a01a8c2c77d73c72f2ef606b32ac92b81662e194331d95d80e9b",
+    "docs/backups-pre-2.6.3/package.json": "d87752d87ea21e7fe0c6accf01fb38a2ad267d56a21fd97dbad93684ffb5a209",
+    "docs/backups-pre-2.6.3/scripts/build.mjs": "6957c9ec390dadd8c0816cf36ded854a5c2d02b83241c1591a9e3a1bcf554304",
+    "docs/backups-pre-2.6.3/spindle.json": "d85eefc5959be17619421d1a4bdc42832b110e72b6e50bf064507ea13def2529",
+    "docs/backups-pre-2.6.3/src/engine.js": "9306ecf698eeabfeea598dbe13e4e866f9d93bf6510ba283a14bdf9fb6d54786",
+    "docs/backups-pre-2.6.3/src/frontend.js": "610e4a205511293062d4dd017f46a9af873b6af50d8598eaacc14c577e4a781a",
+    "docs/backups-pre-2.6.3/tests/engine.test.mjs": "0077928896b418524535bc077e4e66daae056a881036e505461c1078b58f022b",
+    "docs/backups-pre-2.6.3/tests/rendering.test.mjs": "8beb4332863c4176787d755c83e4cd6bf380e2f7dee7cb0bc271ea3dd3cf1ba3"
+  },
+  "tests": {
+    "command": "node --test tests/*.test.mjs",
+    "passed": 94,
+    "failed": 0,
+    "clean_extract_rebuild": "required before delivery"
+  },
+  "notes": [
+    "Every pre-2.6.3 file has been preserved, including older manifests, backups, assets, tests, and dist.",
+    "Spindle extension identifier and v1 localStorage key unchanged. No save migration.",
+    "No assets or game rules modified."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "identifier": "fuckass_funzone",
+  "name": "Fuckass Funzone \u00b7 Arcade Intermission",
+  "version": "2.5.0",
+  "author": "KittyLotus",
+  "description": "Frontend-only Funzone OS arcade: Bird, Jetpack, Snake, 2048, Match-3, Plinko, Simon, Duck Hunt and fictional-ticket Slots with peeking monocled Gabu. Custom art, saves, reactions and generation-aware HUD.",
+  "entry_frontend": "dist/frontend.js",
+  "permissions": [
+    "ui_panels"
+  ]
+}

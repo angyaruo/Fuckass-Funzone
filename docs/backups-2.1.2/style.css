@@ -1,0 +1,125 @@
+/* Bird Brain — all selectors namespaced; the host theme remains untouched. */
+.bb, .bb * { box-sizing: border-box; }
+.bb { --bb-ink:#fff5fc; --bb-pink:#fb6d9d; --bb-gold:#ffcf67; --bb-mute:#bcb1ce;
+  color:var(--bb-ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:13px;line-height:1.35; }
+.bb button,.bb select {font:inherit;cursor:pointer;}
+.bb button:focus-visible,.bb select:focus-visible,.bb input:focus-visible,.bb-canvas:focus-visible { outline:3px solid #ffdd83;outline-offset:2px;}
+.bb-float {width:100%;height:100%;overflow:auto;min-width:0;padding:9px;border-radius:18px;
+  background:linear-gradient(155deg,#242039,#141426 67%,#1d1835);border:1px solid #6a4a7d;
+  box-shadow:0 14px 36px #0008,inset 0 1px 0 #ffffff1c;overscroll-behavior:contain;touch-action:pan-y;}
+.bb-header {display:flex;align-items:center;gap:8px;margin-bottom:9px;min-width:0;}
+.bb-icon {width:32px;height:32px;border-radius:10px;flex:0 0 auto;object-fit:cover;border:1px solid #c95f99;}
+.bb-heading {display:flex;flex-direction:column;gap:1px;line-height:1.15;min-width:72px;flex:1;}
+.bb-heading strong {font-weight:900;font-size:13px;letter-spacing:.11em;color:#ffedfb;white-space:nowrap;}
+.bb-heading small {color:#b4a5cc;font-size:10px;letter-spacing:.02em;white-space:nowrap;}
+.bb-status {display:inline-flex;align-items:center;justify-content:center;border:1px solid #605577;background:#312d46;color:#dbcef1;
+  padding:5px 7px;border-radius:20px;font-size:9px;letter-spacing:.055em;font-weight:800;white-space:nowrap;}
+.bb-status[data-state=thinking]{background:#402b49;color:#ffd3a6;border-color:#a87a53;}
+.bb-status[data-state=ready]{background:#2a5147;color:#b8ffd6;border-color:#5ab999;}
+.bb-iconbutton {appearance:none;border:1px solid #695672;background:#2e253e;color:#ffefff;border-radius:9px;
+  width:28px;height:29px;display:grid;place-items:center;font-size:20px;padding:0;flex-shrink:0;}
+.bb-iconbutton:hover {background:#47304e;}
+.bb-tabs {display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.bb-mode {border:1px solid #483d60;background:#2e2a40;color:#b9abc8;border-radius:10px;padding:8px 3px;font-size:10px;
+  letter-spacing:.02em;font-weight:850;min-width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
+.bb-mode:hover {border-color:#b57eae;color:#fff;}
+.bb-mode.selected {background:linear-gradient(135deg,#5b274f,#943b69);border-color:#e36c9d;color:#fff1fa;}
+.bb-mode:first-child.selected {background:linear-gradient(135deg,#665038,#9c7532);border-color:#f0bb52;color:#fff9dd;}
+.bb-canvas {display:block;width:100%;max-width:360px;height:auto;aspect-ratio:360/452;margin:0 auto;cursor:pointer;
+  border-radius:12px;border:2px solid #b97aaa;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;
+  background:#3e3376;box-shadow:inset 0 1px 0 #fff6,0 3px 12px #0005;}
+.bb-controls {display:grid;grid-template-columns:minmax(0,1fr) repeat(3,minmax(38px,52px));gap:7px;align-items:stretch;margin-top:8px;}
+.bb-mainbutton,.bb-mini,.bb-launch {border-radius:11px;font-size:12px;font-weight:900;letter-spacing:.035em;min-height:39px;transition:filter .12s;}
+.bb-mainbutton {border:1px solid #ffafc9;background:linear-gradient(180deg,#ff7fac,#cb3e78);color:#fff;box-shadow:inset 0 1px 0 #ffd1e1;}
+.bb-mini {border:1px solid #665577;background:linear-gradient(180deg,#403253,#2b233b);color:#ffddf3;padding:0 3px;}
+.bb-mainbutton:hover,.bb-mini:hover,.bb-launch:hover {filter:brightness(1.13);}
+.bb-footer {min-height:19px;text-align:center;margin-top:7px;font-size:10px;line-height:1.4;
+  color:#ad9bc4;letter-spacing:.065em;font-weight:750;}
+.bb-drawer {max-width:520px;padding:14px;margin:0 auto;color:#efe6f5;}
+.bb-cover {width:100%;max-height:255px;object-fit:cover;object-position:center 42%;display:block;
+  border-radius:17px;border:1px solid #77518d;box-shadow:0 8px 27px #0006;}
+.bb-intro h2 {font-size:22px;font-weight:950;color:#ffe0f0;letter-spacing:.07em;margin:15px 0 4px;}
+.bb-intro p {font-size:12px;color:#baaccb;margin:0 0 13px;line-height:1.5;}
+.bb-launches {display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.bb-launch {padding:13px 6px;border:1px solid #e3acc4;white-space:normal;min-height:45px;}
+.bb-pink {background:linear-gradient(150deg,#ea5993,#a7439c);color:#fff4ff;}
+.bb-gold {background:linear-gradient(150deg,#ffcd64,#dd8149);color:#3c1c34;border-color:#ffe8a1;}
+.bb-help {border-left:3px solid #b26eab;background:#302643;border-radius:0 9px 9px 0;
+ padding:11px;color:#d1c1d6;font-size:11px;line-height:1.5;margin:13px 0 15px;}
+.bb-section {font-size:12px;letter-spacing:.12em;color:#e9b5d0;border-bottom:1px solid #564463;
+ padding:0 0 9px;margin:15px 0 3px;}
+.bb-setting {display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;
+ border-bottom:1px solid #42334d;cursor:pointer;}
+.bb-setting-label {display:flex;flex:1;flex-direction:column;gap:3px;}
+.bb-setting-label strong {font-weight:760;color:#f6eaf3;font-size:12px;}
+.bb-setting-label small {font-size:10px;color:#a99ab9;}
+.bb-setting input[type=checkbox] {appearance:none;position:relative;width:35px;height:21px;flex:0 0 auto;
+ background:#474257;border:1px solid #7c6a84;border-radius:20px;transition:background .12s;}
+.bb-setting input[type=checkbox]::after {content:'';position:absolute;left:3px;top:3px;width:13px;height:13px;border-radius:50%;background:#cfc2d9;transition:transform .12s;}
+.bb-setting input[type=checkbox]:checked {background:#a04d85;border-color:#ef82bb;}
+.bb-setting input[type=checkbox]:checked::after {background:#fff1f7;transform:translateX(13px);}
+.bb-select {max-width:148px;min-width:109px;background:#302742;color:#fdeaf5;border:1px solid #766087;border-radius:8px;padding:8px 6px;font-size:11px;}
+.bb-bests {font-size:10px;letter-spacing:.045em;font-weight:800;color:#ffcc8f;background:#342638;border-radius:9px;
+ margin:14px 0 8px;padding:11px 8px;text-align:center;}
+.bb-quiet {background:transparent;border:0;color:#b49baa;font-size:10px;text-decoration:underline;padding:8px 3px;}
+@media (max-width:390px) {
+ .bb-float {padding:6px;border-radius:12px;}
+ .bb-icon {width:28px;height:28px;}
+ .bb-heading strong {font-size:11px;}
+ .bb-heading small {font-size:9px;}
+ .bb-status {font-size:8px;padding:4px 5px;}
+ .bb-mode {font-size:9px;padding:7px 2px;}
+ .bb-controls {grid-template-columns:minmax(0,1fr) repeat(3,38px);gap:5px;}
+ .bb-mainbutton,.bb-mini {min-height:36px;font-size:10px;}
+ .bb-launches {grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce) {.bb-mainbutton,.bb-mini,.bb-launch,.bb-setting input {transition:none;}}
+/* Fuckass Funzone v2: the HUD uses only intentional SVG and PNG icons. */
+.bb-brand{display:block;width:min(47%,178px);height:49px;object-fit:contain;flex:0 1 178px;min-width:118px;}
+.bb-header{justify-content:space-between;margin-bottom:5px;gap:5px;}
+.bb-header .bb-status{margin-left:auto;}
+.bb-iconbutton svg,.bb-mainbutton svg,.bb-mini svg{display:block;flex-shrink:0;}
+.bb-iconbutton span{display:none;}
+.bb-controls button{display:flex;justify-content:center;align-items:center;gap:5px;}
+.bb-mainbutton svg{width:16px;height:16px;}
+.bb-mini span{display:none;}
+.bb-ticker{display:flex;align-items:center;gap:7px;margin:0 0 7px;padding:6px 9px;border:1px solid #754b79;border-radius:10px;background:linear-gradient(90deg,#30213e,#23192f);}
+.bb-currency-icon{width:19px;height:19px;object-fit:contain;}
+.bb-ticket-label{font-size:9px;font-weight:850;letter-spacing:.1em;color:#ddbddb;}
+.bb-ticket-count{margin-left:auto;color:#fff;font-size:13px;font-variant-numeric:tabular-nums;}
+.bb-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;}
+.bb-mode{display:flex;align-items:center;justify-content:center;gap:3px;padding:5px 2px;font-size:9px;letter-spacing:0;border-radius:8px;}
+.bb-mode span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bb-tab-art{width:20px;height:20px;object-fit:contain;flex:0 0 20px;}
+.bb-mode.selected{box-shadow:inset 0 1px 0 #ffffff28,0 0 0 1px #f78dc155;}
+.bb-mode:nth-child(3).selected{background:linear-gradient(145deg,#115567,#245c5f);border-color:#6be1c9;}
+.bb-mode:nth-child(4).selected{background:linear-gradient(145deg,#613b83,#8d54a4);border-color:#dda0ff;}
+.bb-controls{grid-template-columns:minmax(0,1fr) repeat(4,40px);gap:5px;}
+.bb-canvas{max-width:360px;}
+.bb-drawer-logo{display:block;width:100%;max-height:112px;object-fit:contain;margin:0 auto 14px;}
+.bb-cover{max-height:210px;}
+.bb-launches-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.bb-launches-grid .bb-launch{display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;background:linear-gradient(145deg,#603059,#272343);border:1px solid #9f639d;}
+.bb-launches-grid .bb-launch:hover{background:#803c75;}
+.bb-launches-grid .bb-tab-art{width:38px;height:38px;flex:0 0 38px;}
+.bb-upcoming{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;}
+.bb-upcoming span{display:block;border:1px solid #514260;border-radius:9px;color:#ad9cba;text-align:center;padding:12px 4px;font-size:10px;font-weight:800;background:#262036;}
+.bb-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+@media(max-width:390px){
+ .bb-brand{width:42%;min-width:108px;height:39px;}
+ .bb-tabs{gap:3px;}
+ .bb-mode{font-size:8px;padding:4px 1px;}
+ .bb-tab-art{width:16px;height:16px;flex-basis:16px;}
+ .bb-controls{grid-template-columns:minmax(0,1fr) repeat(4,33px);gap:4px;}
+ .bb-ticket-label{font-size:8px;}
+ .bb-mini{padding:0;}
+ .bb-launches-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:320px){.bb-mode span{font-size:0;}.bb-mode .bb-tab-art{width:22px;height:22px;flex-basis:22px;}}
+
+.bb-controls:not(.bb-merge){grid-template-columns:minmax(0,1fr) repeat(3,40px);}
+.bb-controls.bb-merge{grid-template-columns:minmax(0,1fr) repeat(4,40px);}
+.bb-controls .bb-undo[hidden]{display:none;}
+.bb-mainbutton:disabled{cursor:default;filter:grayscale(.2);opacity:.75;}
+@media(max-width:390px){.bb-controls:not(.bb-merge){grid-template-columns:minmax(0,1fr) repeat(3,36px);}.bb-controls.bb-merge{grid-template-columns:minmax(0,1fr) repeat(4,33px);}}

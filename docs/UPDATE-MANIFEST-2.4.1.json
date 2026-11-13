@@ -1,0 +1,94 @@
+{
+  "version": "2.4.1",
+  "base_version": "2.4.0",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "bytes": 10982,
+      "sha256": "b2695dcdeb537e0265e1dd2dc87fc30879d12c8f4e09189d6cab6c3c45d530ec"
+    },
+    {
+      "path": "dist/frontend.js",
+      "bytes": 4635143,
+      "sha256": "c5fdf78f18de79cdbcd63ff4f48539d4a285a2b9663947a347a8ebf6d80f520e"
+    },
+    {
+      "path": "docs/CHANGELOG-2.4.1.md",
+      "bytes": 617,
+      "sha256": "50fca0a0ceecc9bc28a0728364330b7433181dbf33ec93a944c10bb6f3b18956"
+    },
+    {
+      "path": "docs/backups-2.4.1/manifest.json",
+      "bytes": 824,
+      "sha256": "088c72c9daa60c358fbc0c4c63b21819198035e68bf11b02f4f769b75af9d1b9"
+    },
+    {
+      "path": "docs/backups-2.4.1/package.json",
+      "bytes": 324,
+      "sha256": "bc4fd49e12f2fec876a7d921422d7a5de216a40deda4e3d5631c2c86add10c14"
+    },
+    {
+      "path": "docs/backups-2.4.1/scripts__build.mjs",
+      "bytes": 7442,
+      "sha256": "ec886818e18f436fba6674333782daebe02318457a34574b0b0e9f9fdf8d2d87"
+    },
+    {
+      "path": "docs/backups-2.4.1/spindle.json",
+      "bytes": 418,
+      "sha256": "f567e4e5a92d729c61d46f7364ce38ddcf1f3cab2dc3b36d5442a2cc275e0e79"
+    },
+    {
+      "path": "docs/backups-2.4.1/src__frontend.js",
+      "bytes": 59628,
+      "sha256": "366c5bd280ec241b5b1c46ab4ad42c8827891a2a7273c11ab77b0392b908cec9"
+    },
+    {
+      "path": "docs/backups-2.4.1/src__style.css",
+      "bytes": 31090,
+      "sha256": "0f658746bf1ac3319a262ea7455b5a3668fc06099b23ebaf713f8be72d19e6bf"
+    },
+    {
+      "path": "docs/backups-2.4.1/tests__lifecycle.test.mjs",
+      "bytes": 18315,
+      "sha256": "2cb03828f9c8887fa2990db2ac30ca50e8d29bd6c2bb060010e7d5fbde6e0ad7"
+    },
+    {
+      "path": "package.json",
+      "bytes": 324,
+      "sha256": "12e7773422b741e4b8a62c8e8c5fa719511740183355ce9173343c32c3fea51b"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 7442,
+      "sha256": "e0f8a3781987509a4bfa3ea0fd5e8a7ba0391f50fae10433fcb1b0dfadbf1dfa"
+    },
+    {
+      "path": "spindle.json",
+      "bytes": 418,
+      "sha256": "4bcf92c9f3f1a3d51883bbef7ff3371afb1c274fb156d21279be1d3033b8a678"
+    },
+    {
+      "path": "src/frontend.js",
+      "bytes": 60023,
+      "sha256": "34a4f4d64874bb07f932d35f768d0ad74960ab5b51d73fac9ab9a41f38e453c5"
+    },
+    {
+      "path": "src/style.css",
+      "bytes": 32948,
+      "sha256": "cc737e7f9f6e35eac66785f2c69e466e042ab2c68de604f60d261a677b8b326d"
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "bytes": 19256,
+      "sha256": "adb5e502a10c341b9c95e576b01399f2b529e7f10bc308301a47d2f91be6d8dc"
+    },
+    {
+      "path": "tests/shop-layout.test.mjs",
+      "bytes": 1462,
+      "sha256": "96afc91b25d5152b7852c9569ddd43391946f1fad11f7d53c9bc3fe63ba11178"
+    }
+  ],
+  "removed_files": []
+}

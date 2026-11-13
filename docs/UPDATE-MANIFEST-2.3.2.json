@@ -1,0 +1,64 @@
+{
+  "version": "2.3.2",
+  "base_version": "2.3.1",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "a2069baf0b97933604c496a49d12177fb67bcda19b5f796b6137d30676966316",
+      "bytes": 11410
+    },
+    {
+      "path": "demo-plinko-qa.html",
+      "sha256": "ad29b7367beef80f39734059e50ba27bcf0a20aaf89b23f077e31c22439ca913",
+      "bytes": 1551
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "ee86afbc13cddd10cb2019cec148fd511c29f6d75a38cc7a0e7e9a22bb21fc7a",
+      "bytes": 4592137
+    },
+    {
+      "path": "docs/CHANGELOG-2.3.2.md",
+      "sha256": "9553f1744355b5d8471119e44e7ffba5b6678c081f053401362ca03b0607e5ab",
+      "bytes": 935
+    },
+    {
+      "path": "docs/plinko-hud-v2.3.2-preview.png",
+      "sha256": "4f4f12fa362fe1daba820f7ba4a15643087174414fdc448eceb2a3e4996f307e",
+      "bytes": 121625
+    },
+    {
+      "path": "package.json",
+      "sha256": "29fbb68885923e540f9608b2086195c0a097b4cf68ae2241d871cae6350ccaf5",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "f07d2bb698d42bdf484a097421a6259f8ac8c81204c20ebe7cbf255adf509a94",
+      "bytes": 7042
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "55af6d8bf718da7688d811369fa0dd1944a9606b33b5c6a040479b3b91d9c35e",
+      "bytes": 418
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "7fb8336d03a0b27a1c67ba2070be09610e318bd97309a599ae952ba664ecd7fe",
+      "bytes": 42940
+    },
+    {
+      "path": "src/plinko-render.js",
+      "sha256": "de7718cb84fa19bf3ddecdbbb6eeaf36d1c66d73144faf4fdb5b98ed89b6be4a",
+      "bytes": 6967
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "85be6a23abb7b07671e7c6e9eedd2c51d7d0d345da58cf470b66a1b4346ede6f",
+      "bytes": 15457
+    }
+  ],
+  "removed_files": []
+}

@@ -1,0 +1,6 @@
+{
+  "description": "Original 2.4.1 editable files backed up immediately before 2.5.0 modifications.",
+  "source": "user-provided fuckass_funzone.zip, repo root",
+  "files": ["frontend.js", "style.css", "match3.js", "build.mjs", "package.json", "spindle.json"],
+  "note": "Original files stored flat here. All other unchanged files are preserved in the cumulative source ZIP."
+}

@@ -1,0 +1,134 @@
+{
+  "version": "2.3.0",
+  "base_version": "2.2.1",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "f9154a75e56bc9500e50417df5e6c48f1e955f4a32ef44a7d6d0b7fb74b952cf",
+      "bytes": 9285
+    },
+    {
+      "path": "assets/plinko/cat-chip.png",
+      "sha256": "a6e4c9e5587a9a3a36aa24bd91e658894f4457458b7a1c577b7e54d70d0ca7e5",
+      "bytes": 17257
+    },
+    {
+      "path": "assets/plinko/cat-crest.svg",
+      "sha256": "a1c6ddd077f022e7556cf1ad72079380a9e305e99d690ac6ec8436f2a0317b92",
+      "bytes": 1100
+    },
+    {
+      "path": "assets/plinko/gabu-monocle.png",
+      "sha256": "b36d3e729b3cd5479de4eac729fbeda4daacdc31243160c906bad1e825ffe5a0",
+      "bytes": 44811
+    },
+    {
+      "path": "assets/plinko/plinko-app.png",
+      "sha256": "466b4840715688ae8d79370b4c31e5cd61fc08bb9d8fa9b6387e77fb2e2ede61",
+      "bytes": 11929
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "74e19630f213bd82eb3398d48b0a31b27f6b1d0f5eb83b21e9ab3e56d0237b58",
+      "bytes": 3959877
+    },
+    {
+      "path": "docs/CHANGELOG-2.3.0.md",
+      "sha256": "752bee8ca5f7e7272568bd86384b0efd39ccc10d3656904f1aab6e0db23aab4a",
+      "bytes": 3397
+    },
+    {
+      "path": "docs/PREPATCH-2.3.0-MANIFEST.json",
+      "sha256": "9608ff64ad8632d175f5e9a4182e1a960173c563c5542e576cb38fd5cbce256c",
+      "bytes": 766
+    },
+    {
+      "path": "docs/plinko-phone-preview.png",
+      "sha256": "5e7df73ad4737d544b96dea787ab15f105908d7293746e237e626c45c4b076ad",
+      "bytes": 156125
+    },
+    {
+      "path": "package.json",
+      "sha256": "b766a519931beb4e23eff4abb14dd32f7319a9bbeb12947772f8c65bd57350f8",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "75d27a68297755d53bc27f98b30d6380e9db596d23572938bd9ae94ecb2b3e0e",
+      "bytes": 6998
+    },
+    {
+      "path": "scripts/make_plinko_assets.py",
+      "sha256": "3a6392945360ef561bb2b998c34c2e390eac59f4fdf66e9203cf1f99d974901a",
+      "bytes": 3530
+    },
+    {
+      "path": "scripts/make_plinko_preview.py",
+      "sha256": "bf3a3860214cf14c6b769e34f1e9f85f1f1e95a6e5af43224755e8b004dc3344",
+      "bytes": 3893
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "55dddda36aafd71a5e73b415b7310cef352bcdd68cb222ebdfff92eabaeee50f",
+      "bytes": 410
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "914102759acfda8f021a2f2cae15b0810de5fed364e07693e29af31342860373",
+      "bytes": 42596
+    },
+    {
+      "path": "src/plinko-render.js",
+      "sha256": "dedf88a6556bd6a40b31e3a8c55b629c99235cd30433a1b7800fb9accad42b23",
+      "bytes": 3720
+    },
+    {
+      "path": "src/plinko.js",
+      "sha256": "bec46f3e79f17ace58077feff9921fc778498c75a5e84c2fe0965aa0044ab788",
+      "bytes": 4947
+    },
+    {
+      "path": "src/reactions.js",
+      "sha256": "03f8ba9d152928de49ea04bf578a09513160a2e92a9a2c12b880b6bdb7a1811c",
+      "bytes": 4444
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "a7cdb92175c6ad84101faf3a4147e8b41852b568c53d8a3b33ef9495268035bc",
+      "bytes": 11985
+    },
+    {
+      "path": "tests/gabu-reactions.test.mjs",
+      "sha256": "9531ab8d29ef486626c271e7a59e196a8bb5a3141823b84cca27fa09286140eb",
+      "bytes": 1761
+    },
+    {
+      "path": "tests/hud.test.mjs",
+      "sha256": "ec6ff6b3ebbd4a86d184b9a5d6315ebbb5c88b8509b0547a0a29ae55c0ccde7d",
+      "bytes": 1258
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "c737b9eef910b5091a6a8b54e26e86b9699eb7f9e03d6e5804592ad8f6f91788",
+      "bytes": 8981
+    },
+    {
+      "path": "tests/match3-assets.test.mjs",
+      "sha256": "7bfeeb67b4e50911a86f946a5572c9aeae4be224ea09c03a745d0451e8bd0f50",
+      "bytes": 1686
+    },
+    {
+      "path": "tests/match3-vectors.test.mjs",
+      "sha256": "0c3a11a6df22de122a6756201fdeb3888a24730a78a859402b95e3a7c8fbec8d",
+      "bytes": 2074
+    },
+    {
+      "path": "tests/plinko.test.mjs",
+      "sha256": "973ce2c1b27680f9d11cb178e626284e05116b1d5f79323440615da091709187",
+      "bytes": 4232
+    }
+  ],
+  "removed_files": []
+}

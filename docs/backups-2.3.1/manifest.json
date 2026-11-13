@@ -1,0 +1,49 @@
+[
+  {
+    "path": "src/plinko.js",
+    "before_sha256": "bec46f3e79f17ace58077feff9921fc778498c75a5e84c2fe0965aa0044ab788",
+    "after_sha256": "230e4963e4e8ed7f551dd55cbf452c00c3f0d9d75f6abb922456a4e508564dae"
+  },
+  {
+    "path": "src/plinko-render.js",
+    "before_sha256": "dedf88a6556bd6a40b31e3a8c55b629c99235cd30433a1b7800fb9accad42b23",
+    "after_sha256": "ebac7dfdcb24613ca1220e4744736bc1cb157cf1432d7cad59c7eab69c15b801"
+  },
+  {
+    "path": "src/frontend.js",
+    "before_sha256": "914102759acfda8f021a2f2cae15b0810de5fed364e07693e29af31342860373",
+    "after_sha256": "f5775a797eba3d231eb7b7dcf363a274e33a5e1a5f5e8dd09f57df528bad37bb"
+  },
+  {
+    "path": "src/style.css",
+    "before_sha256": "a7cdb92175c6ad84101faf3a4147e8b41852b568c53d8a3b33ef9495268035bc",
+    "after_sha256": "e3a5c3223d2031e46b47d6e2002b51998ca0add6cbb0cb7eb0b894ba256e245c"
+  },
+  {
+    "path": "src/reactions.js",
+    "before_sha256": "03f8ba9d152928de49ea04bf578a09513160a2e92a9a2c12b880b6bdb7a1811c",
+    "after_sha256": "05d06c068f415eba77d4ed79f0643705d5dd92d827c0ed5501b0e848f496d696"
+  },
+  {
+    "path": "scripts/build.mjs",
+    "before_sha256": "75d27a68297755d53bc27f98b30d6380e9db596d23572938bd9ae94ecb2b3e0e",
+    "after_sha256": "bb80348fa8e3aeca8deed156a7ed0607a6a24b549951000306ca963f5579a162"
+  },
+  {
+    "path": "spindle.json",
+    "before_sha256": "55dddda36aafd71a5e73b415b7310cef352bcdd68cb222ebdfff92eabaeee50f",
+    "after_sha256": "6ce81efe4da423e78a43beadd257c6c5c7e291d60088600f1099800de657ca80"
+  },
+  {
+    "path": "package.json",
+    "before_sha256": "b766a519931beb4e23eff4abb14dd32f7319a9bbeb12947772f8c65bd57350f8",
+    "after_sha256": "7c98128882d872945b859b0716f23d750305297fb2086cfcaecb700f28ea19c4"
+  },
+  {
+    "source_art": "assets/source/plinko-host-original.png",
+    "outputs": [
+      "assets/plinko/gabu-monocle.png",
+      "assets/plinko/gabu-peek.png"
+    ]
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "version": "2.4.0",
+  "base_version": "2.3.5",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "2ed86382637f7f5f1e61bc483524897c04308b028e9871ceb77d00dde5d4ae99",
+      "bytes": 10199
+    },
+    {
+      "path": "demo-shop-qa.html",
+      "sha256": "b447aefd0d4e65a8ef31f28cb3cf5a671b4c5bdb8e6c4747151dad9e6a83ef7a",
+      "bytes": 2719
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "3211eaa74dae77e5873b5e4590076f1bb15841f6c8664693f67b7b7e3eb0b589",
+      "bytes": 4632835
+    },
+    {
+      "path": "docs/CHANGELOG-2.4.0.md",
+      "sha256": "a3b2cb89d8aec7617a160a8fd9ca5f0193b60eb5c42f31ac1981042b7dd4d647",
+      "bytes": 823
+    },
+    {
+      "path": "docs/backups-2.4.0/manifest.json",
+      "sha256": "adfde0896d34cc17830d9a0c2903e9a7029496e22c1728727824944f62b95f15",
+      "bytes": 1231
+    },
+    {
+      "path": "docs/backups-2.4.0/package.json",
+      "sha256": "2352d228e279d71af5be1a95bd62bb75407eeb1814e97c9e7769e547642f36f2",
+      "bytes": 324
+    },
+    {
+      "path": "docs/backups-2.4.0/scripts__build.mjs",
+      "sha256": "bb6d61983064e0ed5817da29a10f55e9b420ad81a82c3ebc07adc21dabea8c84",
+      "bytes": 7150
+    },
+    {
+      "path": "docs/backups-2.4.0/spindle.json",
+      "sha256": "eb641c511e20045bf48d460f7c54c992bcd318cf8eec703513a83404a3261725",
+      "bytes": 418
+    },
+    {
+      "path": "docs/backups-2.4.0/src__frontend.js",
+      "sha256": "7ccca8d9a0c7ea4d8824a2fac633c97345b7bf439aaafc21806c01170a2cc71a",
+      "bytes": 52427
+    },
+    {
+      "path": "docs/backups-2.4.0/src__plinko-render.js",
+      "sha256": "de7718cb84fa19bf3ddecdbbb6eeaf36d1c66d73144faf4fdb5b98ed89b6be4a",
+      "bytes": 6967
+    },
+    {
+      "path": "docs/backups-2.4.0/src__puzzle-render.js",
+      "sha256": "d65fb88f1bddb30888dfa96dce587ffe283bf6bee63a3f515b7b3e8cb0ea83f7",
+      "bytes": 5932
+    },
+    {
+      "path": "docs/backups-2.4.0/src__style.css",
+      "sha256": "226509ea8c68e198ffe801206b26fe19dadc9379a9a5a07e437f5650a8076611",
+      "bytes": 23017
+    },
+    {
+      "path": "docs/backups-2.4.0/tests__hud.test.mjs",
+      "sha256": "ec6ff6b3ebbd4a86d184b9a5d6315ebbb5c88b8509b0547a0a29ae55c0ccde7d",
+      "bytes": 1258
+    },
+    {
+      "path": "docs/backups-2.4.0/tests__lifecycle.test.mjs",
+      "sha256": "969a3d4edae04cb2b0cab573da23c3c6ef65437f3cbbc247e0d0efed6af46e76",
+      "bytes": 15732
+    },
+    {
+      "path": "package.json",
+      "sha256": "bc4fd49e12f2fec876a7d921422d7a5de216a40deda4e3d5631c2c86add10c14",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "ec886818e18f436fba6674333782daebe02318457a34574b0b0e9f9fdf8d2d87",
+      "bytes": 7442
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "f567e4e5a92d729c61d46f7364ce38ddcf1f3cab2dc3b36d5442a2cc275e0e79",
+      "bytes": 418
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "366c5bd280ec241b5b1c46ab4ad42c8827891a2a7273c11ab77b0392b908cec9",
+      "bytes": 59628
+    },
+    {
+      "path": "src/plinko-render.js",
+      "sha256": "fde37566950d1f9e84c1cbbc6dfc1c097e1d4955975ec0bca0c329a03220d873",
+      "bytes": 7090
+    },
+    {
+      "path": "src/puzzle-render.js",
+      "sha256": "80d7e977e26148ca939a51e4a5d382c7a313f5ec7c9158bc6db4043094af2e30",
+      "bytes": 6721
+    },
+    {
+      "path": "src/shop.js",
+      "sha256": "2ff31d544fe7c8dae2c128c979c946777aeae3166b0d780ab974c26a583b6ea4",
+      "bytes": 3122
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "0f658746bf1ac3319a262ea7455b5a3668fc06099b23ebaf713f8be72d19e6bf",
+      "bytes": 31090
+    },
+    {
+      "path": "tests/hud.test.mjs",
+      "sha256": "d193a24be9af6bada6c228ac3c27590710177183beef64ca959c63624e269b28",
+      "bytes": 1292
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "2cb03828f9c8887fa2990db2ac30ca50e8d29bd6c2bb060010e7d5fbde6e0ad7",
+      "bytes": 18315
+    },
+    {
+      "path": "tests/shop.test.mjs",
+      "sha256": "b9a5eca5c63ee387baf5591e981f6ed24106fed959ece5a69abadc611813e978",
+      "bytes": 6505
+    }
+  ],
+  "removed_files": []
+}

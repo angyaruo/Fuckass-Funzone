@@ -1,0 +1,152 @@
+/* Fuckass Funzone v2.3.0 · minimal Funzone OS + quiet playfield.
+   Namespaced to .bb so Lumiverse themes remain untouched. Iconography is SVG/PNG only. */
+.bb,.bb *{box-sizing:border-box}
+.bb{--bb-ink:#f9eefa;--bb-pink:#ee88b3;--bb-gold:#ffcf79;--bb-muted:#baaacb;
+ color:var(--bb-ink);font:13px/1.35 Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
+.bb button,.bb select{font:inherit;cursor:pointer}
+.bb button:focus-visible,.bb select:focus-visible,.bb input:focus-visible,.bb-canvas:focus-visible{outline:2px solid #ffe0a3;outline-offset:2px}
+.bb-float{width:100%;height:100%;overflow:auto;min-width:0;padding:9px 10px 8px;border-radius:15px;
+ background:linear-gradient(150deg,#241e32,#1b1829 68%,#231d30);border:1px solid #50435d;
+ box-shadow:0 12px 32px #0006;overscroll-behavior:contain;touch-action:pan-y}
+/* The entire top chrome fits into ONE small row. */
+.bb-header{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:5px;height:39px}
+.bb-brand{display:block;width:141px;max-width:43%;height:37px;min-width:92px;object-fit:contain;flex:0 1 141px}
+.bb-status{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin-left:auto;
+ color:#b7aac6;font-size:9px;font-weight:800;letter-spacing:.04em;min-width:0}
+.bb-status::before{content:'';display:block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#84758f}
+.bb-status[data-state=thinking]{color:#ffd9b3}
+.bb-status[data-state=thinking]::before{background:#f6b76b;box-shadow:0 0 8px #f5a35680}
+.bb-status[data-state=ready]{color:#b2ead2}
+.bb-status[data-state=ready]::before{background:#6bd2a0;box-shadow:0 0 8px #68d5a075}
+.bb-wallet{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 7px;border-radius:8px;background:#171525;
+ border:1px solid #3c314c;min-width:42px}
+.bb-currency-icon{display:block;width:16px;height:16px;object-fit:contain;flex:0 0 16px}
+.bb-ticket-count{color:#fff5fb;font-size:11px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bb-iconbutton{appearance:none;display:grid;place-items:center;flex:0 0 auto;width:28px;height:28px;
+ border-radius:7px;border:1px solid transparent;background:transparent;color:#d5c4dc;padding:0}
+.bb-iconbutton:hover{background:#3a3048;border-color:#56435f}
+.bb-iconbutton svg,.bb-mainbutton svg,.bb-mini svg{display:block;flex-shrink:0}
+.bb-iconbutton span,.bb-mini span{display:none}
+/* One game-picker button replaces the old five-tab rail. */
+.bb-phone-button{color:#f3c1e0;border:1px solid #55405a;background:#271d33}
+.bb-phone-button svg{width:17px;height:17px}
+/* Game canvas is the hero; remove the border-inside-border effect. */
+.bb-canvas{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:360/452;margin:0 auto;
+ border:1px solid #584563;border-radius:10px;background:#211b37;
+ outline:none;box-shadow:none;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+/* Match-3 alone receives a neutral graphite playfield; preserve the pink Funzone branding. */
+.bb-canvas[data-mode=match3]{background:#1c222b;border-color:#414954;}
+/* Single compact control strip with contextual Play/Pause and quiet utilities. */
+.bb-controls{display:flex;align-items:center;gap:5px;margin-top:6px;min-width:0}
+.bb-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.bb-mainbutton,.bb-mini,.bb-launch{font-size:11px;font-weight:800;transition:background .12s,border-color .12s}
+.bb-mainbutton{min-height:33px;min-width:85px;padding:5px 10px;border:1px solid #90667f;border-radius:8px;
+ background:#55334c;color:#ffeaf2;letter-spacing:.04em}
+.bb-mainbutton:hover{background:#70405e}
+.bb-mainbutton svg{width:15px;height:15px}
+.bb-mini{width:32px;height:33px;padding:0;border:1px solid #51445b;border-radius:8px;background:#2b2539;color:#d9cbdc}
+.bb-mini:hover{background:#3b2e49;border-color:#866b92}
+.bb-controls .bb-undo[hidden]{display:none}
+.bb-footer{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#8f829e;
+ font-size:9px;font-weight:650;letter-spacing:.01em;line-height:1.3}
+.bb-drawer {max-width:520px;padding:14px;margin:0 auto;color:#efe6f5;}
+.bb-cover {width:100%;max-height:210px;object-fit:cover;object-position:center 42%;display:block;
+  border-radius:17px;border:1px solid #77518d;box-shadow:0 8px 27px #0006;}
+.bb-intro h2 {font-size:22px;font-weight:950;color:#ffe0f0;letter-spacing:.07em;margin:15px 0 4px;}
+.bb-intro p {font-size:12px;color:#baaccb;margin:0 0 13px;line-height:1.5;}
+.bb-launches {display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.bb-launch {padding:13px 6px;border:1px solid #e3acc4;white-space:normal;min-height:45px;}
+.bb-pink {background:linear-gradient(150deg,#ea5993,#a7439c);color:#fff4ff;}
+.bb-gold {background:linear-gradient(150deg,#ffcd64,#dd8149);color:#3c1c34;border-color:#ffe8a1;}
+.bb-help {border-left:3px solid #b26eab;background:#302643;border-radius:0 9px 9px 0;
+ padding:11px;color:#d1c1d6;font-size:11px;line-height:1.5;margin:13px 0 15px;}
+.bb-section {font-size:12px;letter-spacing:.12em;color:#e9b5d0;border-bottom:1px solid #564463;
+ padding:0 0 9px;margin:15px 0 3px;}
+.bb-setting {display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;
+ border-bottom:1px solid #42334d;cursor:pointer;}
+.bb-setting-label {display:flex;flex:1;flex-direction:column;gap:3px;}
+.bb-setting-label strong {font-weight:760;color:#f6eaf3;font-size:12px;}
+.bb-setting-label small {font-size:10px;color:#a99ab9;}
+.bb-setting input[type=checkbox] {appearance:none;position:relative;width:35px;height:21px;flex:0 0 auto;
+ background:#474257;border:1px solid #7c6a84;border-radius:20px;transition:background .12s;}
+.bb-setting input[type=checkbox]::after {content:'';position:absolute;left:3px;top:3px;width:13px;height:13px;border-radius:50%;background:#cfc2d9;transition:transform .12s;}
+.bb-setting input[type=checkbox]:checked {background:#a04d85;border-color:#ef82bb;}
+.bb-setting input[type=checkbox]:checked::after {background:#fff1f7;transform:translateX(13px);}
+.bb-select {max-width:148px;min-width:109px;background:#302742;color:#fdeaf5;border:1px solid #766087;border-radius:8px;padding:8px 6px;font-size:11px;}
+.bb-bests {font-size:10px;letter-spacing:.045em;font-weight:800;color:#ffcc8f;background:#342638;border-radius:9px;
+ margin:14px 0 8px;padding:11px 8px;text-align:center;}
+.bb-quiet {background:transparent;border:0;color:#b49baa;font-size:10px;text-decoration:underline;padding:8px 3px;}
+
+/* Drawer styles shared by all modes. */
+.bb-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.bb-drawer-logo{display:block;width:100%;max-height:112px;object-fit:contain;margin:0 auto 14px}
+.bb-launches-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.bb-launches-grid .bb-launch{display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;
+ background:linear-gradient(145deg,#603059,#272343);border:1px solid #9f639d}
+.bb-launches-grid .bb-launch:hover{background:#803c75}
+.bb-launches-grid .bb-tab-art{width:38px;height:38px;flex:0 0 38px}
+.bb-upcoming{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.bb-upcoming span{display:block;border:1px solid #514260;border-radius:9px;color:#ad9cba;text-align:center;padding:12px 4px;font-size:10px;font-weight:800;background:#262036}
+@media(max-width:390px){
+ .bb-float{padding:7px 8px;border-radius:12px}
+ .bb-brand{width:125px;max-width:40%;min-width:90px;height:35px}
+ .bb-header{gap:5px;height:36px}
+ .bb-status{font-size:8px;gap:4px}
+ .bb-wallet{padding:4px 5px}
+ .bb-controls{gap:4px}
+ .bb-mainbutton{min-width:80px;padding:5px 7px}
+ .bb-mini{width:30px}
+ .bb-footer{font-size:8px}
+ .bb-launches-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:335px){
+ .bb-brand{max-width:34%}
+ .bb-footer{display:none}
+ .bb-controls{justify-content:flex-end}
+}
+@media(prefers-reduced-motion:reduce){.bb-mainbutton,.bb-mini,.bb-launch,.bb-setting input{transition:none}}
+
+/* Match-3 / Gabu: fleeting overlay, not another permanent dashboard row. */
+.bb-game-stage{position:relative;max-width:360px;margin:0 auto;}
+.bb-game-stage .bb-canvas{margin:0;max-width:100%;}
+.bb-reaction{position:absolute;bottom:13px;left:8px;right:8px;min-height:46px;display:flex;align-items:center;gap:7px;
+ padding:5px 9px 5px 4px;background:#1e142fe9;border:1px solid #c4649c;border-radius:10px;box-shadow:0 6px 15px #110d237d;
+ color:#ffecf8;font-size:11px;line-height:1.25;font-weight:750;pointer-events:none;max-width:calc(100% - 16px);}
+.bb-reaction[hidden]{display:none;}
+.bb-reaction-face{display:block;object-fit:contain;object-position:center;flex:0 0 47px;width:47px;height:47px;}
+.bb-reaction-text{display:block;min-width:0;overflow-wrap:anywhere;}
+.bb-reaction[data-mood=hype]{border-color:#ffcb79;background:#2b1731ed;}
+.bb-reaction[data-mood=panic]{border-color:#f76b91;}
+
+/* Funzone OS — a compact in-widget launcher, never a second host window. */
+.bb-phone[hidden],.bb-game-stage[hidden],.bb-controls[hidden],.bb-plinko-bets[hidden]{display:none!important}
+.bb-phone{min-height:370px;padding:10px 8px 9px;border:1px solid #51425e;border-radius:13px;
+ background:radial-gradient(ellipse at 90% 4%,#68406165,transparent 48%),linear-gradient(145deg,#281d3c,#191727 70%);}
+.bb-phone-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 0 5px}
+.bb-phone-top strong{color:#ffe3ef;font-size:12px;font-weight:900;letter-spacing:.16em}
+.bb-phone-top small{color:#c6a5c2;font-size:8px;letter-spacing:.07em}
+.bb-phone-hero{height:69px;position:relative;display:flex;align-items:center;justify-content:flex-end;padding:6px 13px;
+ margin:0 5px 10px;background:linear-gradient(90deg,#362343,#2c203a);border-radius:13px;border:1px solid #624767;overflow:hidden}
+.bb-phone-mascot{position:absolute;width:92px;height:78px;object-fit:contain;object-position:bottom;bottom:-10px;left:8px}
+.bb-phone-copy{width:62%;color:#f5d9ed;font-size:11px;line-height:1.35;font-weight:730;text-align:right}
+.bb-app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 5px;padding:2px 0 8px}
+.bb-app{appearance:none;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;
+ color:#f8e5f0;min-width:0;padding:3px 1px 5px;border-radius:10px;cursor:pointer}
+.bb-app:hover,.bb-app:focus-visible{background:#fa9fd71c;outline:1px solid #c579a2}
+.bb-app-art{display:grid;place-items:center;width:61px;height:57px;background:linear-gradient(155deg,#614262,#392d4d);
+ border:1px solid #8b5c85;border-radius:17px;box-shadow:0 4px 0 #100b1a50,inset 0 1px #fff4}
+.bb-app-image{display:block;width:44px;height:44px;object-fit:contain}
+.bb-app-name{font-size:10px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bb-app-best{color:#c0abc6;font-size:8px;letter-spacing:.01em}
+.bb-phone-resume{display:block;margin:5px auto 0;min-width:60%;min-height:32px;padding:7px 12px;
+ border:1px solid #9e6f99;border-radius:8px;background:#513551;color:#fff0fa;font-size:10px;font-weight:840}
+.bb-phone-resume:hover{background:#71466b}
+/* Wager strip only exists inside Plinko, no fake betting control on other games. */
+.bb-plinko-bets{display:flex;align-items:center;gap:5px;padding:6px 1px 0;min-width:0}
+.bb-stake-label{color:#d3b6c7;font-size:9px;font-weight:800;margin-right:auto}
+.bb-stake{border:1px solid #59475d;background:#2d2636;color:#fce8f4;font-size:10px;font-weight:800;
+ border-radius:7px;min-width:31px;height:29px;padding:3px 5px}
+.bb-stake.selected{background:#9b477a;border-color:#ffb2d8;color:#fff}
+.bb-stake:disabled{opacity:.4;cursor:not-allowed}
+.bb-canvas[data-mode=plinko]{background:#131923;border-color:#66516c}
+@media(max-width:350px){.bb-app-art{width:51px;height:51px}.bb-app-image{width:39px;height:39px}.bb-app-name{font-size:9px}.bb-plinko-bets{gap:3px}.bb-stake{min-width:28px;padding:3px}}

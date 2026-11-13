@@ -1,0 +1,62 @@
+{
+  "release": "2.6.1",
+  "base": "Fuckass Funzone v2.6.0 full cumulative source",
+  "archive_root": "fuckass_funzone/repo/",
+  "format": "full cumulative source archive (assets, scripts, built dist, tests, history included)",
+  "modified": [
+    "README.md",
+    "package.json",
+    "scripts/build.mjs",
+    "spindle.json",
+    "src/frontend.js",
+    "src/style.css",
+    "tests/lifecycle.test.mjs",
+    "dist/frontend.js"
+  ],
+  "added": [
+    "docs/CHANGELOG-2.6.1.md",
+    "docs/UPDATE-MANIFEST-2.6.1.json",
+    "docs/backups-pre-2.6.1/README.md",
+    "docs/backups-pre-2.6.1/package.json",
+    "docs/backups-pre-2.6.1/scripts/build.mjs",
+    "docs/backups-pre-2.6.1/spindle.json",
+    "docs/backups-pre-2.6.1/src/frontend.js",
+    "docs/backups-pre-2.6.1/src/style.css",
+    "docs/backups-pre-2.6.1/tests/lifecycle.test.mjs"
+  ],
+  "removed": [
+    "debug ticket buttons in both settings and shop",
+    "addDebugTickets runtime helper",
+    "window.__funzoneAddCoins global shortcut",
+    "debug-only styles"
+  ],
+  "backup_root": "docs/backups-pre-2.6.1/",
+  "original_modified_sha256": {
+    "src/frontend.js": "747e1594d27fe85aecb185bf38f6ec2a5422dfb1b1db9348c311f06730087267",
+    "src/style.css": "705f4c7a2c4ab1f03cf930e6048018ca621cda7768ea66c76f6448493f030a68",
+    "tests/lifecycle.test.mjs": "d474a6eaca4adfd07df3f3f33b2eb918550953a4da550a5a695a69607676c7b7",
+    "README.md": "1a9ea165309a53b8a12b593b4410ad016b5279e2106cef52552fa95ed0ed2db6",
+    "package.json": "56ef7f15d7709e378fa2735cfd53e7985da2ad7d127c06ecb1f18b56e5cf4711",
+    "spindle.json": "106eb475609524890e0f0ad4c525c4c8452162e391c6a33d0c8eaea35101a443",
+    "scripts/build.mjs": "68fc633dfd08885633eb1c3de84fa6a548020b5c5526da549b1cc79b5bd5dca2"
+  },
+  "storage_compatibility": "Existing fuckass_funzone:v1:<extensionInstallationId> saves reused without migration",
+  "verification": {
+    "build": "node scripts/build.mjs",
+    "tests": "node --test tests/*.test.mjs",
+    "passed": 89,
+    "failed": 0,
+    "bundle_sha256": "e1a0c4d6b1e917500f9a0faebee46138687c036e1238aa3601336ccd04161f0f",
+    "arcade_icon_sha256": "b4826865bcc718d398b06992733848fb385bdecef7b262c15d718a0ff7e6d98b"
+  },
+  "modified_file_sha256": {
+    "README.md": "f72abaa035d6b235fe7056adb79c8cdf8a753e5ce904720ec4493671030c15ca",
+    "package.json": "406d63780cdb4af0ab31bea8538e2acf1ff9f40cc2169fb9b721640c7d782c0f",
+    "scripts/build.mjs": "7efeb2840659b916f3d8c507943bf52d8e10697ab7c8e0723fa2903e664bbaa9",
+    "spindle.json": "cbf830ab642f6a9219035aa0292232258aeb4ce0bcc9c79f715f860c2f9fcb13",
+    "src/frontend.js": "cf923a6577cde2af31a883eb6e6bbf59042dd09c2cc71688e0e34da1897a284f",
+    "src/style.css": "6acc4df6466353cec285007c3d24b4c000c772c2d75d3f1db18bf5355c7bf4a3",
+    "tests/lifecycle.test.mjs": "c27ce91b6586395bdaf3e3e685a2b072784b5adbd11a38e6bc8721c52e98a3dd",
+    "dist/frontend.js": "e1a0c4d6b1e917500f9a0faebee46138687c036e1238aa3601336ccd04161f0f"
+  }
+}

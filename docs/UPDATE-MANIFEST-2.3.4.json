@@ -1,0 +1,125 @@
+{
+  "version": "2.3.4",
+  "base_version": "2.3.3",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "note": "Overlay adds/overwrites these relative files; no deletions are needed.",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "fd7a531118866378357963130735db9d4c5643f3df31d5849a462f0ba43e8465",
+      "bytes": 8268
+    },
+    {
+      "path": "demo-drawer-qa.html",
+      "sha256": "467c6ad078dfa617f9d91822f8740811a02d7a26bbebf5c5338987a7f4a2212e",
+      "bytes": 1109
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "3b17d0ae93b1e0c869998f1ef82b9948c03987c752a8a5981e4af2603280687e",
+      "bytes": 4609606
+    },
+    {
+      "path": "docs/CHANGELOG-2.3.4.md",
+      "sha256": "159fe2e9334f1300a353a961694853ee2899cdc1f674b3a7667fee7ff3311901",
+      "bytes": 1090
+    },
+    {
+      "path": "docs/backups-2.3.4/README.md",
+      "sha256": "831019ee1adb09244e1f2d36e06ae1e2ab9e8688a10cd0c0b6769843bad9ad0b",
+      "bytes": 6420
+    },
+    {
+      "path": "docs/backups-2.3.4/manifest.json",
+      "sha256": "0f8ddd2e605ba61dccb7eebee974d9a5fbcd734fdee12f74116f778815b03ba4",
+      "bytes": 1598
+    },
+    {
+      "path": "docs/backups-2.3.4/package.json",
+      "sha256": "e80649dcc4fb1d6745fc1e5ee0c3123e03781fe8625a84191521ad153a5a0c02",
+      "bytes": 324
+    },
+    {
+      "path": "docs/backups-2.3.4/scripts__build.mjs",
+      "sha256": "f08f9cf336edec06577932132ee407c505ffbba3ce549593a8ffae2a10505e71",
+      "bytes": 7150
+    },
+    {
+      "path": "docs/backups-2.3.4/spindle.json",
+      "sha256": "92289e04e1c88c85a2e26b5a8161314abccc5972acf1802c34f4fae1f99bd3b7",
+      "bytes": 418
+    },
+    {
+      "path": "docs/backups-2.3.4/src__frontend.js",
+      "sha256": "c2f76237c079832a9876b31a9dc1cfb6b6ca9cdea4d6f887ea7dea7ee3294cfc",
+      "bytes": 46225
+    },
+    {
+      "path": "docs/backups-2.3.4/src__match3.js",
+      "sha256": "aa1256e2828124ce94198508906412754907a70a40c191e777953f0764f4b2f9",
+      "bytes": 12746
+    },
+    {
+      "path": "docs/backups-2.3.4/src__style.css",
+      "sha256": "c9330cbcdb5481f4ff8709ba54234546b47f970dabd8a8ede08c49a652c69762",
+      "bytes": 16186
+    },
+    {
+      "path": "docs/backups-2.3.4/tests__lifecycle.test.mjs",
+      "sha256": "741a3f32a205259e03a5c81d773991e4f915e0fbfb525ce02c88845956d6dc92",
+      "bytes": 11474
+    },
+    {
+      "path": "docs/backups-2.3.4/tests__match3-hints-width.test.mjs",
+      "sha256": "db8292d3fa7fca5e8ca5b1850820f3fafcf5d6fe8ebdfcbbb3bd951d036a680c",
+      "bytes": 5257
+    },
+    {
+      "path": "package.json",
+      "sha256": "d9b138609c859477ee1048a17dcad0d85ce4d0ea755f9289901607d86a1fdf62",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "2555c5220b58723d86a9c7a49e6dad2808d86fd583cc1abedbb43b2688e90772",
+      "bytes": 7150
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "2fab515e6b6088a673da998571f08c9487ae31b85ef14dd078c8b05c996ea3be",
+      "bytes": 418
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "2d8f2a200301d1286d7c9342818a90d571425769a156cbcf0ceb7ab0891cc027",
+      "bytes": 50611
+    },
+    {
+      "path": "src/match3.js",
+      "sha256": "c8f3804625407d4c807479b7a66842573eac13d861532e5d29292f07bf246d10",
+      "bytes": 12834
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "401d8bb40b56e36043e711eda64730d3aa28d5e0971bf4c02515672f47f7866e",
+      "bytes": 20936
+    },
+    {
+      "path": "tests/drawer-layout.test.mjs",
+      "sha256": "9f10f7cac1f53f9ac980def9eae1e397e992a18614f258b7a00206bdd4e3d67a",
+      "bytes": 1073
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "a5f93f1b3f5e4b9eb7d2deaed35fb8c029b59343703e979e8fc10b40a86457c7",
+      "bytes": 13803
+    },
+    {
+      "path": "tests/match3-hints-width.test.mjs",
+      "sha256": "8fc58c55ffea18332c717d9e8bb2c1e2437d127eeb837b89e4490d4f21860e72",
+      "bytes": 5498
+    }
+  ],
+  "removed_files": []
+}

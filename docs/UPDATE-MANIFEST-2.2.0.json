@@ -1,0 +1,190 @@
+{
+  "version": "2.2.0",
+  "base_version": "2.1.2",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "overlay_files_count": 37,
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "bf15f770b04e30880788e33c5db427ecc01d9d9c730534a3786520a727ab1402",
+      "bytes": 5201
+    },
+    {
+      "path": "assets/match3/asset-manifest.json",
+      "sha256": "9ede7e1cee6179fb94d5d8bb84ca0c3673780b10c5db7f88690fcd5805a020d9",
+      "bytes": 1942
+    },
+    {
+      "path": "assets/match3/gabu-annoyed.png",
+      "sha256": "069d3d36a697803acd67dc53046c5c1e6050878f9686993651611a2fb40aa9dd",
+      "bytes": 35739
+    },
+    {
+      "path": "assets/match3/gabu-dizzy.png",
+      "sha256": "a9c7e7d84d7195f975796b13bb80538fd946364f95694555a9a06e6328125887",
+      "bytes": 38494
+    },
+    {
+      "path": "assets/match3/gabu-hype.png",
+      "sha256": "8d70438899b0c91e9a31bb494e5202d86f246cd2f85a87da084db18fc0f03dcb",
+      "bytes": 34034
+    },
+    {
+      "path": "assets/match3/gabu-panic.png",
+      "sha256": "bdfb99c9779444d15ca298be24b0d4f747cc3b9ab09b8bccccc24cfcee3ab78b",
+      "bytes": 35492
+    },
+    {
+      "path": "assets/match3/gabu-shock.png",
+      "sha256": "0bedb4b4e56c396d40ddd2fb47004fa6c7c758124e5e41baae36e6e8d8634fb5",
+      "bytes": 36467
+    },
+    {
+      "path": "assets/match3/gabu-sleepy.png",
+      "sha256": "07735eb8591a6a4955a180f824af6b9d54c2e9f4ce7abcbec3cdb04bae49c324",
+      "bytes": 31339
+    },
+    {
+      "path": "assets/match3/gabu-smug.png",
+      "sha256": "01f93cfc829247e3e9d689905e7dae54368651939ae41251df0d435db2c36340",
+      "bytes": 34035
+    },
+    {
+      "path": "assets/match3/match-bomb.png",
+      "sha256": "8c6afb6b85e6b023b788ac97972a3e91deccabe930a33d3a46e35cb6fd1371fa",
+      "bytes": 2259
+    },
+    {
+      "path": "assets/match3/match-cat.png",
+      "sha256": "38e73e9f2874469a085575ce69a463974059d21ffbab6fb2a63171c06d40256e",
+      "bytes": 2041
+    },
+    {
+      "path": "assets/match3/match-cookie.png",
+      "sha256": "14a3c52e3b7a616b06b1c9c9f7ea4c2b68d4997f66840b777997d941662daae1",
+      "bytes": 12308
+    },
+    {
+      "path": "assets/match3/match-fish.png",
+      "sha256": "400915be093002f4888d1be89abab19d89497126e4cef2aa1ae9af4079580e5f",
+      "bytes": 10205
+    },
+    {
+      "path": "assets/match3/match-gem.png",
+      "sha256": "821ca0ad1707e6a90ba0675e86eb007348c28b5bede387f183df041dd2918602",
+      "bytes": 2241
+    },
+    {
+      "path": "assets/match3/match-heart.png",
+      "sha256": "525aa6fa50ff907f31870e45fe22f6f0cbc1541dc9f98502a70ea12d07240682",
+      "bytes": 11009
+    },
+    {
+      "path": "assets/match3/match-rocket.png",
+      "sha256": "019fe5603b188c862bd7927b8812847722f2c9de840288894162c0f51c538da5",
+      "bytes": 1928
+    },
+    {
+      "path": "assets/match3/match-star.png",
+      "sha256": "979962edb279d08f22ed28544cc62ea55535ff9397a9844db0f21ca1c8ad4782",
+      "bytes": 9254
+    },
+    {
+      "path": "demo-match3-qa.html",
+      "sha256": "9146ec75ca66b707d97b0681f7be3909a62f877f20ab38eaa4fc62bf08f7854e",
+      "bytes": 1422
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "c3207acf04a4e662d6f355cba334e684ee6e598b4e67a8d89cf4697393a3511c",
+      "bytes": 3834405
+    },
+    {
+      "path": "docs/CHANGELOG-2.2.0.md",
+      "sha256": "a1052f6520f4474297bc22d9935e61daf9896f5262b9de7fc1b839d2a0508921",
+      "bytes": 1134
+    },
+    {
+      "path": "package.json",
+      "sha256": "65cc3719b6925b7f146f3fe93076b891b6e88fc8e6a07ceeb3448f68aaa0ee6e",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "522d7950db4a327d70fe2c9d1f69164a6371ecd392f477f5acd440ad404cd858",
+      "bytes": 5087
+    },
+    {
+      "path": "scripts/make_match3_assets.py",
+      "sha256": "455b69a05d3dba880c30297a43415c010a2994df61e6b737a051c09ed3dd80ba",
+      "bytes": 4660
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "33ef8738009370fdbd096defbb72036d82e388fdd3bbb54b2a37fee042be4fec",
+      "bytes": 423
+    },
+    {
+      "path": "src/engine.js",
+      "sha256": "696723980233a0e237d6ab3b9df4f7647eb8ad693dd70fd2a0b92535bf866348",
+      "bytes": 8542
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "171532f7275096fbb72bc171806b00fff5403205adfa9a95728b2c9716dee488",
+      "bytes": 37809
+    },
+    {
+      "path": "src/match3-render.js",
+      "sha256": "3c1fc7b334dfbad1a5a9b40e349a5acb6e63a7ab8248d643b159b1c5c6d28f53",
+      "bytes": 3460
+    },
+    {
+      "path": "src/match3.js",
+      "sha256": "b969049b02558e8f0a6151330826ae5e695a2f51efdf642faeb7d9ce90ee3eb7",
+      "bytes": 10786
+    },
+    {
+      "path": "src/reactions.js",
+      "sha256": "3085b2aaa5a774448bef9878429f8b6179524ef61faf6a3309948fba212f42e5",
+      "bytes": 3850
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "c5ce775cfe6a975d07fe711193349c48bb23f58d65441beff1146efa10770d8a",
+      "bytes": 9829
+    },
+    {
+      "path": "tests/engine.test.mjs",
+      "sha256": "b976f5292c7116ed62d3080ddb5baebbef35adae0e9ccd6a3acd136aa01a3161",
+      "bytes": 6177
+    },
+    {
+      "path": "tests/gabu-reactions.test.mjs",
+      "sha256": "ca041c3d21f52a8142a10998ad292c3979c95ec70adcdbe2f9ad40ee620a3513",
+      "bytes": 1368
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "a7391aac2cae97b15af956f1a5b3f65695a011231e895570ae5df4967e8683c6",
+      "bytes": 8162
+    },
+    {
+      "path": "tests/match3-assets.test.mjs",
+      "sha256": "4897c3e6e34e20a1d52e1fb6eb6feeb5ab52794c7cc7188b96810cc3338cfebf",
+      "bytes": 1619
+    },
+    {
+      "path": "tests/match3-render.test.mjs",
+      "sha256": "655af823d0e652d0598a13d770bea04460dccec63d973da4e6fdc131dd6d7a6f",
+      "bytes": 1135
+    },
+    {
+      "path": "tests/match3.test.mjs",
+      "sha256": "dbbc4983abd4f69482d6baf2c1e4c11f0fb93884ec84921431ff5496b680b5a2",
+      "bytes": 4853
+    }
+  ],
+  "removed_files": []
+}

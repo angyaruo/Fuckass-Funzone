@@ -1,0 +1,51 @@
+{
+  "from": "v2.3.3 official full source ZIP",
+  "to": "v2.3.4",
+  "source_files": [
+    {
+      "path": "src/frontend.js",
+      "backup": "src__frontend.js",
+      "sha256": "c2f76237c079832a9876b31a9dc1cfb6b6ca9cdea4d6f887ea7dea7ee3294cfc"
+    },
+    {
+      "path": "src/match3.js",
+      "backup": "src__match3.js",
+      "sha256": "aa1256e2828124ce94198508906412754907a70a40c191e777953f0764f4b2f9"
+    },
+    {
+      "path": "src/style.css",
+      "backup": "src__style.css",
+      "sha256": "c9330cbcdb5481f4ff8709ba54234546b47f970dabd8a8ede08c49a652c69762"
+    },
+    {
+      "path": "tests/match3-hints-width.test.mjs",
+      "backup": "tests__match3-hints-width.test.mjs",
+      "sha256": "db8292d3fa7fca5e8ca5b1850820f3fafcf5d6fe8ebdfcbbb3bd951d036a680c"
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "backup": "tests__lifecycle.test.mjs",
+      "sha256": "741a3f32a205259e03a5c81d773991e4f915e0fbfb525ce02c88845956d6dc92"
+    },
+    {
+      "path": "README.md",
+      "backup": "README.md",
+      "sha256": "831019ee1adb09244e1f2d36e06ae1e2ab9e8688a10cd0c0b6769843bad9ad0b"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "backup": "scripts__build.mjs",
+      "sha256": "f08f9cf336edec06577932132ee407c505ffbba3ce549593a8ffae2a10505e71"
+    },
+    {
+      "path": "spindle.json",
+      "backup": "spindle.json",
+      "sha256": "92289e04e1c88c85a2e26b5a8161314abccc5972acf1802c34f4fae1f99bd3b7"
+    },
+    {
+      "path": "package.json",
+      "backup": "package.json",
+      "sha256": "e80649dcc4fb1d6745fc1e5ee0c3123e03781fe8625a84191521ad153a5a0c02"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "base_version": "2.3.5",
+  "saved_source": [
+    {
+      "path": "src/frontend.js",
+      "sha256": "7ccca8d9a0c7ea4d8824a2fac633c97345b7bf439aaafc21806c01170a2cc71a"
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "226509ea8c68e198ffe801206b26fe19dadc9379a9a5a07e437f5650a8076611"
+    },
+    {
+      "path": "src/puzzle-render.js",
+      "sha256": "d65fb88f1bddb30888dfa96dce587ffe283bf6bee63a3f515b7b3e8cb0ea83f7"
+    },
+    {
+      "path": "src/plinko-render.js",
+      "sha256": "de7718cb84fa19bf3ddecdbbb6eeaf36d1c66d73144faf4fdb5b98ed89b6be4a"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "bb6d61983064e0ed5817da29a10f55e9b420ad81a82c3ebc07adc21dabea8c84"
+    },
+    {
+      "path": "tests/hud.test.mjs",
+      "sha256": "ec6ff6b3ebbd4a86d184b9a5d6315ebbb5c88b8509b0547a0a29ae55c0ccde7d"
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "969a3d4edae04cb2b0cab573da23c3c6ef65437f3cbbc247e0d0efed6af46e76"
+    },
+    {
+      "path": "package.json",
+      "sha256": "2352d228e279d71af5be1a95bd62bb75407eeb1814e97c9e7769e547642f36f2"
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "eb641c511e20045bf48d460f7c54c992bcd318cf8eec703513a83404a3261725"
+    }
+  ]
+}

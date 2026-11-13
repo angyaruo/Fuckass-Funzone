@@ -1,0 +1,185 @@
+/** Fuckass Funzone Match-3 — deterministic, DOM-free, saveable puzzle engine. */
+export const MATCH_SIZE=7;
+export const MATCH_KINDS=Object.freeze(['cat','heart','star','fish','cookie','gem']);
+export const MATCH_POWERS=Object.freeze(['row','column','bomb']);
+const CELLS=MATCH_SIZE*MATCH_SIZE;
+const rand=(fn,max)=>Math.min(max-1,Math.max(0,Math.floor((Number(fn())||0)*max)));
+const copyTile=(tile)=>tile?{kind:tile.kind,power:tile.power||null}:null;
+const validTile=(tile)=>!!tile&&MATCH_KINDS.includes(tile.kind)&&(tile.power==null||MATCH_POWERS.includes(tile.power));
+const neighbors=(a,b)=>Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<CELLS&&b>=0&&b<CELLS&&Math.abs(a%MATCH_SIZE-b%MATCH_SIZE)+Math.abs(Math.floor(a/MATCH_SIZE)-Math.floor(b/MATCH_SIZE))===1;
+
+/** Return all horizontal and vertical runs of >=3, with orientation for specials. */
+export function findMatchRuns(board){
+ const result=[];
+ for(let y=0;y<MATCH_SIZE;y++)for(let x=0;x<MATCH_SIZE;){
+  const at=y*MATCH_SIZE+x,kind=board[at]?.kind;let next=x+1;
+  while(kind&&next<MATCH_SIZE&&board[y*MATCH_SIZE+next]?.kind===kind)next++;
+  if(kind&&next-x>=3)result.push({kind,axis:'row',cells:Array.from({length:next-x},(_,j)=>y*MATCH_SIZE+x+j)});
+  x=next;
+ }
+ for(let x=0;x<MATCH_SIZE;x++)for(let y=0;y<MATCH_SIZE;){
+  const at=y*MATCH_SIZE+x,kind=board[at]?.kind;let next=y+1;
+  while(kind&&next<MATCH_SIZE&&board[next*MATCH_SIZE+x]?.kind===kind)next++;
+  if(kind&&next-y>=3)result.push({kind,axis:'column',cells:Array.from({length:next-y},(_,j)=>(y+j)*MATCH_SIZE+x)});
+  y=next;
+ }
+ return result;
+}
+function playable(board){
+ if(findMatchRuns(board).length)return false;
+ for(let at=0;at<CELLS;at++){
+  if(board[at]?.power)return true;
+  for(const dest of [at+1,at+MATCH_SIZE]){
+   if(!neighbors(at,dest))continue;
+   [board[at],board[dest]]=[board[dest],board[at]];
+   const yes=findMatchRuns(board).length>0;
+   [board[at],board[dest]]=[board[dest],board[at]];
+   if(yes)return true;
+  }
+ }
+ return false;
+}
+export function hasMatchMove(board){return playable(board.map(copyTile));}
+export function cellAt(canvasX,canvasY,{x=28,y=77,step=44,cell=40}={}){
+ const col=Math.floor((canvasX-x)/step),row=Math.floor((canvasY-y)/step);
+ if(col<0||col>=MATCH_SIZE||row<0||row>=MATCH_SIZE)return -1;
+ if(canvasX<x+col*step||canvasX>=x+col*step+cell||canvasY<y+row*step||canvasY>=y+row*step+cell)return -1;
+ return row*MATCH_SIZE+col;
+}
+export class Match3Game {
+ constructor({random=Math.random,onEvent=()=>{},saved}={}){
+  this.random=random;this.onEvent=onEvent;this.reset();if(saved)this.restore(saved);
+ }
+ randomTile(){const n=(rand(this.random,MATCH_KINDS.length)+this.spawnSerial++)%MATCH_KINDS.length;return {kind:MATCH_KINDS[n],power:null};}
+ buildBoard(){
+  // Generate without accidental starting matches; playability is checked before accepting.
+  for(let attempt=0;attempt<48;attempt++){
+   const board=Array(CELLS).fill(null);
+   for(let i=0;i<CELLS;i++){
+    let choices=MATCH_KINDS.filter(k=>!(i%MATCH_SIZE>=2&&board[i-1]?.kind===k&&board[i-2]?.kind===k) && !(i>=MATCH_SIZE*2&&board[i-MATCH_SIZE]?.kind===k&&board[i-MATCH_SIZE*2]?.kind===k));
+    if(!choices.length)choices=MATCH_KINDS;
+    board[i]={kind:choices[rand(this.random,choices.length)],power:null};
+   }
+   if(playable(board))return board;
+  }
+  // Finite, deterministic fallback even with a broken/constant PRNG.
+  const board=Array.from({length:CELLS},(_,i)=>({kind:MATCH_KINDS[(i%MATCH_SIZE+2*Math.floor(i/MATCH_SIZE)+Math.floor((i%MATCH_SIZE)/2))%MATCH_KINDS.length],power:null}));
+  board[0]={kind:'cat',power:null};board[1]={kind:'heart',power:null};board[2]={kind:'cat',power:null};board[8]={kind:'cat',power:null};
+  // Remove any incidental pre-matches outside the guaranteed first-row swap lane.
+  for(let i=0;i<CELLS;i++)if(i!==0&&i!==1&&i!==2&&i!==8){
+   for(let k=0;k<MATCH_KINDS.length&&findMatchRuns(board).some(r=>r.cells.includes(i));k++)board[i]={kind:MATCH_KINDS[(MATCH_KINDS.indexOf(board[i].kind)+1)%MATCH_KINDS.length],power:null};
+  }
+  return board;
+ }
+ reset(){this.spawnSerial=0;this.board=this.buildBoard();this.score=0;this.moves=0;this.status='idle';this.combo=0;this.cascades=0;this.lastClear=[];this.flash=0;this.badSwaps=0;this.specialsUsed=0;this.onEvent('reset');}
+ start(){if(this.status==='dead')this.reset();if(this.status==='playing')return;this.status='playing';this.onEvent('start');}
+ pause(){if(this.status==='playing'){this.status='paused';this.onEvent('pause');}}
+ togglePause(){if(this.status==='playing')this.pause();else if(this.status==='paused')this.start();}
+ update(dt){if(Number.isFinite(dt)&&dt>0)this.flash=Math.max(0,this.flash-dt);}
+ expandPower(board,indices,swappedWith=null){
+  const queue=[...indices],visited=new Set();
+  while(queue.length){
+   const ix=queue.shift();if(visited.has(ix)||ix<0||ix>=CELLS)continue;
+   visited.add(ix);const tile=board[ix];if(!tile?.power)continue;
+   if(tile.power==='row')for(let x=0;x<MATCH_SIZE;x++)queue.push(Math.floor(ix/MATCH_SIZE)*MATCH_SIZE+x);
+   else if(tile.power==='column')for(let y=0;y<MATCH_SIZE;y++)queue.push(y*MATCH_SIZE+ix%MATCH_SIZE);
+   else if(tile.power==='bomb'){
+    const kind=swappedWith?.kind||tile.kind;
+    for(let i=0;i<CELLS;i++)if(board[i]?.kind===kind)queue.push(i);
+   }
+  }
+  return visited;
+ }
+ refill(board,cleared){
+  // Apply gravity *per column*. New tiles come from the top.
+  for(let x=0;x<MATCH_SIZE;x++){
+   const keep=[];for(let y=MATCH_SIZE-1;y>=0;y--){const at=y*MATCH_SIZE+x;if(!cleared.has(at)&&board[at])keep.push(copyTile(board[at]));}
+   for(let y=MATCH_SIZE-1;y>=0;y--)board[y*MATCH_SIZE+x]=keep[MATCH_SIZE-1-y]||this.randomTile();
+  }
+ }
+ resolve(initial,origin=null,swappedWith=null){
+  const board=this.board;let pending=initial,depth=0,total=0,created=0,triggered=0;
+  while(depth<14){
+   const runs=depth===0?pending:findMatchRuns(board);
+   if(!runs.length)break;
+   const removed=new Set(runs.flatMap(r=>r.cells));
+   const reserved=new Map();
+   for(const run of runs){
+    const largest=run.cells.length;
+    const cross=run.cells.some(cell=>runs.some(other=>other!==run&&other.cells.includes(cell)));
+    const power=(largest>=5||cross)?'bomb':largest>=4?(run.axis==='row'?'row':'column'):null;
+    if(!power)continue;
+    const keep=(origin!==null&&run.cells.includes(origin))?origin:run.cells[Math.floor((run.cells.length-1)/2)];
+    const existing=reserved.get(keep);
+    if(!existing||power==='bomb')reserved.set(keep,{kind:board[keep].kind,power});
+   }
+   // Existing powers fire when cleared; freshly-created powers are protected.
+   for(const [ix] of reserved)removed.delete(ix);
+   const powered=this.expandPower(board,removed,swappedWith);
+   for(const ix of powered)removed.add(ix);
+   for(const [ix] of reserved)removed.delete(ix);
+   for(const ix of removed)if(board[ix]?.power)triggered++;
+   for(const [ix,tile] of reserved){board[ix]=tile;created++;}
+   const amount=removed.size;
+   if(!amount)break;
+   total+=amount;
+   this.score+=amount*40*(depth+1)+(reserved.size*60);
+   this.lastClear=[...removed];this.flash=.55;
+   for(const ix of removed)board[ix]=null;
+   this.refill(board,removed);
+   this.onEvent('match',{count:amount,chain:depth+1,score:this.score});
+   if(reserved.size)this.onEvent('special_created',{count:reserved.size,level:[...reserved.values()].some(v=>v.power==='bomb')?'bomb':'rocket'});
+   if(depth>0)this.onEvent('cascade',{chain:depth+1,score:this.score});
+   depth++;
+  }
+  if(depth===14&&findMatchRuns(board).length){this.board=this.buildBoard();this.onEvent('reshuffle',{reason:'cascade_cap'});}
+  this.combo=depth;this.cascades+=Math.max(0,depth-1);this.specialsUsed+=triggered;
+  this.onEvent('score',{score:this.score,gained:total,chain:depth});
+  if(!hasMatchMove(this.board)){
+   this.board=this.buildBoard();this.onEvent('reshuffle',{reason:'no_moves'});
+  }
+  return {cleared:total,chain:depth,created,triggered};
+ }
+ swap(a,b){
+  if(!neighbors(a,b)||this.status==='dead'||this.status==='paused')return false;
+  if(this.status==='idle')this.start();
+  const first=this.board[a],second=this.board[b];if(!first||!second)return false;
+  // Bombs and rockets activate on any adjacent swap; no ordinary run required.
+  const activating=!!(first.power||second.power);
+  [this.board[a],this.board[b]]=[second,first];
+  const runs=findMatchRuns(this.board);
+  if(!runs.length&&!activating){
+   [this.board[a],this.board[b]]=[first,second];this.badSwaps++;
+   this.onEvent('invalid_swap',{badSwaps:this.badSwaps});return false;
+  }
+  this.moves++;
+  let report;
+  if(activating){
+   const targets=new Set([a,b]);
+   // After swap, the power now sits opposite its original cell.
+   const expanded=this.expandPower(this.board,targets,first.power?second:first);
+   for(const ix of expanded)targets.add(ix);
+   const amount=targets.size;this.lastClear=[...targets];this.flash=.55;
+   for(const ix of targets)this.board[ix]=null;
+   this.score+=amount*65;this.specialsUsed++;
+   this.refill(this.board,targets);
+   this.onEvent('special_triggered',{count:amount,bomb:first.power==='bomb'||second.power==='bomb'});
+   const follow=findMatchRuns(this.board);
+   report=follow.length?this.resolve(follow,b):{cleared:0,chain:0,created:0,triggered:1};
+   if(!follow.length){this.combo=1;this.onEvent('score',{score:this.score,gained:amount,chain:1});if(!hasMatchMove(this.board)){this.board=this.buildBoard();this.onEvent('reshuffle',{reason:'no_moves'});}}
+  }else report=this.resolve(runs,b);
+  this.onEvent('move',{moves:this.moves,score:this.score,chain:report.chain});
+  return true;
+ }
+ snapshot(){return {board:this.board.map(copyTile),score:this.score,moves:this.moves,status:this.status==='dead'?'dead':'paused',combo:this.combo,cascades:this.cascades,badSwaps:this.badSwaps,specialsUsed:this.specialsUsed,spawnSerial:this.spawnSerial};}
+ restore(data){
+  if(!data||!Array.isArray(data.board)||data.board.length!==CELLS||data.board.some(tile=>!validTile(tile)))return false;
+  if(findMatchRuns(data.board).length)return false;
+  if(!Number.isSafeInteger(data.score)||data.score<0||data.score>1e10||!Number.isSafeInteger(data.moves)||data.moves<0||data.moves>1e7)return false;
+  this.board=data.board.map(copyTile);this.score=data.score;this.moves=data.moves;this.status=data.status==='dead'?'dead':'paused';this.combo=Number.isInteger(data.combo)?Math.max(0,Math.min(20,data.combo)):0;
+  this.cascades=Number.isInteger(data.cascades)?Math.max(0,Math.min(1e7,data.cascades)):0;
+  this.badSwaps=Number.isInteger(data.badSwaps)?Math.max(0,Math.min(1e7,data.badSwaps)):0;
+  this.specialsUsed=Number.isInteger(data.specialsUsed)?Math.max(0,Math.min(1e7,data.specialsUsed)):0;
+  this.spawnSerial=Number.isSafeInteger(data.spawnSerial)&&data.spawnSerial>=0?Math.min(1e9,data.spawnSerial):0;this.flash=0;this.lastClear=[];return true;
+ }
+}

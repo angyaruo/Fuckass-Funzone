@@ -1,0 +1,125 @@
+{
+  "version": "2.2.1",
+  "base_version": "2.2.0",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "overlay_files_count": 24,
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "d8e8581c2c6b0d8808c722a7aa9c6c79331986adaddd1ec1ae8d5aa4c1c8bdc8",
+      "bytes": 6903
+    },
+    {
+      "path": "assets/match3/vector/bomb.svg",
+      "sha256": "4576b5127b2afe2279479ead51f64f505f2a6b79f309d08109b75c2095ed460d",
+      "bytes": 831
+    },
+    {
+      "path": "assets/match3/vector/cat.svg",
+      "sha256": "de5b24df0cbbe9f1a0a5049fdada2f11593b82de296cfc420a1a4da3d12afc4f",
+      "bytes": 817
+    },
+    {
+      "path": "assets/match3/vector/cookie.svg",
+      "sha256": "63cdc40a9ad70b874987a12f0364c69df345d5594ae485280330f7ac5f8b88ef",
+      "bytes": 531
+    },
+    {
+      "path": "assets/match3/vector/fish.svg",
+      "sha256": "473329e06fb8def616c69a65e0fe494d2926e783334a3e3add7b45c127830f62",
+      "bytes": 746
+    },
+    {
+      "path": "assets/match3/vector/gem.svg",
+      "sha256": "64e55a4019b6e70ba135d59f5fbee92b8425ef07a3dc592adfd3a692895f649f",
+      "bytes": 620
+    },
+    {
+      "path": "assets/match3/vector/heart.svg",
+      "sha256": "c66b26e43d4b63f496e6c1e48132e5c5e830a218aa0e436ef4a322e367c28f6b",
+      "bytes": 558
+    },
+    {
+      "path": "assets/match3/vector/rocket.svg",
+      "sha256": "5b2f752489eb56b0ce1cd62428cb0241c67ca3748c2a96b1964763273fa2a2c7",
+      "bytes": 738
+    },
+    {
+      "path": "assets/match3/vector/star.svg",
+      "sha256": "4f0c5ec568b00fed3564f2c908abdf149c008677e708fa3fc3eeef5bb59c479a",
+      "bytes": 600
+    },
+    {
+      "path": "demo-match3-qa.html",
+      "sha256": "b97831187ff2122ed8fa82a51f0a3a15f5b7a28000a2799e53c721ef1f1b8298",
+      "bytes": 1422
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "464d0732ee3cc4d33a73c94ef429f59faa0fd51458a78a6ab5d406c6c9a7c705",
+      "bytes": 3843777
+    },
+    {
+      "path": "docs/CHANGELOG-2.2.1.md",
+      "sha256": "bdfd3074901b8e7f6958c87ea6a5125496128cd8f6a02ba876360611e6ed5661",
+      "bytes": 1492
+    },
+    {
+      "path": "docs/PREPATCH-2.2.1-MANIFEST.json",
+      "sha256": "8cc76af06ea5ea135cd73805cc3921a7a265a227d6cf20f4736431ee4df0c377",
+      "bytes": 693
+    },
+    {
+      "path": "docs/match3-readability-preview.png",
+      "sha256": "c9dd6d7a94822a024bf16382a0703523a20ff5aff4c93694af944e5dcee87ff5",
+      "bytes": 185063
+    },
+    {
+      "path": "package.json",
+      "sha256": "3a0c6a987a1a46d5f2a0b7c1c1f4f13622f36a459a15c8332ae0e5e4e406e840",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "a7379d2df3f5378d398c467a8dd25de9a9735ba1e55f95e12f8d4a114e92c8e3",
+      "bytes": 5810
+    },
+    {
+      "path": "scripts/make_match3_preview.py",
+      "sha256": "fd5afa18d93a4961491008ed9cbac44508f8956c92ea73c5c496023320838526",
+      "bytes": 2684
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "0a20f7b5e91dd1afa26c4062306e0d71c0965709a90de520f728c3e5025779c6",
+      "bytes": 422
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "ffaec144c641e8743032bf746bd4141689ca151b1fab329157861cb8852c7caa",
+      "bytes": 37969
+    },
+    {
+      "path": "src/match3-render.js",
+      "sha256": "3050cb8f2358b5fc50607b3b29a7f7c86d8efd0cb69eaa65b5d0cd8e45208f89",
+      "bytes": 4755
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "0f0ee7161084ea8824cf34fd27bc2618b3ab8a3f668d5f21792e48350738bc5a",
+      "bytes": 10111
+    },
+    {
+      "path": "tests/match3-render.test.mjs",
+      "sha256": "fc1f13a88740ad3f958762c936e6c56a0f6e9f664bbf0ccf7f3b7782bc2e2ede",
+      "bytes": 2565
+    },
+    {
+      "path": "tests/match3-vectors.test.mjs",
+      "sha256": "2c81b32e8718dd3bbaaa2298948e8fbc88e6597120e39522c7c5219391d59d00",
+      "bytes": 2103
+    }
+  ],
+  "removed_files": []
+}

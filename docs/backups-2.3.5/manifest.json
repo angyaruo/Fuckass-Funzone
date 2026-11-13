@@ -1,0 +1,47 @@
+[
+  {
+    "path": "src/frontend.js",
+    "original_sha256": "2d8f2a200301d1286d7c9342818a90d571425769a156cbcf0ceb7ab0891cc027",
+    "backup": "docs/backups-2.3.5/src__frontend.js"
+  },
+  {
+    "path": "src/style.css",
+    "original_sha256": "401d8bb40b56e36043e711eda64730d3aa28d5e0971bf4c02515672f47f7866e",
+    "backup": "docs/backups-2.3.5/src__style.css"
+  },
+  {
+    "path": "scripts/build.mjs",
+    "original_sha256": "2555c5220b58723d86a9c7a49e6dad2808d86fd583cc1abedbb43b2688e90772",
+    "backup": "docs/backups-2.3.5/scripts__build.mjs"
+  },
+  {
+    "path": "spindle.json",
+    "original_sha256": "2fab515e6b6088a673da998571f08c9487ae31b85ef14dd078c8b05c996ea3be",
+    "backup": "docs/backups-2.3.5/spindle.json"
+  },
+  {
+    "path": "package.json",
+    "original_sha256": "d9b138609c859477ee1048a17dcad0d85ce4d0ea755f9289901607d86a1fdf62",
+    "backup": "docs/backups-2.3.5/package.json"
+  },
+  {
+    "path": "tests/drawer-layout.test.mjs",
+    "original_sha256": "9f10f7cac1f53f9ac980def9eae1e397e992a18614f258b7a00206bdd4e3d67a",
+    "backup": "docs/backups-2.3.5/tests__drawer-layout.test.mjs"
+  },
+  {
+    "path": "tests/lifecycle.test.mjs",
+    "original_sha256": "a5f93f1b3f5e4b9eb7d2deaed35fb8c029b59343703e979e8fc10b40a86457c7",
+    "backup": "docs/backups-2.3.5/tests__lifecycle.test.mjs"
+  },
+  {
+    "path": "tests/match3-assets.test.mjs",
+    "original_sha256": "7bfeeb67b4e50911a86f946a5572c9aeae4be224ea09c03a745d0451e8bd0f50",
+    "backup": "docs/backups-2.3.5/tests__match3-assets.test.mjs"
+  },
+  {
+    "path": "README.md",
+    "original_sha256": "fd7a531118866378357963130735db9d4c5643f3df31d5849a462f0ba43e8465",
+    "backup": "docs/backups-2.3.5/README.md"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "base_version": "2.4.0",
+  "files": [
+    {
+      "path": "src/frontend.js",
+      "sha256": "366c5bd280ec241b5b1c46ab4ad42c8827891a2a7273c11ab77b0392b908cec9"
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "0f658746bf1ac3319a262ea7455b5a3668fc06099b23ebaf713f8be72d19e6bf"
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "2cb03828f9c8887fa2990db2ac30ca50e8d29bd6c2bb060010e7d5fbde6e0ad7"
+    },
+    {
+      "path": "package.json",
+      "sha256": "bc4fd49e12f2fec876a7d921422d7a5de216a40deda4e3d5631c2c86add10c14"
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "f567e4e5a92d729c61d46f7364ce38ddcf1f3cab2dc3b36d5442a2cc275e0e79"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "ec886818e18f436fba6674333782daebe02318457a34574b0b0e9f9fdf8d2d87"
+    }
+  ]
+}

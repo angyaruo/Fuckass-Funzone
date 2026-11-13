@@ -1,0 +1,12 @@
+{
+  "based_on": "2.2.0",
+  "sha256": {
+    "spindle.json": "33ef8738009370fdbd096defbb72036d82e388fdd3bbb54b2a37fee042be4fec",
+    "package.json": "65cc3719b6925b7f146f3fe93076b891b6e88fc8e6a07ceeb3448f68aaa0ee6e",
+    "scripts/build.mjs": "522d7950db4a327d70fe2c9d1f69164a6371ecd392f477f5acd440ad404cd858",
+    "src/match3-render.js": "3c1fc7b334dfbad1a5a9b40e349a5acb6e63a7ab8248d643b159b1c5c6d28f53",
+    "src/frontend.js": "171532f7275096fbb72bc171806b00fff5403205adfa9a95728b2c9716dee488",
+    "src/style.css": "c5ce775cfe6a975d07fe711193349c48bb23f58d65441beff1146efa10770d8a",
+    "tests/match3-render.test.mjs": "655af823d0e652d0598a13d770bea04460dccec63d973da4e6fdc131dd6d7a6f"
+  }
+}

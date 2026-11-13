@@ -1,0 +1,26 @@
+{
+  "src/frontend.js": {
+    "sha256": "ffaec144c641e8743032bf746bd4141689ca151b1fab329157861cb8852c7caa",
+    "bytes": 37969
+  },
+  "src/reactions.js": {
+    "sha256": "3085b2aaa5a774448bef9878429f8b6179524ef61faf6a3309948fba212f42e5",
+    "bytes": 3850
+  },
+  "scripts/build.mjs": {
+    "sha256": "a7379d2df3f5378d398c467a8dd25de9a9735ba1e55f95e12f8d4a114e92c8e3",
+    "bytes": 5810
+  },
+  "package.json": {
+    "sha256": "3a0c6a987a1a46d5f2a0b7c1c1f4f13622f36a459a15c8332ae0e5e4e406e840",
+    "bytes": 324
+  },
+  "spindle.json": {
+    "sha256": "0a20f7b5e91dd1afa26c4062306e0d71c0965709a90de520f728c3e5025779c6",
+    "bytes": 422
+  },
+  "src/style.css": {
+    "sha256": "0f0ee7161084ea8824cf34fd27bc2618b3ab8a3f668d5f21792e48350738bc5a",
+    "bytes": 10111
+  }
+}

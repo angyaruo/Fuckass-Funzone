@@ -1,0 +1,69 @@
+{
+  "release": "2.6.2",
+  "base": "Fuckass Funzone v2.6.1 full cumulative source",
+  "archive_root": "fuckass_funzone/repo/",
+  "format": "full cumulative source archive (assets, scripts, tests, docs, generated dist and history)",
+  "modified": [
+    "README.md",
+    "package.json",
+    "scripts/build.mjs",
+    "spindle.json",
+    "src/engine.js",
+    "src/frontend.js",
+    "tests/engine.test.mjs",
+    "tests/lifecycle.test.mjs",
+    "tests/rendering.test.mjs",
+    "docs/TESTING.md",
+    "dist/frontend.js"
+  ],
+  "added": [
+    "docs/CHANGELOG-2.6.2.md",
+    "docs/UPDATE-MANIFEST-2.6.2.json",
+    "docs/backups-pre-2.6.2/README.md",
+    "docs/backups-pre-2.6.2/package.json",
+    "docs/backups-pre-2.6.2/scripts/build.mjs",
+    "docs/backups-pre-2.6.2/spindle.json",
+    "docs/backups-pre-2.6.2/src/engine.js",
+    "docs/backups-pre-2.6.2/src/frontend.js",
+    "docs/backups-pre-2.6.2/tests/engine.test.mjs",
+    "docs/backups-pre-2.6.2/tests/lifecycle.test.mjs",
+    "docs/backups-pre-2.6.2/tests/rendering.test.mjs"
+  ],
+  "backup_root": "docs/backups-pre-2.6.2/",
+  "original_modified_sha256": {
+    "README.md": "f72abaa035d6b235fe7056adb79c8cdf8a753e5ce904720ec4493671030c15ca",
+    "package.json": "406d63780cdb4af0ab31bea8538e2acf1ff9f40cc2169fb9b721640c7d782c0f",
+    "scripts/build.mjs": "7efeb2840659b916f3d8c507943bf52d8e10697ab7c8e0723fa2903e664bbaa9",
+    "spindle.json": "cbf830ab642f6a9219035aa0292232258aeb4ce0bcc9c79f715f860c2f9fcb13",
+    "src/engine.js": "696723980233a0e237d6ab3b9df4f7647eb8ad693dd70fd2a0b92535bf866348",
+    "src/frontend.js": "cf923a6577cde2af31a883eb6e6bbf59042dd09c2cc71688e0e34da1897a284f",
+    "tests/engine.test.mjs": "b976f5292c7116ed62d3080ddb5baebbef35adae0e9ccd6a3acd136aa01a3161",
+    "tests/lifecycle.test.mjs": "c27ce91b6586395bdaf3e3e685a2b072784b5adbd11a38e6bc8721c52e98a3dd",
+    "tests/rendering.test.mjs": "500730853c3c0e4a5bab81a0630492e1ca0fd156eb34324dd9eed92761238ba4",
+    "docs/TESTING.md": "8226d17e37dd89ed1d36aae24b4f29b2951d48cb22467f9cfdb10d7c67beec83",
+    "dist/frontend.js": "e1a0c4d6b1e917500f9a0faebee46138687c036e1238aa3601336ccd04161f0f"
+  },
+  "modified_file_sha256": {
+    "README.md": "78b9de05204aa0e2438871466bff643ce20f6616ce3db3f36d0a79a7568e4cee",
+    "package.json": "d87752d87ea21e7fe0c6accf01fb38a2ad267d56a21fd97dbad93684ffb5a209",
+    "scripts/build.mjs": "6957c9ec390dadd8c0816cf36ded854a5c2d02b83241c1591a9e3a1bcf554304",
+    "spindle.json": "d85eefc5959be17619421d1a4bdc42832b110e72b6e50bf064507ea13def2529",
+    "src/engine.js": "9306ecf698eeabfeea598dbe13e4e866f9d93bf6510ba283a14bdf9fb6d54786",
+    "src/frontend.js": "610e4a205511293062d4dd017f46a9af873b6af50d8598eaacc14c577e4a781a",
+    "tests/engine.test.mjs": "0077928896b418524535bc077e4e66daae056a881036e505461c1078b58f022b",
+    "tests/lifecycle.test.mjs": "feedc4e3965c7340755a32671a4774d5a79619c2fb786f8832494a5ab5fcc914",
+    "tests/rendering.test.mjs": "8beb4332863c4176787d755c83e4cd6bf380e2f7dee7cb0bc271ea3dd3cf1ba3",
+    "docs/TESTING.md": "03ed6cf90266a01a8c2c77d73c72f2ef606b32ac92b81662e194331d95d80e9b",
+    "dist/frontend.js": "2e13aa56c46352d07fb9fdb5fa04f6a4f4b49d8bf290b10b09f2f83968681985"
+  },
+  "arcade_icon_sha256": "b4826865bcc718d398b06992733848fb385bdecef7b262c15d718a0ff7e6d98b",
+  "storage_compatibility": "Same fuckass_funzone:v1:<extensionInstallationId> save key; legacy flight chaos maps to medium preserving 1.28x physics; Duck Hunt chaos remains unchanged",
+  "verification": {
+    "build": "node scripts/build.mjs",
+    "tests": "node --test tests/*.test.mjs",
+    "passed": 91,
+    "failed": 0,
+    "zip_extraction_rebuild_tested": true,
+    "actual_Lumiverse_visual_QA": "not performed"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "extension": "bird_brain",
+  "version": "2.1.0",
+  "overlay_base": "2.0.0",
+  "note": "Copy relative paths directly over data/extensions; full and overlay retain bird_brain/repo prefix.",
+  "changed_files": [
+    {
+      "path": "README.md",
+      "sha256": "027f8bc7ba07ccb3b7ff50820a294f2b5df3a678c2421a09109e303951ae9b33",
+      "bytes": 4817
+    },
+    {
+      "path": "assets/funzone/snake-food-apple.png",
+      "sha256": "09b6e1cd7b97dd911efe1ead10a7ce9551bbdad60d4f3fd348b53baf6e6fe0a3",
+      "bytes": 9175
+    },
+    {
+      "path": "assets/funzone/snake-food-berry.png",
+      "sha256": "2f487e6c7b47eb2f1fd337ab327549dc97af7358d0058740e3eb223ac2701e9c",
+      "bytes": 9379
+    },
+    {
+      "path": "assets/funzone/snake-food-candy.png",
+      "sha256": "5bf732309c387284ebb9eb0de037fae99acb3d7ed495e1393ed3ea6f1e357801",
+      "bytes": 10155
+    },
+    {
+      "path": "assets/funzone/snake-food-cookie.png",
+      "sha256": "7b866a6ba503c500f8988061d175fabfb4b920af92d5a4fbb38ef8dfa1122285",
+      "bytes": 11477
+    },
+    {
+      "path": "assets/funzone/snake-food-fish.png",
+      "sha256": "a1f6f7c71fd28b53ba1ac30226f43d562305bf50f955ee6f485e851126a2e80f",
+      "bytes": 9663
+    },
+    {
+      "path": "assets/funzone/snake-food-star.png",
+      "sha256": "f9aa2cd31dd3fdb62c4f230dabf4afe5b8878437f25e4eb7057544c583ab1756",
+      "bytes": 8290
+    },
+    {
+      "path": "assets/funzone/snake-head.png",
+      "sha256": "400a8154b5b1a40b2372be3b583657fbd15028db1ad3b6872ca0ab6ad30a4fa8",
+      "bytes": 13738
+    },
+    {
+      "path": "assets/funzone/snake-snack.png",
+      "sha256": "09b6e1cd7b97dd911efe1ead10a7ce9551bbdad60d4f3fd348b53baf6e6fe0a3",
+      "bytes": 9175
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "7e9b0fabae0c89af789ebbb4afd1f0835124888f790da467bfa8c2bb5b904c7e",
+      "bytes": 3415920
+    },
+    {
+      "path": "docs/BUILD-VALIDATION.txt",
+      "sha256": "4ea3ecea7bb90bba7df1c991bba0218b09ddce3ff44a51ca868e5cb83fa18361",
+      "bytes": 767
+    },
+    {
+      "path": "docs/CHANGELOG-2.1.0.md",
+      "sha256": "a37ded9d35a7273d5ffc2377884f159a6f3287f49106974c00e9bf5a6829873a",
+      "bytes": 1209
+    },
+    {
+      "path": "docs/UPDATE-MANIFEST-2.1.0.json",
+      "sha256": "cec18faa4ad2c12bef56f30635089e009651e5698caf876ee97c54bcfacf3f04",
+      "bytes": 4063
+    },
+    {
+      "path": "docs/snake-v2.1-board-preview.png",
+      "sha256": "52f4354a50f7571dcc88eabb24caa51ca31899614aab756bebe7984d07d4001a",
+      "bytes": 64648
+    },
+    {
+      "path": "docs/snake-v2.1-food-preview.png",
+      "sha256": "a0a80661878fdf59de8d42a9718644bb17f3a55c477371838843e79200975024",
+      "bytes": 60842
+    },
+    {
+      "path": "package.json",
+      "sha256": "da4d69cd880ce1ce31fe9651f4e285b82fdd0e531378d67b1e3fab182b93d128",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "e682405393c702ad8e4fb0ad12352d6f8348e6b119cd3dcba61156e9226b4112",
+      "bytes": 3797
+    },
+    {
+      "path": "scripts/make_funzone_assets.py",
+      "sha256": "3c69b333be8cd7125af177483639bfb56c460c4e6816d6f3d0e5c305d6f5ae0a",
+      "bytes": 4330
+    },
+    {
+      "path": "scripts/make_snake_assets.py",
+      "sha256": "caed034fd4817fbd103ba28f61b70cac3370e6f77f8a52026ce510f9afeee9d8",
+      "bytes": 4850
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "a9b53b0911456fffe27e5cb941dd78603f360212317a129fdae2709088fdc245",
+      "bytes": 411
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "9e5465464bc0298c381bc1c2c63a464c2dc0499fdb68cadec206569d98e11e59",
+      "bytes": 33271
+    },
+    {
+      "path": "src/puzzle-render.js",
+      "sha256": "f575c74d5c7871d4974d95b998f345dcaf05759698337737e3e4df694c1b59d4",
+      "bytes": 5981
+    },
+    {
+      "path": "src/puzzles.js",
+      "sha256": "0c7f4797a22aa04f2ff3044ad682643690d949f9d82524aea6c25b7725e49694",
+      "bytes": 7640
+    },
+    {
+      "path": "tests/assets.test.mjs",
+      "sha256": "6f396f49e174c97d3d72198c0371715ea593b8261fa0a05b8e13600d75da4fc2",
+      "bytes": 3392
+    },
+    {
+      "path": "tests/snake-art.test.mjs",
+      "sha256": "481797b060e47216a911757d37ec26e2bb33202f02528ce86e56230da44cb0a3",
+      "bytes": 3473
+    }
+  ]
+}

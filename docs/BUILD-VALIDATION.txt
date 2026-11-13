@@ -1,0 +1,11 @@
+FUCKASS FUNZONE 2.1.0 — SNAKE VISUAL & SNACK POLISH
+NODE TESTS: 29/29 passed (25 previous tests + 4 new Snake art/save/render integrity tests)
+FRONTEND: single bundled dist/frontend.js (39 embedded PNG assets; CSS and core inlined)
+BACKEND: none; no network
+PERMISSIONS: ui_panels
+ICON POLICY: PNGs + actual SVG elements for controls; no emoji and no ASCII icons
+DATA MIGRATION: installed identifier bird_brain unchanged; localStorage namespace bird_brain:v1 unchanged; older Snake saves migrate
+GAMES: Fuckass Bird, Gabi Jetpack, Snake, 2048
+SNAKE: continuous body, directional head art, 6 rotating PNG snack kinds
+ROADMAP PLACEHOLDERS: Match-3 and Plinko (not playable)
+BROWSER SCREENSHOT: live Lumiverse UI unverified; illustrative preview generated with Pillow

@@ -1,0 +1,46 @@
+{
+  "release": "2.5.0",
+  "base": "user-provided full cumulative v2.4.1 archive",
+  "archive_root": "fuckass_funzone/repo/",
+  "description": "Full cumulative editable source + rebuilt self-contained Spindle dist; preserved original assets, backups, scripts, and tests",
+  "modified": [
+    "README.md",
+    "dist/frontend.js",
+    "package.json",
+    "scripts/build.mjs",
+    "spindle.json",
+    "src/frontend.js",
+    "src/match3.js",
+    "src/reactions.js",
+    "src/style.css",
+    "tests/hud.test.mjs",
+    "tests/lifecycle.test.mjs"
+  ],
+  "added": [
+    "assets/funzone/duck-app.svg",
+    "assets/funzone/simon-app.svg",
+    "assets/funzone/slots-app.svg",
+    "docs/CHANGELOG-2.5.0.md",
+    "docs/backups-pre-2.5.0/build.mjs",
+    "docs/backups-pre-2.5.0/frontend.js",
+    "docs/backups-pre-2.5.0/manifest.json",
+    "docs/backups-pre-2.5.0/match3.js",
+    "docs/backups-pre-2.5.0/package.json",
+    "docs/backups-pre-2.5.0/spindle.json",
+    "docs/backups-pre-2.5.0/style.css",
+    "src/mini-games-render.js",
+    "src/mini-games.js",
+    "src/rewards.js",
+    "tests/mini-games.test.mjs",
+    "tests/rewards.test.mjs"
+  ],
+  "removed": [],
+  "validation": {
+    "tests_passed": 85,
+    "tests_failed": 0,
+    "build": "node scripts/build.mjs",
+    "bundle_sha256": "a5bd697edfb14804c4988dacb8007f2bc4086e6d232bac6097aa1f2324d89f29",
+    "asset_count": 71
+  },
+  "storage_compatibility": "Existing fuckass_funzone:v1:<extensionInstallationId> localStorage is reused; no migration"
+}

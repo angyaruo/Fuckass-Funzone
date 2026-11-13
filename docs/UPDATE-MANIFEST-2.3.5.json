@@ -1,0 +1,119 @@
+{
+  "version": "2.3.5",
+  "base_version": "2.3.4",
+  "installation_id": "bird_brain",
+  "installation_root": "data/extensions/bird_brain/repo",
+  "changed_or_new_files": [
+    {
+      "path": "README.md",
+      "sha256": "bb90b8bd362f99e9b496d48529e95529370613014fb33a39fe1e589c56268da2",
+      "bytes": 7756
+    },
+    {
+      "path": "demo-drawer-qa.html",
+      "sha256": "8d34d23d5fc5ce4ad8a3b562158857322002098e8f5947e65b8184596a562b78",
+      "bytes": 1109
+    },
+    {
+      "path": "dist/frontend.js",
+      "sha256": "fc0095b2f8ac502e0bae20dd6b515be29082f1d01d7ea852c5779aa39b72c2d6",
+      "bytes": 4613530
+    },
+    {
+      "path": "docs/CHANGELOG-2.3.5.md",
+      "sha256": "ecb6e613570b9ae5f3742422c35e2b7c599f864b9b8593a43d2114c6af538d56",
+      "bytes": 679
+    },
+    {
+      "path": "docs/backups-2.3.5/README.md",
+      "sha256": "fd7a531118866378357963130735db9d4c5643f3df31d5849a462f0ba43e8465",
+      "bytes": 8268
+    },
+    {
+      "path": "docs/backups-2.3.5/manifest.json",
+      "sha256": "c7fd6b57506e4328b4c55288907b030ec41f306b4eac313a2d16edfb06cc0b0f",
+      "bytes": 1693
+    },
+    {
+      "path": "docs/backups-2.3.5/package.json",
+      "sha256": "d9b138609c859477ee1048a17dcad0d85ce4d0ea755f9289901607d86a1fdf62",
+      "bytes": 324
+    },
+    {
+      "path": "docs/backups-2.3.5/scripts__build.mjs",
+      "sha256": "2555c5220b58723d86a9c7a49e6dad2808d86fd583cc1abedbb43b2688e90772",
+      "bytes": 7150
+    },
+    {
+      "path": "docs/backups-2.3.5/spindle.json",
+      "sha256": "2fab515e6b6088a673da998571f08c9487ae31b85ef14dd078c8b05c996ea3be",
+      "bytes": 418
+    },
+    {
+      "path": "docs/backups-2.3.5/src__frontend.js",
+      "sha256": "2d8f2a200301d1286d7c9342818a90d571425769a156cbcf0ceb7ab0891cc027",
+      "bytes": 50611
+    },
+    {
+      "path": "docs/backups-2.3.5/src__style.css",
+      "sha256": "401d8bb40b56e36043e711eda64730d3aa28d5e0971bf4c02515672f47f7866e",
+      "bytes": 20936
+    },
+    {
+      "path": "docs/backups-2.3.5/tests__drawer-layout.test.mjs",
+      "sha256": "9f10f7cac1f53f9ac980def9eae1e397e992a18614f258b7a00206bdd4e3d67a",
+      "bytes": 1073
+    },
+    {
+      "path": "docs/backups-2.3.5/tests__lifecycle.test.mjs",
+      "sha256": "a5f93f1b3f5e4b9eb7d2deaed35fb8c029b59343703e979e8fc10b40a86457c7",
+      "bytes": 13803
+    },
+    {
+      "path": "docs/backups-2.3.5/tests__match3-assets.test.mjs",
+      "sha256": "7bfeeb67b4e50911a86f946a5572c9aeae4be224ea09c03a745d0451e8bd0f50",
+      "bytes": 1686
+    },
+    {
+      "path": "package.json",
+      "sha256": "2352d228e279d71af5be1a95bd62bb75407eeb1814e97c9e7769e547642f36f2",
+      "bytes": 324
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "bb6d61983064e0ed5817da29a10f55e9b420ad81a82c3ebc07adc21dabea8c84",
+      "bytes": 7150
+    },
+    {
+      "path": "spindle.json",
+      "sha256": "eb641c511e20045bf48d460f7c54c992bcd318cf8eec703513a83404a3261725",
+      "bytes": 418
+    },
+    {
+      "path": "src/frontend.js",
+      "sha256": "7ccca8d9a0c7ea4d8824a2fac633c97345b7bf439aaafc21806c01170a2cc71a",
+      "bytes": 52427
+    },
+    {
+      "path": "src/style.css",
+      "sha256": "226509ea8c68e198ffe801206b26fe19dadc9379a9a5a07e437f5650a8076611",
+      "bytes": 23017
+    },
+    {
+      "path": "tests/drawer-layout.test.mjs",
+      "sha256": "939183b5a7104d613fd435d2acdd38a327d1efca512a57fdad5ea646a18d2e9f",
+      "bytes": 2106
+    },
+    {
+      "path": "tests/lifecycle.test.mjs",
+      "sha256": "969a3d4edae04cb2b0cab573da23c3c6ef65437f3cbbc247e0d0efed6af46e76",
+      "bytes": 15732
+    },
+    {
+      "path": "tests/match3-assets.test.mjs",
+      "sha256": "f2ad71f7ede64fdfd9e059c01c09416db70d56f4f096230f1f878ac0902149a9",
+      "bytes": 1690
+    }
+  ],
+  "removed_files": []
+}

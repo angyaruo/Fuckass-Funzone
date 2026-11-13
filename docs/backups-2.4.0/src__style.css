@@ -1,0 +1,269 @@
+/* Fuckass Funzone v2.3.5 · radio-style game settings and the new Match-3 cat.
+   Namespaced to .bb so Lumiverse themes remain untouched. Iconography is SVG/PNG only. */
+.bb,.bb *{box-sizing:border-box}
+.bb{--bb-ink:#f9eefa;--bb-pink:#ee88b3;--bb-gold:#ffcf79;--bb-muted:#baaacb;
+ color:var(--bb-ink);font:13px/1.35 Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
+.bb button,.bb select{font:inherit;cursor:pointer}
+.bb button:focus-visible,.bb select:focus-visible,.bb input:focus-visible,.bb-canvas:focus-visible{outline:2px solid #ffe0a3;outline-offset:2px}
+.bb-float{width:100%;height:100%;overflow:auto;min-width:0;padding:9px 10px 8px;border-radius:15px;
+ background:linear-gradient(150deg,#241e32,#1b1829 68%,#231d30);border:1px solid #50435d;
+ box-shadow:0 12px 32px #0006;overscroll-behavior:contain;touch-action:pan-y}
+/* The entire top chrome fits into ONE small row. */
+.bb-header{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:5px;height:39px}
+.bb-brand{display:block;width:141px;max-width:43%;height:37px;min-width:92px;object-fit:contain;flex:0 1 141px}
+.bb-status{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin-left:auto;
+ color:#b7aac6;font-size:9px;font-weight:800;letter-spacing:.04em;min-width:0}
+.bb-status::before{content:'';display:block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#84758f}
+.bb-status[data-state=thinking]{color:#ffd9b3}
+.bb-status[data-state=thinking]::before{background:#f6b76b;box-shadow:0 0 8px #f5a35680}
+.bb-status[data-state=ready]{color:#b2ead2}
+.bb-status[data-state=ready]::before{background:#6bd2a0;box-shadow:0 0 8px #68d5a075}
+.bb-wallet{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 7px;border-radius:8px;background:#171525;
+ border:1px solid #3c314c;min-width:42px}
+.bb-currency-icon{display:block;width:16px;height:16px;object-fit:contain;flex:0 0 16px}
+.bb-ticket-count{color:#fff5fb;font-size:11px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bb-iconbutton{appearance:none;display:grid;place-items:center;flex:0 0 auto;width:28px;height:28px;
+ border-radius:7px;border:1px solid transparent;background:transparent;color:#d5c4dc;padding:0}
+.bb-iconbutton:hover{background:#3a3048;border-color:#56435f}
+.bb-iconbutton svg,.bb-mainbutton svg,.bb-mini svg{display:block;flex-shrink:0}
+.bb-iconbutton span,.bb-mini span{display:none}
+/* One game-picker button replaces the old five-tab rail. */
+.bb-phone-button{color:#f3c1e0;border:1px solid #55405a;background:#271d33}
+.bb-phone-button svg{width:17px;height:17px}
+/* Game canvas is the hero; remove the border-inside-border effect. */
+.bb-canvas{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:360/452;margin:0 auto;
+ border:1px solid #584563;border-radius:10px;background:#211b37;
+ outline:none;box-shadow:none;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+/* Match-3 alone receives a neutral graphite playfield; preserve the pink Funzone branding. */
+.bb-canvas[data-mode=match3]{background:#1c222b;border-color:#414954;}
+/* Single compact control strip with contextual Play/Pause and quiet utilities. */
+.bb-controls{display:flex;align-items:center;gap:5px;margin-top:6px;min-width:0}
+.bb-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.bb-mainbutton,.bb-mini{font-size:11px;font-weight:800;transition:background .12s,border-color .12s}
+.bb-mainbutton{min-height:33px;min-width:85px;padding:5px 10px;border:1px solid #90667f;border-radius:8px;
+ background:#55334c;color:#ffeaf2;letter-spacing:.04em}
+.bb-mainbutton:hover{background:#70405e}
+.bb-mainbutton svg{width:15px;height:15px}
+.bb-mini{width:32px;height:33px;padding:0;border:1px solid #51445b;border-radius:8px;background:#2b2539;color:#d9cbdc}
+.bb-mini:hover{background:#3b2e49;border-color:#866b92}
+.bb-controls .bb-undo[hidden]{display:none}
+.bb-footer{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#8f829e;
+ font-size:9px;font-weight:650;letter-spacing:.01em;line-height:1.3}
+.bb-setting {display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;
+ border-bottom:1px solid #42334d;cursor:pointer;}
+.bb-setting-label {display:flex;flex:1;flex-direction:column;gap:3px;}
+.bb-setting-label strong {font-weight:760;color:#f6eaf3;font-size:12px;}
+.bb-setting-label small {font-size:10px;color:#a99ab9;}
+.bb-setting input[type=checkbox] {appearance:none;position:relative;width:35px;height:21px;flex:0 0 auto;
+ background:#474257;border:1px solid #7c6a84;border-radius:20px;transition:background .12s;}
+.bb-setting input[type=checkbox]::after {content:'';position:absolute;left:3px;top:3px;width:13px;height:13px;border-radius:50%;background:#cfc2d9;transition:transform .12s;}
+.bb-setting input[type=checkbox]:checked {background:#a04d85;border-color:#ef82bb;}
+.bb-setting input[type=checkbox]:checked::after {background:#fff1f7;transform:translateX(13px);}
+.bb-select {max-width:148px;min-width:109px;background:#302742;color:#fdeaf5;border:1px solid #766087;border-radius:8px;padding:8px 6px;font-size:11px;}
+.bb-quiet {background:transparent;border:0;color:#b49baa;font-size:10px;text-decoration:underline;padding:8px 3px;}
+
+/* Sidebar settings use the concise arcade handbook section below. */
+.bb-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:390px){
+ .bb-float{padding:7px 8px;border-radius:12px}
+ .bb-brand{width:125px;max-width:40%;min-width:90px;height:35px}
+ .bb-header{gap:5px;height:36px}
+ .bb-status{font-size:8px;gap:4px}
+ .bb-wallet{padding:4px 5px}
+ .bb-controls{gap:4px}
+ .bb-mainbutton{min-width:80px;padding:5px 7px}
+ .bb-mini{width:30px}
+ .bb-footer{font-size:8px}
+}
+@media(max-width:335px){
+ .bb-brand{max-width:34%}
+ .bb-footer{display:none}
+ .bb-controls{justify-content:flex-end}
+}
+@media(prefers-reduced-motion:reduce){.bb-mainbutton,.bb-mini,.bb-setting input{transition:none}}
+
+/* Match-3 / Gabu: fleeting overlay, not another permanent dashboard row. */
+.bb-game-stage{position:relative;max-width:360px;margin:0 auto;}
+.bb-game-stage .bb-canvas{margin:0;max-width:100%;}
+.bb-reaction{position:absolute;bottom:13px;left:8px;right:8px;min-height:46px;display:flex;align-items:center;gap:7px;
+ padding:5px 9px 5px 4px;background:#1e142fe9;border:1px solid #c4649c;border-radius:10px;box-shadow:0 6px 15px #110d237d;
+ color:#ffecf8;font-size:11px;line-height:1.25;font-weight:750;pointer-events:none;max-width:calc(100% - 16px);}
+.bb-reaction[hidden]{display:none;}
+.bb-reaction-face{display:block;object-fit:contain;object-position:center;flex:0 0 47px;width:47px;height:47px;}
+.bb-reaction-text{display:block;min-width:0;overflow-wrap:anywhere;}
+.bb-reaction[data-mood=hype]{border-color:#ffcb79;background:#2b1731ed;}
+.bb-reaction[data-mood=panic]{border-color:#f76b91;}
+
+/* Funzone OS — a compact in-widget launcher, never a second host window. */
+.bb-phone[hidden],.bb-game-stage[hidden],.bb-controls[hidden],.bb-plinko-bets[hidden]{display:none!important}
+.bb-phone{min-height:370px;padding:10px 8px 9px;border:1px solid #51425e;border-radius:13px;
+ background:radial-gradient(ellipse at 90% 4%,#68406165,transparent 48%),linear-gradient(145deg,#281d3c,#191727 70%);}
+.bb-phone-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 0 5px}
+.bb-phone-top strong{color:#ffe3ef;font-size:12px;font-weight:900;letter-spacing:.16em}
+.bb-phone-top small{color:#c6a5c2;font-size:8px;letter-spacing:.07em}
+.bb-phone-hero{height:69px;position:relative;display:flex;align-items:center;justify-content:flex-end;padding:6px 13px;
+ margin:0 5px 10px;background:linear-gradient(90deg,#362343,#2c203a);border-radius:13px;border:1px solid #624767;overflow:hidden}
+.bb-phone-mascot{position:absolute;width:92px;height:78px;object-fit:contain;object-position:bottom;bottom:-10px;left:8px}
+.bb-phone-copy{width:62%;color:#f5d9ed;font-size:11px;line-height:1.35;font-weight:730;text-align:right}
+.bb-app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 5px;padding:2px 0 8px}
+.bb-app{appearance:none;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;
+ color:#f8e5f0;min-width:0;padding:3px 1px 5px;border-radius:10px;cursor:pointer}
+.bb-app:hover,.bb-app:focus-visible{background:#fa9fd71c;outline:1px solid #c579a2}
+.bb-app-art{display:grid;place-items:center;width:61px;height:57px;background:linear-gradient(155deg,#614262,#392d4d);
+ border:1px solid #8b5c85;border-radius:17px;box-shadow:0 4px 0 #100b1a50,inset 0 1px #fff4}
+.bb-app-image{display:block;width:44px;height:44px;object-fit:contain}
+.bb-app-name{font-size:10px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bb-app-best{color:#c0abc6;font-size:8px;letter-spacing:.01em}
+.bb-phone-resume{display:block;margin:5px auto 0;min-width:60%;min-height:32px;padding:7px 12px;
+ border:1px solid #9e6f99;border-radius:8px;background:#513551;color:#fff0fa;font-size:10px;font-weight:840}
+.bb-phone-resume:hover{background:#71466b}
+/* Wager strip only exists inside Plinko, no fake betting control on other games. */
+.bb-plinko-bets{display:flex;align-items:center;gap:5px;padding:6px 1px 0;min-width:0}
+.bb-stake-label{color:#d3b6c7;font-size:9px;font-weight:800;margin-right:auto}
+.bb-stake{border:1px solid #59475d;background:#2d2636;color:#fce8f4;font-size:10px;font-weight:800;
+ border-radius:7px;min-width:31px;height:29px;padding:3px 5px}
+.bb-stake.selected{background:#9b477a;border-color:#ffb2d8;color:#fff}
+.bb-stake:disabled{opacity:.4;cursor:not-allowed}
+.bb-canvas[data-mode=plinko]{background:#131923;border-color:#66516c}
+/* Plinko: give it a tiny-cabinet identity instead of a blank spreadsheet of pegs. */
+.bb-game-stage .bb-plinko-host{display:none;}
+.bb-game-stage[data-game="plinko"] .bb-plinko-host{display:block;position:absolute;right:-16px;top:25px;width:126px;height:124px;z-index:3;pointer-events:none;filter:drop-shadow(0 5px 9px #09071685)}
+.bb-plinko-host-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom right;clip-path:inset(0 0 13px 0);}
+/* A little front rail lets Gabu feel perched on the cabinet, not pasted onto it. */
+.bb-plinko-host::before{content:'';position:absolute;right:17px;bottom:12px;width:80px;height:6px;background:linear-gradient(180deg,#f8a6cf,#a94e7f);border-radius:999px;opacity:.45;}
+.bb-plinko-host::after{content:'';position:absolute;right:9px;bottom:6px;width:98px;height:13px;background:#171923;border-top:2px solid #c17399;border-left:1px solid #7b4d6a;border-right:1px solid #7b4d6a;border-radius:58% 58% 0 0;box-shadow:0 -1px 0 #23182a inset;}
+.bb-game-stage[data-game="plinko"] .bb-reaction{top:84px;bottom:auto;left:9px;right:auto;width:136px;max-width:136px;min-height:0;padding:8px 10px;
+ background:#382840f4;border:1px solid #d099b3;border-radius:12px 12px 4px 12px;box-shadow:0 5px 16px #0007;z-index:4;line-height:1.28;font-size:10px;animation:bb-house-bubble .22s ease-out both;}
+.bb-game-stage[data-game="plinko"] .bb-reaction::after{content:'';position:absolute;right:-7px;top:15px;width:12px;height:12px;transform:rotate(45deg);background:#382840;border-top:1px solid #d099b3;border-right:1px solid #d099b3;}
+.bb-game-stage[data-game="plinko"] .bb-reaction-face{display:none;}
+.bb-game-stage[data-game="plinko"] .bb-reaction-text{width:100%;text-wrap:balance;}
+@keyframes bb-house-bubble{from{opacity:0;transform:translateY(5px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.bb-controls[data-mode="plinko"]{gap:4px;justify-content:space-between;align-items:stretch;}
+.bb-controls[data-mode="plinko"] .bb-footer{display:none;}
+.bb-controls[data-mode="plinko"] .bb-plinko-bets{display:flex;flex:1 1 auto;min-width:0;gap:4px;padding:0;margin:0;align-items:stretch;}
+.bb-controls[data-mode="plinko"] .bb-stake-label{margin:0 2px 0 0;align-self:center;font-size:8px;letter-spacing:.08em;color:#f0d8e3;}
+.bb-controls[data-mode="plinko"] .bb-stake{display:grid;place-items:center;flex:1 1 0;min-width:0;height:35px;padding:0 2px;font-size:10px;line-height:1;font-variant-numeric:tabular-nums;border-radius:8px;background:#2e2535;border-color:#675069;color:#fff0f7;}
+.bb-controls[data-mode="plinko"] .bb-stake.selected{background:linear-gradient(180deg,#b55189,#8b3d67);border-color:#ffc1dd;box-shadow:inset 0 1px #ffd3e6;}
+.bb-controls[data-mode="plinko"] .bb-mainbutton{flex:0 0 auto;min-width:76px;padding:5px 8px;background:linear-gradient(180deg,#74455f,#5a3349);}
+.bb-controls[data-mode="plinko"] .bb-mini{width:31px;min-width:31px;}
+.bb-controls[data-mode="plinko"] .bb-mini svg{width:15px;height:15px;}
+@media(max-width:350px){.bb-app-art{width:51px;height:51px}.bb-app-image{width:39px;height:39px}.bb-app-name{font-size:9px}.bb-plinko-bets{gap:2px}.bb-controls[data-mode="plinko"] .bb-stake-label{display:none}.bb-controls[data-mode="plinko"] .bb-mainbutton{min-width:68px}.bb-controls[data-mode="plinko"] .bb-mini{width:27px;min-width:27px}.bb-game-stage[data-game="plinko"] .bb-plinko-host{right:-12px;top:29px;width:116px;height:114px}.bb-game-stage[data-game="plinko"] .bb-reaction{width:126px;max-width:126px;font-size:9px;padding:7px 9px}}
+@media(prefers-reduced-motion:reduce){.bb-game-stage[data-game="plinko"] .bb-reaction{animation:none}}
+
+/* Match-3 difficulty is width-based, without adding another bulky toolbar row. */
+.bb-match-size-select{appearance:none;border:1px solid #598c90;background:#223b42;color:#c9faf1;
+ height:33px;min-width:62px;width:66px;border-radius:8px;font-size:10px;font-weight:850;text-align:center;padding:3px 4px;cursor:pointer;}
+.bb-match-size-select[hidden]{display:none!important;}
+.bb-controls[data-mode="match3"] .bb-footer{display:none;}
+.bb-controls[data-mode="match3"]{justify-content:flex-end;}
+.bb-controls[data-mode="match3"] .bb-mainbutton{flex:1 1 auto;min-width:75px;}
+@media(max-width:335px){.bb-match-size-select{width:59px;min-width:59px;font-size:9px}.bb-controls[data-mode="match3"] .bb-mini{width:29px;min-width:29px}}
+
+/* v2.3.5: one arcade behavior accordion + real radio-style game tabs.
+ * The panel respects narrow host layouts: never scale the whole UI down. */
+.bb-drawer{width:100%;max-width:760px;min-width:0;margin:0 auto;padding:15px 16px 23px;color:#f2e8f4;}
+.bb-drawer-logo{display:block;width:min(100%,265px);height:auto;max-height:90px;margin:0 auto 12px;object-fit:contain;}
+.bb-drawer-hero{position:relative;isolation:isolate;min-height:141px;margin:0 0 16px;padding:16px 155px 15px 18px;
+ background:radial-gradient(ellipse at 92% 4%,#a34b7b48,transparent 55%),linear-gradient(118deg,#33263e,#241e34 71%,#35243e);
+ border:1px solid #825d80;border-radius:15px;box-shadow:0 9px 22px #120e2050,inset 0 1px #fff1;overflow:hidden;}
+.bb-drawer-hero::after{content:'';position:absolute;bottom:0;left:21px;right:21px;height:2px;border-radius:99px;
+ background:linear-gradient(90deg,#ff8fb7,#ffd18c 48%,transparent);opacity:.83;}
+.bb-drawer-hero-copy{position:relative;z-index:2;min-width:0;}
+.bb-drawer-eyebrow{display:block;color:#f2a9d1;font-size:9px;letter-spacing:.15em;font-weight:900;margin:0 0 5px;}
+.bb-drawer-heading{font-size:18px;line-height:1.18;letter-spacing:-.025em;font-weight:900;color:#fff0f8;margin:0 0 6px;}
+.bb-drawer-subtitle{font-size:11px;color:#c5b7d0;line-height:1.45;max-width:245px;margin:0 0 12px;}
+.bb-drawer-hero-art{position:absolute;z-index:1;right:-12px;bottom:-9px;width:171px;height:157px;object-fit:contain;object-position:right bottom;
+ filter:drop-shadow(-3px 6px 7px #08061475);pointer-events:none;}
+.bb-drawer-os-button{min-height:37px;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ background:linear-gradient(180deg,#e86a9c,#b54e86);border:1px solid #ffb8d7;border-radius:9px;
+ color:#fff8fb;font-size:11px;font-weight:900;letter-spacing:.045em;padding:9px 11px;
+ box-shadow:0 3px 0 #652a4e,0 5px 14px #f26a9530;}
+.bb-drawer-os-button:hover{background:linear-gradient(180deg,#fa83b2,#c86093);}
+.bb-drawer-os-button:active{transform:translateY(1px);box-shadow:0 2px 0 #652a4e;}
+.bb-drawer-os-button svg{display:block;flex:0 0 auto;}
+.bb-drawer-topline{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 10px;justify-content:space-between;margin:17px 2px 9px;}
+.bb-drawer-category{color:#ead6e9;font-size:11px;letter-spacing:.13em;font-weight:900;margin:0;}
+.bb-drawer-topline small{color:#a99bb4;font-size:10px;}
+/* Behavior is deliberately separate from game selection. */
+.bb-drawer-behavior{border:1px solid #56435d;background:#24202f;border-radius:11px;margin:0 0 17px;overflow:hidden;}
+.bb-drawer-behavior[open]{border-color:#876385;}
+.bb-drawer-behavior-head{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;min-height:52px;padding:9px 12px;color:#f8eaf5;}
+.bb-drawer-behavior-head::-webkit-details-marker{display:none;}
+.bb-drawer-behavior-head::marker{content:'';}
+.bb-drawer-behavior-head:hover{background:#f8bdd70a;}
+.bb-drawer-behavior-head:focus-visible{outline:2px solid #ffcf9b;outline-offset:-3px;}
+.bb-drawer-behavior-icon{display:grid;place-items:center;width:31px;height:31px;flex:0 0 31px;border-radius:8px;
+ color:#ffb5d5;background:#3c2b44;border:1px solid #715272;}
+.bb-drawer-behavior-copy{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.bb-drawer-behavior-copy strong{font-size:12px;color:#ffebf4;}
+.bb-drawer-behavior-copy small{font-size:10px;color:#b7a7c2;}
+.bb-drawer-behavior-head>svg{flex:0 0 17px;color:#d8a5c3;transition:transform .16s;}
+.bb-drawer-behavior[open] .bb-drawer-behavior-head>svg{transform:rotate(180deg);}
+.bb-drawer-behavior-content{padding:6px 12px 9px;border-top:1px solid #4a3b53;background:#292334;}
+.bb-drawer-behavior-content .bb-setting{margin:0;padding:9px 0;}
+.bb-drawer-behavior-content .bb-setting:last-child{border:0;}
+/* Three compact tabs per row at the actual sidebar width, not six accordions. */
+.bb-drawer-game-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 8px;}
+.bb-drawer-game-tab{appearance:none;position:relative;display:flex;align-items:center;gap:7px;min-width:0;min-height:51px;
+ padding:8px;border:1px solid #514058;border-radius:10px;background:#272130;color:#dfcfe0;text-align:left;
+ box-shadow:inset 0 1px #ffffff08;transition:background .12s,border-color .12s;}
+.bb-drawer-game-tab:hover{background:#35283c;border-color:#896383;}
+.bb-drawer-game-tab[aria-selected="true"]{background:linear-gradient(140deg,#4e2e4b,#37233f);border-color:#e78fbd;
+ box-shadow:inset 0 1px #ffffff19,0 0 0 1px #b8669e36;}
+.bb-drawer-game-tab[aria-selected="true"]::after{content:'';position:absolute;bottom:-1px;left:12px;right:12px;height:2px;border-radius:2px;background:#ffa2cc;}
+.bb-drawer-game-tab:focus-visible{outline:2px solid #ffe0a3;outline-offset:2px;}
+.bb-drawer-game-art{display:block;width:31px;height:31px;flex:0 0 31px;object-fit:contain;}
+.bb-drawer-game-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f7e6f1;font-size:11px;font-weight:800;}
+.bb-drawer-game-pages{min-width:0;border:1px solid #634b68;border-radius:12px;background:linear-gradient(180deg,#2c2638,#251f30);overflow:hidden;}
+.bb-drawer-game-page{min-width:0;padding:12px 14px 13px;}
+.bb-drawer-game-page[hidden]{display:none!important;}
+.bb-drawer-page-title{display:flex;align-items:center;gap:9px;padding:0 0 8px;margin-bottom:8px;border-bottom:1px solid #56445f;}
+.bb-drawer-page-art{display:block;width:37px;height:37px;flex:0 0 37px;object-fit:contain;}
+.bb-drawer-page-title h4{font-size:13px;font-weight:900;color:#ffedf8;letter-spacing:.02em;margin:0;}
+.bb-drawer-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #4b3d57;cursor:pointer;}
+.bb-drawer-choice:last-of-type{border-bottom:0;}
+.bb-drawer-choice .bb-setting-label{min-width:0;}
+.bb-drawer-choice .bb-setting-label strong{font-size:11px;color:#f5eaf3;}
+.bb-drawer-choice .bb-setting-label small{line-height:1.38;color:#b7abbe;}
+.bb-drawer-choice .bb-select{min-width:126px;max-width:170px;flex:0 0 auto;font-size:10px;border-color:#866b8b;background:#332a40;}
+.bb-drawer-tip{font-size:11px;line-height:1.55;color:#d2c5d8;margin:5px 0 11px;}
+.bb-drawer-subhead{font-size:10px;letter-spacing:.11em;color:#f6b9d8;margin:15px 0 8px;font-weight:900;}
+.bb-special-guide{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;}
+.bb-special-card{display:flex;align-items:center;gap:10px;padding:8px 9px;background:#211f2e;border:1px solid #514457;border-radius:10px;min-width:0;}
+.bb-special-art{width:39px;height:39px;flex:0 0 39px;object-fit:contain;background:#33303b;border-radius:9px;padding:4px;}
+.bb-special-copy{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.bb-special-copy strong{font-size:11px;color:#ffe6ef;font-weight:800;}
+.bb-special-copy small{font-size:10px;line-height:1.35;color:#bdb3c8;}
+.bb-drawer-scores-header{margin:20px 2px 9px;}
+.bb-drawer .bb-bests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+ background:transparent;padding:0;margin:0 0 8px;text-align:left;color:#f9eefa;letter-spacing:normal;}
+.bb-best-row{display:flex;align-items:center;min-width:0;gap:8px;border:1px solid #473b53;border-radius:10px;background:#252130;padding:7px 9px;}
+.bb-best-art{width:27px;height:27px;object-fit:contain;flex:0 0 27px;}
+.bb-best-name{font-size:10px;min-width:0;flex:1;color:#c7bad1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bb-best-value{font-size:12px;color:#fff1d6;font-variant-numeric:tabular-nums;}
+.bb-drawer .bb-quiet{font-size:10px;margin-top:5px;color:#bca7b8;}
+@media(max-width:440px){
+ .bb-drawer{padding:12px 10px 20px;}
+ .bb-drawer-logo{max-height:77px;width:min(100%,228px);margin-bottom:10px;}
+ .bb-drawer-hero{padding:14px 110px 15px 13px;min-height:132px;margin-bottom:14px;}
+ .bb-drawer-hero-art{right:-25px;width:145px;height:140px;}
+ .bb-drawer-heading{font-size:15px;}
+ .bb-drawer-subtitle{font-size:10px;}
+ .bb-drawer-os-button{min-height:34px;font-size:10px;padding:7px 8px;gap:6px;}
+ .bb-drawer-game-tab{min-height:47px;padding:6px;gap:4px;}
+ .bb-drawer-game-art{width:26px;height:26px;flex-basis:26px;}
+ .bb-drawer-game-name{font-size:10px;}
+ .bb-drawer-choice{align-items:flex-start;flex-direction:column;gap:7px;}
+ .bb-drawer-choice .bb-select{align-self:stretch;max-width:none;width:100%;}
+ .bb-drawer-game-page{padding:10px 11px 12px;}
+ .bb-drawer-topline small{display:none;}
+ .bb-best-row{gap:4px;padding:6px;}
+ .bb-best-art{width:23px;height:23px;flex-basis:23px;}
+ .bb-best-name{font-size:9px;}
+}
+@media(max-width:305px){
+ .bb-drawer-game-tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .bb-drawer-hero{padding-right:84px;}
+ .bb-drawer-hero-art{right:-45px;width:130px;}
+}
+@media(prefers-reduced-motion:reduce){.bb-drawer-behavior-head>svg,.bb-drawer-game-tab,.bb-drawer-os-button{transition:none;}}

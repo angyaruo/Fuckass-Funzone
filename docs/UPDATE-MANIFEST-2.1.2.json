@@ -1,0 +1,29 @@
+{
+  "release": "2.1.2",
+  "base": "2.1.0",
+  "full_file_count": 93,
+  "overlay_changed_file_count": 17,
+  "changed_paths": [
+    "README.md",
+    "demo-hud-qa.html",
+    "dist/frontend.js",
+    "docs/CHANGELOG-2.1.2.md",
+    "docs/UPDATE-MANIFEST-2.1.2.json",
+    "docs/backups-2.1.2/frontend.js",
+    "docs/backups-2.1.2/puzzle-render.js",
+    "docs/backups-2.1.2/style.css",
+    "package.json",
+    "scripts/build.mjs",
+    "spindle.json",
+    "src/frontend.js",
+    "src/puzzle-render.js",
+    "src/style.css",
+    "tests/assets.test.mjs",
+    "tests/hud.test.mjs",
+    "tests/lifecycle.test.mjs"
+  ],
+  "full_tree_sha256": "006fb6ac4be1fef20615d5bf695982f84f8f029790a365062a1a2fc1ab5a82c4",
+  "no_deletions_required": true,
+  "validation": "full extraction and v2.1.0 + overlay produce identical trees, automated tests 31/31 passing",
+  "browser_visual_qa": "not confirmed; container Chromium screenshot timed out"
+}
