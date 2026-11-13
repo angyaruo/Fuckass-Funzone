@@ -49,18 +49,8 @@ Earn tickets as you play and trade them for cabinet themes, Snake skins, Plinko 
 
 ## Install or update
 
-1. If you're updating, back up your existing `data/extensions/fuckass_funzone` folder.
-2. Place the project files so the manifest is at `data/extensions/fuckass_funzone/repo/spindle.json`. The bundled `dist/frontend.js` goes beside it under `repo/dist/`.
-3. Enable the extension in Spindle. For an update, unload and re-enable it. Reload Lumiverse if it still shows the previous version.
-4. Open **Funzone OS** from the arcade drawer and pick a game.
-
-## Build and test
-
-From the project root, run these commands with Node.js installed. The build embeds the bundled artwork and styles into `dist/frontend.js`.
-
-```bash
-npm run build
-npm test
+1. Copy this repo link 
+```txt
+https://github.com/kittyafterdark/Fuckass-Funzone
 ```
-
-See the [testing guide](docs/TESTING.md) and the [v2.6.3 changelog](docs/CHANGELOG-2.6.3.md) for Gabi's updated flight expressions.
+2. Paste it on Extensions > Add
