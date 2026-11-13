@@ -39,7 +39,7 @@ Earn tickets as you play and trade them for cabinet themes, Snake skins, Plinko 
 <table>
   <tr>
     <td width="50%"><img src="docs/match3-v2.3.3-hints-and-widths-preview.png" alt="Trinket Panic reference art showing three board widths"></td>
-    <td width="50%"><img src="docs/plinko-phone-preview.png" alt="Plinko and Funzone OS reference art"></td>
+    <td width="50%"><img src="docs/plinko-funzone-os-preview.png" alt="Plinko cabinet beside the nine-game Funzone OS launcher and Prize Counter shortcut"></td>
   </tr>
   <tr>
     <td align="center"><strong>Trinket Panic</strong></td>
