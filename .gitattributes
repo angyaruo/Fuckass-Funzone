@@ -1,0 +1,2 @@
+# Embedded SVG data must stay byte-identical across Windows and Unix checkouts.
+*.svg text eol=lf
