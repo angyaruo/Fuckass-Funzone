@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { milestonePayout, creditTickets, MAX_TICKETS } from '../src/rewards.js';
 
 test('every game has safe, nonrepeatable score milestones',()=>{
- const expectations=[['bird',5],['gabi',5],['snake',2],['2048',64],['match3',400],['simon',2],['duck',3]];
+ const expectations=[['bird',5],['gabi',5],['snake',2],['2048',64],['match3',400],['simon',2],['duck',3],['tetris',1000],['solitaire',100],['froggy',100]];
  for(const [id,step] of expectations){
   assert.equal(milestonePayout(id,0,step-1),0,id);
   assert.equal(milestonePayout(id,0,step),1,id);

@@ -16,7 +16,7 @@
 
 ## Pick a game
 
-Open **Funzone OS** from the arcade drawer to launch any of the nine games in the floating cabinet.
+Open **Funzone OS** from the arcade drawer to launch any of the twelve games in the floating cabinet.
 
 | Game | How to play |
 | --- | --- |
@@ -29,6 +29,11 @@ Open **Funzone OS** from the arcade drawer to launch any of the nine games in th
 | **Simon Says** | Repeat the flashing sequence with the four pads or keys 1–4. |
 | **Duck Hunt** | Tap or click flying ducks. Choose a timer or play an untimed hunt. |
 | **Gabu Slots** | Spin in free practice or choose a fictional-ticket wager. |
+| **Tetris** | Move with Left/Right or A/D, rotate with Up/W/X or Z, soft drop with Down/S, hard drop with Space, and hold with C. Touch buttons are included. |
+| **Solitaire** | Play draw-one Klondike: tap a source card or run, then its destination; tap the stock to draw or recycle. Use Undo to take back a move. |
+| **Froggy** | Hop with the arrows, WASD, or touch pad. Dodge cars, ride logs, and fill five different homes to advance. |
+
+Tetris, Solitaire, and Froggy pause with **P** or the cabinet's main button. They also pause when the window loses focus; saved games resume paused. Solitaire supports keyboard play: arrows choose cards/piles, Enter selects, D draws, F moves the selected top card to its foundation, Z/U undoes, and Escape cancels selection. Undo history lasts for the current session; the board itself survives reloads.
 
 ### Visit the Prize Counter
 
@@ -54,3 +59,9 @@ Earn tickets as you play and trade them for cabinet themes, Snake skins, Plinko 
 https://github.com/kittyafterdark/Fuckass-Funzone
 ```
 2. Paste it on the Extensions sidebar tab > Add Extensions
+
+## Development
+
+No npm dependencies are needed. Run `npm run check` to rebuild `dist/frontend.js` and execute the rule and mock-host integration tests. The committed bundle is self-contained; edit `src/` and rebuild instead of editing `dist/` directly.
+
+For a playable mock-host preview, run `python -m http.server 8765 --bind 127.0.0.1` from the repository root and open [the local preview](http://127.0.0.1:8765/demo-classics-qa.html). This checks the bundled UI but does not replace testing in live Lumiverse; see [the acceptance checklist](docs/TESTING.md).

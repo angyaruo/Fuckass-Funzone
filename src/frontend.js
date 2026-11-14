@@ -13,6 +13,12 @@ import { milestonePayout, creditTickets } from './rewards.js';
 import { SimonGame, DuckGame, SlotGame } from './mini-games.js';
 import { drawSimon, drawDuck, drawSlots, simonCell } from './mini-games-render.js';
 import { SHOP_CATALOG, SHOP_SLOTS, restoreShop, purchaseReward, equipReward } from './shop.js';
+import { TetrisGame } from './tetris.js';
+import { drawTetris, tetrisControlAt } from './tetris-render.js';
+import { SolitaireGame } from './solitaire.js';
+import { drawSolitaire, solitaireHitAt } from './solitaire-render.js';
+import { FroggyGame } from './froggy.js';
+import { drawFroggy, froggyControlAt } from './froggy-render.js';
 
 const ASSETS = /* BUILD_ASSETS */ {};
 const CSS = /* BUILD_CSS */ '';
@@ -21,7 +27,8 @@ const GAME_ROSTER = Object.freeze([
  ['bird','Fuckass Bird','bird_flap_0'],['gabi','Gabi Jetpack','gabi_fly_0'],
  ['snake','Snake','snake_head'],['2048','2048','merge_tile'],
  ['match3','Trinket Panic','match_vec_cat'],['plinko','Plinko','plinko_app'],
- ['simon','Simon Says','simon_app'],['duck','Duck Hunt','duck_app'],['slots','Gabu Slots','slots_app']
+ ['simon','Simon Says','simon_app'],['duck','Duck Hunt','duck_app'],['slots','Gabu Slots','slots_app'],
+ ['tetris','Tetris','tetris_app'],['solitaire','Solitaire','solitaire_app'],['froggy','Froggy','froggy_app']
 ]);
 const GAME_IDS = GAME_ROSTER.map(([id])=>id);
 
@@ -126,7 +133,7 @@ function loadImages() {
     ...['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>`match_${k}`),
     ...['cat','heart','star','fish','cookie','gem','rocket','bomb','hint'].map(k=>`match_vec_${k}`),
     ...['smug','annoyed','hype','panic','dizzy','sleepy','shock'].map(k=>`gabu_${k}`),
-    'gabu_magnate','gabu_peek','plinko_chip','plinko_app','plinko_crest','simon_app','duck_app','slots_app',
+    'gabu_magnate','gabu_peek','plinko_chip','plinko_app','plinko_crest','simon_app','duck_app','slots_app','tetris_app','solitaire_app','froggy_app',
   ];
   const imgs = {};
   for (const name of names) {
@@ -387,7 +394,8 @@ export function setup(ctx) {
   let shopState=restoreShop(persisted.shop);
   const images=loadImages();let lifecycle={activeIds:[],ready:false};
   let widget=null,drawer=null,action=null,frame=0,lastTs=0,shown=false,disposed=false;
-  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1;
+  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1,solitaireCursor=-1;
+  const classicGames={},pendingClassicScores=new Set();let classicSavePending=false;
   const matchBanks=Object.create(null);
   for(const width of MATCH_WIDTHS)if(persisted?.match3Boards?.[width])matchBanks[width]=persisted.match3Boards[width];
   const oldMatch=persisted?.puzzles?.match3;
@@ -411,7 +419,8 @@ export function setup(ctx) {
   const save=()=>{
     matchBanks[match3.width]=match3.snapshot();
     safeSave(storageKey,{settings,bests,arcadeGame:activeMode,tickets,shop:shopState,plinkoStake,slotStake,matchHintSeconds,matchTimerSeconds,duckTimerSeconds,duckSpeed,match3Width:match3.width,match3Boards:matchBanks,
-      puzzles:{snake:snake.snapshot(),merge:merge.snapshot(),match3:match3.snapshot(),plinko:plinko.snapshot(),simon:simon.snapshot(),duck:duck.snapshot(),slots:slots.snapshot()}});
+      puzzles:{snake:snake.snapshot(),merge:merge.snapshot(),match3:match3.snapshot(),plinko:plinko.snapshot(),simon:simon.snapshot(),duck:duck.snapshot(),slots:slots.snapshot(),
+        ...Object.fromEntries(Object.entries(classicGames).map(([id,g])=>[id,g.snapshot()]))}});
   };
   function addTickets(amount){
     const gain=Math.max(0,Math.floor(Number(amount)||0));
@@ -477,8 +486,24 @@ export function setup(ctx) {
     if(event==='land'){reactions.emit('slots',data.stake===0?'practice':data.multiplier>=14?'jackpot':'land',data);}
     else reactions.emit('slots',event,data);refresh();
   }});
+  function classicEvent(id,event){
+    const current=classicGames[id];if(!current)return;
+    if(['score','move','win','death'].includes(event))pendingClassicScores.add(id);
+    if(['score','move','undo','win','death','hit','home','level','hop','lock','hold'].includes(event))classicSavePending=true;
+    if(event==='death')sound.play('death');else if(event==='win'||event==='line')sound.play('score');
+    refresh();
+  }
+  function flushClassic(){
+    if(!classicSavePending)return;
+    classicSavePending=false;
+    for(const id of pendingClassicScores)award(id,classicGames[id].score);
+    pendingClassicScores.clear();save();
+  }
+  for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame]]){
+    classicGames[id]=new Game({saved:persisted?.puzzles?.[id],onEvent:event=>classicEvent(id,event)});
+  }
   const bind=(el,event,fn,options)=>{el.addEventListener(event,fn,options);listeners.push(()=>el.removeEventListener(event,fn,options));};
-  const active=()=>activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game;
+  const active=()=>classicGames[activeMode]||(activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game);
   function setMatchWidth(width){
     if(!MATCH_WIDTHS.includes(width)||width===match3.width)return;
     matchBanks[match3.width]=match3.snapshot();match3.pause();
@@ -545,7 +570,7 @@ export function setup(ctx) {
     const current=active();
     if(canvas)canvas.dataset.mode=activeMode;
     if(gameStage)gameStage.dataset.game=activeMode;
-    if(footerEl)footerEl.textContent=activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
+    if(footerEl)footerEl.textContent=activeMode==='tetris'?'ARROWS / TOUCH · SPACE TO DROP':activeMode==='solitaire'?'TAP SOURCE, THEN DESTINATION':activeMode==='froggy'?'ARROWS / WASD / TOUCH PAD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
       setIconLabel(playButton,label==='Pause'?'pause':'play',label);playButton.disabled=false;}
@@ -553,7 +578,7 @@ export function setup(ctx) {
     if(soundButton)setIconLabel(soundButton,settings.sound?'volume':'mute',settings.sound?'Sound on':'Sound off');
     if(ticketEl)ticketEl.textContent=String(tickets);
     if(rootEl){rootEl.dataset.cabinet=shopState.equipped.cabinet;rootEl.dataset.shopOpen=String(shopOpen);}
-    if(undoButton)undoButton.hidden=activeMode!=='2048';
+    if(undoButton)undoButton.hidden=activeMode!=='2048'&&activeMode!=='solitaire';
     if(matchSizeSelect){matchSizeSelect.hidden=activeMode!=='match3';matchSizeSelect.value=String(match3.width);}
     if(matchDrawerSelect)matchDrawerSelect.value=String(match3.width);
     if(matchHintSelect)matchHintSelect.value=String(matchHintSeconds);
@@ -590,7 +615,14 @@ export function setup(ctx) {
     frame=0;if(!shown||disposed)return;
     const dt=lastTs?Math.max(0,Math.min(.12,(now-lastTs)/1000)):0;lastTs=now;
     reactions.update(dt);refreshReaction();
-    if(activeMode==='snake'){snake.update(dt);drawSnake(canvas,snake,images,{ready:lifecycle.ready,best:bests.snake,skin:shopState.equipped.snake});}
+    if(classicGames[activeMode]){
+      const current=classicGames[activeMode];current.update(dt);flushClassic();
+      const opts={best:bests[activeMode],reduced:settings.reduceMotion,cursor:solitaireCursor<0?null:classicGames.solitaire.keyboardHits()[solitaireCursor]};
+      if(activeMode==='tetris')drawTetris(canvas,current,opts);
+      else if(activeMode==='solitaire')drawSolitaire(canvas,current,opts);
+      else drawFroggy(canvas,current,opts);
+    }
+    else if(activeMode==='snake'){snake.update(dt);drawSnake(canvas,snake,images,{ready:lifecycle.ready,best:bests.snake,skin:shopState.equipped.snake});}
     else if(activeMode==='2048')drawMerge(canvas,merge,{ready:lifecycle.ready,best:bests['2048'],skin:shopState.equipped.merge});
     else if(activeMode==='match3'){match3.update(dt);drawMatch3(canvas,match3,images,{ready:lifecycle.ready,best:bests.match3,selected:selectedCell>=0?selectedCell:keyboardCursor,reduceMotion:settings.reduceMotion,hint:match3.getHint(matchHintSeconds)});}
     else if(activeMode==='plinko'){plinko.update(dt);drawPlinko(canvas,plinko,images,{tickets,stake:plinkoStake,reduced:settings.reduceMotion,trailSkin:shopState.equipped.plinko});}
@@ -607,7 +639,7 @@ export function setup(ctx) {
   function switchMode(mode,launch=false){
     if(!GAME_IDS.includes(mode))return;
     if(activeMode!==mode)active().pause();
-    activeMode=mode;selectedCell=-1;keyboardCursor=-1;reactions.clear();
+    activeMode=mode;selectedCell=-1;keyboardCursor=-1;solitaireCursor=-1;pointerStart=null;reactions.clear();
     if(mode==='bird'||mode==='gabi'){
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
@@ -655,9 +687,68 @@ export function setup(ctx) {
     const a=selectedCell;const w=match3.width,adjacent=Math.abs(a%w-cell%w)+Math.abs(Math.floor(a/w)-Math.floor(cell/w))===1;
     if(adjacent){match3.swap(a,cell);selectedCell=-1;save();}else selectedCell=cell;
   }
+  function classicPointer(e){
+    const current=classicGames[activeMode];
+    if(current.status!=='playing'){play();return;}
+    const rect=canvas.getBoundingClientRect();if(!rect?.width||!rect?.height)return;
+    const x=(e.clientX-rect.left)*360/rect.width,y=(e.clientY-rect.top)*452/rect.height;
+    if(activeMode==='tetris'){
+      const control=tetrisControlAt(x,y);
+      if(control==='left')current.move(-1);else if(control==='right')current.move(1);
+      else if(control==='rotate')current.rotate();else if(control==='down')current.softDrop();
+      else if(control==='drop')current.hardDrop();else if(control==='hold')current.hold();
+    }else if(activeMode==='froggy'){
+      const direction=froggyControlAt(x,y);if(direction)current.hop(direction);
+    }else{
+      solitaireCursor=-1;current.select(solitaireHitAt(x,y,current));
+    }
+    flushClassic();save();refresh();
+  }
+  function classicKey(e){
+    const current=classicGames[activeMode];
+    if(e.code==='KeyP'||(e.code==='Enter'&&activeMode!=='solitaire')){
+      e.preventDefault();e.stopPropagation();if(!e.repeat)play();return;
+    }
+    const directions={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
+    const keys=activeMode==='tetris'?['Space','KeyX','KeyZ','KeyC',...Object.keys(directions)]:activeMode==='froggy'?Object.keys(directions):['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyF','KeyU','KeyZ','Backspace','Escape'];
+    if(!keys.includes(e.code))return;
+    e.preventDefault();e.stopPropagation();
+    if(activeMode==='solitaire'&&current.won&&['KeyU','KeyZ','Backspace'].includes(e.code)){
+      if(!e.repeat){current.undo();solitaireCursor=-1;flushClassic();save();refresh();}return;
+    }
+    if(current.status!=='playing'){
+      // Keyboard input never advances a paused run behind its overlay.
+      if(e.code==='Enter'||e.code==='Space'){if(!e.repeat)play();}return;
+    }
+    if(activeMode==='tetris'){
+      if(e.code==='ArrowLeft'||e.code==='KeyA')current.move(-1);
+      else if(e.code==='ArrowRight'||e.code==='KeyD')current.move(1);
+      else if(e.code==='ArrowDown'||e.code==='KeyS')current.softDrop();
+      else if(!e.repeat){
+        if(e.code==='Space')current.hardDrop();else if(e.code==='KeyC')current.hold();
+        else current.rotate(e.code==='KeyZ'?-1:1);
+      }
+    }else if(activeMode==='froggy'){
+      if(!e.repeat)current.hop(directions[e.code]);
+    }else{
+      const hits=current.keyboardHits();
+      if(/^Arrow/.test(e.code)){
+        const step=e.code==='ArrowLeft'||e.code==='ArrowUp'?-1:1;
+        solitaireCursor=solitaireCursor<0?0:(solitaireCursor+step+hits.length)%hits.length;
+      }else if(!e.repeat){
+        if(e.code==='KeyD')current.drawStock();
+        else if(['KeyU','KeyZ','Backspace'].includes(e.code)){current.undo();solitaireCursor=-1;}
+        else if(e.code==='Escape')current.selection=null;
+        else if(e.code==='KeyF')current.autoMove(hits[solitaireCursor]||current.selection);
+        else{if(solitaireCursor<0)solitaireCursor=0;current.select(hits[solitaireCursor]);}
+      }
+    }
+    flushClassic();save();refresh();
+  }
   function pointerDown(e){
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();canvas?.focus?.({preventScroll:true});
+    if(classicGames[activeMode]){classicPointer(e);return;}
     if(activeMode==='plinko'){const rect=canvas.getBoundingClientRect();plinkoAim=Math.max(26,Math.min(334,((e.clientX??rect.left+rect.width/2)-rect.left)*360/rect.width));doPlinkoDrop(plinkoAim);return;}
     if(activeMode==='slots'){doSlotSpin();return;}
     if(activeMode==='simon'||activeMode==='duck'){
@@ -676,6 +767,7 @@ export function setup(ctx) {
     try{canvas?.setPointerCapture?.(e.pointerId);}catch{}refresh();
   }
   function pointerUp(e){
+    if(classicGames[activeMode]){pointerStart=null;return;}
     if(activeMode==='plinko'||activeMode==='slots'||activeMode==='simon'||activeMode==='duck'){pointerStart=null;return;}
     if(activeMode==='bird'||activeMode==='gabi')game.release();
     else if(pointerStart){
@@ -697,6 +789,7 @@ export function setup(ctx) {
   function onKeyDown(e){
     if(e.target!==canvas)return;
     if(e.target instanceof HTMLElement&&(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)))return;
+    if(classicGames[activeMode]){classicKey(e);return;}
     if(activeMode==='slots'){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();e.stopPropagation();doSlotSpin();}return;}
     if(activeMode==='simon'){
       if(/^Digit[1-4]$/.test(e.code)||/^Numpad[1-4]$/.test(e.code)){e.preventDefault();e.stopPropagation();simon.press(Number(e.code.slice(-1))-1);save();refresh();}
@@ -733,6 +826,7 @@ export function setup(ctx) {
     if(!keyHeld||game.mode==='gabi')game.press();keyHeld=true;refresh();
   }
   function onKeyUp(e){
+    if(classicGames[activeMode])return;
     if(activeMode==='snake'||activeMode==='2048'||activeMode==='match3'||activeMode==='plinko'||activeMode==='simon'||activeMode==='duck'||activeMode==='slots'||(e.code!=='Space'&&e.code!=='ArrowUp')||e.target!==canvas)return;
     e.preventDefault();e.stopPropagation();keyHeld=false;game.release();
   }
@@ -755,7 +849,7 @@ export function setup(ctx) {
     
     phoneEl=create('section','bb-phone');phoneEl.hidden=true;phoneEl.setAttribute('aria-label','Funzone OS app launcher');
     const phoneTop=create('div','bb-phone-top');phoneTop.append(create('strong','', 'FUNZONE OS'),create('small','', 'THE WORST PHONE. THE BEST GAMES.'));phoneEl.append(phoneTop);
-    const phoneHero=create('div','bb-phone-hero');phoneHero.append(image('gabu_magnate','bb-phone-mascot'),create('div','bb-phone-copy','Nine games. One highly questionable executive.'));phoneEl.append(phoneHero);
+    const phoneHero=create('div','bb-phone-hero');phoneHero.append(image('gabu_magnate','bb-phone-mascot'),create('div','bb-phone-copy',`${GAME_ROSTER.length} games. One highly questionable executive.`));phoneEl.append(phoneHero);
     const appGrid=create('div','bb-app-grid');
     for(const [id,label,art] of GAME_ROSTER){
       const b=button('bb-app','',()=>{switchMode(id,true);},`Open ${label}`);b.dataset.game=id;
@@ -808,7 +902,7 @@ export function setup(ctx) {
     shopNotice=create('p','bb-shop-notice','');shopNotice.setAttribute('role','status');shopNotice.setAttribute('aria-live','polite');shopEl.append(shopNotice);
     phoneEl.append(shopEl);root.append(phoneEl);
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     const plinkoHost=create('div','bb-plinko-host');
     plinkoHost.append(image('gabu_peek','bb-plinko-host-art'));
@@ -833,7 +927,7 @@ export function setup(ctx) {
     playButton=button('bb-mainbutton','',play,'Play game');setIconLabel(playButton,'play','PLAY');
     const resetButton=button('bb-mini','',restart,'Restart game');setIconLabel(resetButton,'restart','Restart');
     soundButton=button('bb-mini','',()=>{settings.sound=!settings.sound;save();refresh();},'Toggle sound');setIconLabel(soundButton,'mute','Sound off');
-    undoButton=button('bb-mini bb-undo','',()=>{if(activeMode==='2048'){merge.undo();save();refresh();}},'Undo 2048 move');setIconLabel(undoButton,'undo','Undo');
+    undoButton=button('bb-mini bb-undo','',()=>{if(activeMode==='2048'||activeMode==='solitaire'){active().undo();solitaireCursor=-1;save();refresh();}},'Undo move');setIconLabel(undoButton,'undo','Undo');
     bar.append(playButton,resetButton,soundButton,undoButton);root.append(bar);
     widget.root.append(root);
     bind(canvas,'pointerdown',pointerDown);bind(canvas,'pointerup',pointerUp);bind(canvas,'pointercancel',pointerUp);
@@ -842,13 +936,13 @@ export function setup(ctx) {
     bind(document,'visibilitychange',()=>{if(document.hidden){keyHeld=false;game.release();active().pause();save();refresh();}});
     bind(canvas,'contextmenu',e=>e.preventDefault());
     drawer=ctx.ui.registerDrawerTab({id:'fuckass_funzone',title:'Fuckass Funzone',shortName:'Funzone',iconSvg:FUNZONE_TAB_SVG,description:'The arcade inside your model wait time',
-      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','phone','funzone','waiting','thinking']});
+      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','tetris','solitaire','froggy','phone','funzone','waiting','thinking']});
     writeStyle(drawer.root);
     const panel=create('section','bb bb-drawer');
     const banner=image('funzone_logo','bb-drawer-logo');banner.alt='Fuckass Funzone Arcade';panel.append(banner);
     const hero=create('section','bb-drawer-hero');hero.setAttribute('aria-label','Funzone OS launcher');
     const heroCopy=create('div','bb-drawer-hero-copy');
-    heroCopy.append(create('span','bb-drawer-eyebrow','YOUR POCKET ARCADE'),create('h2','bb-drawer-heading','Nine games. One terrible idea.'),
+    heroCopy.append(create('span','bb-drawer-eyebrow','YOUR POCKET ARCADE'),create('h2','bb-drawer-heading',`${GAME_ROSTER.length} games. One terrible idea.`),
       create('p','bb-drawer-subtitle','Your model thinks. Gabu judges. You play.'));
     const launcherButton=button('bb-drawer-os-button','',()=>{show();openPhone();},'Open Funzone OS');
     launcherButton.append(svgIcon('phone',18),create('span','', 'OPEN FUNZONE OS'),svgIcon('arrow',16));
@@ -975,6 +1069,12 @@ export function setup(ctx) {
     const slotInfo=drawerGamePanel('slots');
     tip(slotInfo,'A three-reel fictional-ticket slot machine. Any pair pays 1× your stake; triples pay 3–40×. No cash value or purchases. FREE practice never awards tickets.');
     slotDrawerSelect=makeSelect(slotInfo,'Default stake','FREE spins pay zero; wagering 1, 3 or 5 tickets pays according to the reels.',[[0,'FREE practice'],[1,'1 ticket'],[3,'3 tickets'],[5,'5 tickets']],slotStake,'Slots default stake',v=>{slotStake=Number(v);save();refresh();});
+    const tetrisInfo=drawerGamePanel('tetris');
+    tip(tetrisInfo,'Clear full rows of blocks. Left/Right or A/D moves; Up/W/X rotates clockwise and Z counterclockwise; Down/S soft drops; Space hard drops; C holds one piece per turn. Touch buttons provide the same actions. P or the main button pauses. Every 1,000 new personal-best points earns a ticket.');
+    const solitaireInfo=drawerGamePanel('solitaire');
+    tip(solitaireInfo,'Draw-one Klondike: tap the stock to draw, then tap a face-up card or run and its destination. Build tableau columns down in alternating colors; only Kings fill empty columns. Build foundations up from Ace by suit. Empty stock recycles the waste. Undo uses the Undo button or Z/U. Keyboard: arrows choose a pile/card, Enter selects, D draws, F sends the chosen top card to a foundation, Escape cancels selection, P pauses. Score is 10 per foundation card; every 100 new personal-best points earns a ticket.');
+    const froggyInfo=drawerGamePanel('froggy');
+    tip(froggyInfo,'Hop with Arrow keys, WASD, or the touch pad. Dodge road traffic, ride logs across the river, and fill all five different home slots to advance. Water without a log, cars, and occupied homes cost a life. You have three lives; P or the main button pauses. Every 100 new personal-best points earns a ticket.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){
