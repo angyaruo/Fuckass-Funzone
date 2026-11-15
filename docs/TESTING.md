@@ -51,3 +51,15 @@ The code-only checks now include canvas-state bleed simulation, compatibility mi
 29. Try both mouse/touch and Space/Up. Also verify reduced-motion mode keeps calm frame 0 while still showing the thrust cue. Pause/resume, die, restart, and switch to Bird; no stale held expressions should leak. Bird retains its unchanged six-frame cycling.
 
 Automated engine and mocked canvas regression tests confirm the frame selection, tap-duration progression, sub-frame taps, release decay, and resets. The self-contained `dist/frontend.js` is rebuilt and exercised in the Spindle host mock. Actual device feel still needs live visual QA.
+
+## Tetris, Solitaire, and Froggy
+
+Run `npm run check` after source changes. The bundler accepts LF or CRLF source checkouts and preserves embedded SVG bytes. The three new rule suites cover collisions, rotations, legal card moves, log support, victory/life transitions, pause, malformed saves, and restore. Mock-host tests exercise the production bundle and existing game compatibility.
+
+30. Launch all twelve games from Funzone OS; check the three new icons, help tabs, personal bests, and scrollable launcher at 292 px and 382 px cabinet widths. Use `demo-classics-qa.html` for local mock-host inspection.
+31. Tetris: move against both walls, rotate near the floor, soft/hard drop, hold once per piece, clear rows, and play to top-out. Test arrows/WASD, X/Z, C, Space, and every touch button. Pause, blur, reload, and switch games with a piece in flight; the board, preview, hold, and score must survive.
+32. Solitaire: draw through the stock, recycle the waste, move alternating-color runs, reveal face-down cards, move Aces to foundations, return a foundation card to the tableau, and undo. Try every action with taps and with arrows/Enter, D, F, Z/U. Win and undo the last move by mouse and keyboard. Reload keeps the board and clears session undo history. Repeating a foundation move after undo must not re-award ticket milestones.
+33. Froggy: use touch pad and arrows/WASD, cross each road, ride logs in both directions, drift off a bank, miss a log, reach an occupied home, and lose the final life. Fill five unique homes and verify the next level resets homes and increases lane speed. Pause/blur freezes traffic, logs, and the frog; reload resumes paused without losing the run.
+34. With each new game active, trigger generation start/end/stop and verify that readiness does not interrupt play. Type arrows and Space in the chat input and verify they do not control the arcade. Minimize, reopen, unload/re-enable, and confirm that the old scores, tickets, cosmetics, saved puzzles, and installation identifier remain intact.
+
+The preview and automated mock do not establish a successful live Lumiverse install. Complete these checks in Lumiverse on desktop and a touch device before treating the contribution as release-ready.

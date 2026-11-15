@@ -1,5 +1,5 @@
 /** Single, testable source of truth for arcade ticket milestones. */
-export const MILESTONE_STEP = Object.freeze({ bird:5, gabi:5, snake:2, '2048':64, match3:400, simon:2, duck:3 });
+export const MILESTONE_STEP = Object.freeze({ bird:5, gabi:5, snake:2, '2048':64, match3:400, simon:2, duck:3, tetris:1000, solitaire:100, froggy:100 });
 export const MAX_TICKETS = 100000000;
 export function milestonePayout(game, oldBest, currentScore) {
   const step = MILESTONE_STEP[game];
