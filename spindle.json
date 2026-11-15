@@ -3,7 +3,7 @@
   "name": "Fuckass Funzone · Arcade Intermission",
   "version": "2.6.3",
   "author": "KittyLotus",
-  "description": "Frontend-only Funzone OS arcade: Bird, Jetpack, Snake, 2048, Match-3, Plinko, Simon, Duck Hunt and fictional-ticket Slots with peeking monocled Gabu. Custom art, saves, reactions and generation-aware HUD.",
+  "description": "Frontend-only Funzone OS arcade with nine classic games and Gabu's Gambit: an original six-round poker roguelike with Jokers, booster packs, upgrades and saved runs.",
   "entry_frontend": "dist/frontend.js",
   "permissions": [
     "ui_panels"

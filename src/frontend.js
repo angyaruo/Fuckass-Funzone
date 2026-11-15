@@ -13,6 +13,9 @@ import { milestonePayout, creditTickets } from './rewards.js';
 import { SimonGame, DuckGame, SlotGame } from './mini-games.js';
 import { drawSimon, drawDuck, drawSlots, simonCell } from './mini-games-render.js';
 import { SHOP_CATALOG, SHOP_SLOTS, restoreShop, purchaseReward, equipReward } from './shop.js';
+import { GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand } from './gambit-rules.js';
+import { GambitGame } from './gambit.js';
+import { drawGambit, gambitActions, gambitHitAt } from './gambit-render.js';
 
 const ASSETS = /* BUILD_ASSETS */ {};
 const CSS = /* BUILD_CSS */ '';
@@ -21,7 +24,8 @@ const GAME_ROSTER = Object.freeze([
  ['bird','Fuckass Bird','bird_flap_0'],['gabi','Gabi Jetpack','gabi_fly_0'],
  ['snake','Snake','snake_head'],['2048','2048','merge_tile'],
  ['match3','Trinket Panic','match_vec_cat'],['plinko','Plinko','plinko_app'],
- ['simon','Simon Says','simon_app'],['duck','Duck Hunt','duck_app'],['slots','Gabu Slots','slots_app']
+ ['simon','Simon Says','simon_app'],['duck','Duck Hunt','duck_app'],['slots','Gabu Slots','slots_app'],
+ ['gambit',"Gabu's Gambit",'gambit_app']
 ]);
 const GAME_IDS = GAME_ROSTER.map(([id])=>id);
 
@@ -126,7 +130,7 @@ function loadImages() {
     ...['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>`match_${k}`),
     ...['cat','heart','star','fish','cookie','gem','rocket','bomb','hint'].map(k=>`match_vec_${k}`),
     ...['smug','annoyed','hype','panic','dizzy','sleepy','shock'].map(k=>`gabu_${k}`),
-    'gabu_magnate','gabu_peek','plinko_chip','plinko_app','plinko_crest','simon_app','duck_app','slots_app',
+    'gabu_magnate','gabu_peek','plinko_chip','plinko_app','plinko_crest','simon_app','duck_app','slots_app','gambit_app',
   ];
   const imgs = {};
   for (const name of names) {
@@ -382,12 +386,14 @@ export function setup(ctx) {
   const persisted=safeLoad(storageKey, safeLoad(legacyStorageKey, {}));
   const settings=sanitizeSettings(persisted.settings);
   let activeMode=GAME_IDS.includes(persisted.arcadeGame)?persisted.arcadeGame:settings.mode;
-  const bests={};for(const id of GAME_IDS)bests[id]=Math.max(0,Math.floor(Number(persisted?.bests?.[id])||0));
+  const bests=Object.fromEntries(Object.entries(persisted.bests||{}).filter(([,value])=>Number.isSafeInteger(value)&&value>=0));
+  for(const id of GAME_IDS)bests[id]=Math.max(0,Math.floor(Number(persisted?.bests?.[id])||0));
   let tickets=Number.isSafeInteger(persisted.tickets)?Math.max(0,Math.min(100000000,persisted.tickets)):0;
   let shopState=restoreShop(persisted.shop);
   const images=loadImages();let lifecycle={activeIds:[],ready:false};
   let widget=null,drawer=null,action=null,frame=0,lastTs=0,shown=false,disposed=false;
   let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1;
+  let gambit=null,gambitDirty=false,gambitCursor=-1,gambitInspection=null,gambitAnnounce=null;
   const matchBanks=Object.create(null);
   for(const width of MATCH_WIDTHS)if(persisted?.match3Boards?.[width])matchBanks[width]=persisted.match3Boards[width];
   const oldMatch=persisted?.puzzles?.match3;
@@ -411,7 +417,7 @@ export function setup(ctx) {
   const save=()=>{
     matchBanks[match3.width]=match3.snapshot();
     safeSave(storageKey,{settings,bests,arcadeGame:activeMode,tickets,shop:shopState,plinkoStake,slotStake,matchHintSeconds,matchTimerSeconds,duckTimerSeconds,duckSpeed,match3Width:match3.width,match3Boards:matchBanks,
-      puzzles:{snake:snake.snapshot(),merge:merge.snapshot(),match3:match3.snapshot(),plinko:plinko.snapshot(),simon:simon.snapshot(),duck:duck.snapshot(),slots:slots.snapshot()}});
+      puzzles:{...persisted.puzzles,snake:snake.snapshot(),merge:merge.snapshot(),match3:match3.snapshot(),plinko:plinko.snapshot(),simon:simon.snapshot(),duck:duck.snapshot(),slots:slots.snapshot(),...(gambit?{gambit:gambit.snapshot()}:{})}});
   };
   function addTickets(amount){
     const gain=Math.max(0,Math.floor(Number(amount)||0));
@@ -477,8 +483,13 @@ export function setup(ctx) {
     if(event==='land'){reactions.emit('slots',data.stake===0?'practice':data.multiplier>=14?'jackpot':'land',data);}
     else reactions.emit('slots',event,data);refresh();
   }});
+  gambit=new GambitGame({saved:persisted?.puzzles?.gambit,onEvent:event=>{
+    if(!gambit)return;gambitDirty=true;
+    if(event==='score')sound.play('score');else if(event==='death')sound.play('death');else if(event==='purchase'||event==='upgrade')sound.play('coin');
+  }});
+  function flushGambit(){if(!gambitDirty)return;gambitDirty=false;award('gambit',gambit.score);save();refresh();}
   const bind=(el,event,fn,options)=>{el.addEventListener(event,fn,options);listeners.push(()=>el.removeEventListener(event,fn,options));};
-  const active=()=>activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game;
+  const active=()=>activeMode==='gambit'?gambit:activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game;
   function setMatchWidth(width){
     if(!MATCH_WIDTHS.includes(width)||width===match3.width)return;
     matchBanks[match3.width]=match3.snapshot();match3.pause();
@@ -545,7 +556,12 @@ export function setup(ctx) {
     const current=active();
     if(canvas)canvas.dataset.mode=activeMode;
     if(gameStage)gameStage.dataset.game=activeMode;
-    if(footerEl)footerEl.textContent=activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
+    if(footerEl)footerEl.textContent=activeMode==='gambit'?'1–8 SELECT / SPACE PLAY / D DISCARD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
+    if(gambitAnnounce){gambitAnnounce.hidden=activeMode!=='gambit';if(activeMode==='gambit'){
+      const preview=gambit.preview(),focused=gambitActions(gambit,{inspection:gambitInspection})[gambitCursor];
+      const packChoice=gambit.pack&&Number.isInteger(gambit.pack.selected)?gambitActions(gambit).find(action=>action.kind==='packOption'&&action.index===gambit.pack.selected):null;
+      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${focused?` Focus: ${focused.label}.`:''}`;
+    }}
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
       setIconLabel(playButton,label==='Pause'?'pause':'play',label);playButton.disabled=false;}
@@ -590,7 +606,8 @@ export function setup(ctx) {
     frame=0;if(!shown||disposed)return;
     const dt=lastTs?Math.max(0,Math.min(.12,(now-lastTs)/1000)):0;lastTs=now;
     reactions.update(dt);refreshReaction();
-    if(activeMode==='snake'){snake.update(dt);drawSnake(canvas,snake,images,{ready:lifecycle.ready,best:bests.snake,skin:shopState.equipped.snake});}
+    if(activeMode==='gambit'){gambit.update(dt);flushGambit();drawGambit(canvas,gambit,{best:bests.gambit,reduced:settings.reduceMotion,cursor:gambitCursor,inspection:gambitInspection});}
+    else if(activeMode==='snake'){snake.update(dt);drawSnake(canvas,snake,images,{ready:lifecycle.ready,best:bests.snake,skin:shopState.equipped.snake});}
     else if(activeMode==='2048')drawMerge(canvas,merge,{ready:lifecycle.ready,best:bests['2048'],skin:shopState.equipped.merge});
     else if(activeMode==='match3'){match3.update(dt);drawMatch3(canvas,match3,images,{ready:lifecycle.ready,best:bests.match3,selected:selectedCell>=0?selectedCell:keyboardCursor,reduceMotion:settings.reduceMotion,hint:match3.getHint(matchHintSeconds)});}
     else if(activeMode==='plinko'){plinko.update(dt);drawPlinko(canvas,plinko,images,{tickets,stake:plinkoStake,reduced:settings.reduceMotion,trailSkin:shopState.equipped.plinko});}
@@ -607,7 +624,7 @@ export function setup(ctx) {
   function switchMode(mode,launch=false){
     if(!GAME_IDS.includes(mode))return;
     if(activeMode!==mode)active().pause();
-    activeMode=mode;selectedCell=-1;keyboardCursor=-1;reactions.clear();
+    activeMode=mode;selectedCell=-1;keyboardCursor=-1;gambitCursor=-1;gambitInspection=null;pointerStart=null;reactions.clear();
     if(mode==='bird'||mode==='gabi'){
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
@@ -638,6 +655,7 @@ export function setup(ctx) {
     else if(activeMode==='match3')g.reset(matchTimerSeconds);
     else if(activeMode==='duck')g.reset(duckTimerSeconds,duckSpeed);
     else g.reset();
+    if(activeMode==='gambit'){gambitCursor=-1;gambitInspection=null;}
   }
   function restart(){const g=active();if(activeMode==='plinko'){tickets=Math.min(100000000,tickets+plinko.cancel());}
     else if(activeMode==='slots'){tickets=Math.min(100000000,tickets+slots.cancel());}
@@ -655,9 +673,53 @@ export function setup(ctx) {
     const a=selectedCell;const w=match3.width,adjacent=Math.abs(a%w-cell%w)+Math.abs(Math.floor(a/w)-Math.floor(cell/w))===1;
     if(adjacent){match3.swap(a,cell);selectedCell=-1;save();}else selectedCell=cell;
   }
+  function gambitAction(action){
+    if(!action||action.enabled===false||gambit.status!=='playing')return;
+    if(action.kind==='joker')gambitInspection=action.id;
+    else if(action.kind==='close')gambitInspection=null;
+    else if(action.kind==='card')gambit.toggleCard(action.id);
+    else if(action.kind==='play')gambit.playHand();
+    else if(action.kind==='discard')gambit.discardSelected();
+    else if(action.kind==='continue')gambit.continueScore();
+    else if(action.kind==='next')gambit.nextRound();
+    else if(action.kind==='buy')gambit.buy(action.index);
+    else if(action.kind==='packOption')gambit.selectPack(action.index);
+    else if(action.kind==='claim')gambit.claimPack();
+    else if(action.kind==='replace')gambit.replaceJoker(action.index);
+    else if(action.kind==='skip')gambit.skipPack();
+    else if(action.kind==='sell'){gambit.sellJoker(action.index);gambitInspection=null;}
+    gambitCursor=-1;flushGambit();save();refresh();
+  }
+  function gambitKey(e){
+    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','Escape'].includes(e.code);
+    if(!recognized)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
+    if(e.code==='KeyP'){play();return;}
+    if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
+    if(e.code==='Escape'){gambitInspection=null;gambitCursor=-1;refresh();return;}
+    const actions=gambitActions(gambit,{inspection:gambitInspection});
+    if(/^Arrow/.test(e.code)){
+      const step=e.code==='ArrowLeft'||e.code==='ArrowUp'?-1:1;
+      if(actions.length)gambitCursor=gambitCursor<0?0:(gambitCursor+step+actions.length)%actions.length;
+      refresh();return;
+    }
+    if(e.code==='Enter'){
+      if(gambitCursor<0){gambitCursor=0;refresh();return;}
+      gambitAction(actions[gambitCursor]);return;
+    }
+    if(gambitInspection)return;
+    if(/^(?:Digit|Numpad)[1-8]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[Number(e.code.slice(-1))-1]);
+    else if(e.code==='Space'){if(gambit.phase==='score')gambit.continueScore();else if(gambit.phase==='play')gambit.playHand();}
+    else if(e.code==='KeyD')gambit.discardSelected();
+    gambitCursor=-1;flushGambit();save();refresh();
+  }
   function pointerDown(e){
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();canvas?.focus?.({preventScroll:true});
+    if(activeMode==='gambit'){
+      if(gambit.status!=='playing'){play();return;}
+      const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+      gambitAction(gambitHitAt((e.clientX-rect.left)*360/rect.width,(e.clientY-rect.top)*452/rect.height,gambit,{inspection:gambitInspection}));return;
+    }
     if(activeMode==='plinko'){const rect=canvas.getBoundingClientRect();plinkoAim=Math.max(26,Math.min(334,((e.clientX??rect.left+rect.width/2)-rect.left)*360/rect.width));doPlinkoDrop(plinkoAim);return;}
     if(activeMode==='slots'){doSlotSpin();return;}
     if(activeMode==='simon'||activeMode==='duck'){
@@ -676,6 +738,7 @@ export function setup(ctx) {
     try{canvas?.setPointerCapture?.(e.pointerId);}catch{}refresh();
   }
   function pointerUp(e){
+    if(activeMode==='gambit'){pointerStart=null;return;}
     if(activeMode==='plinko'||activeMode==='slots'||activeMode==='simon'||activeMode==='duck'){pointerStart=null;return;}
     if(activeMode==='bird'||activeMode==='gabi')game.release();
     else if(pointerStart){
@@ -697,6 +760,7 @@ export function setup(ctx) {
   function onKeyDown(e){
     if(e.target!==canvas)return;
     if(e.target instanceof HTMLElement&&(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)))return;
+    if(activeMode==='gambit'){gambitKey(e);return;}
     if(activeMode==='slots'){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();e.stopPropagation();doSlotSpin();}return;}
     if(activeMode==='simon'){
       if(/^Digit[1-4]$/.test(e.code)||/^Numpad[1-4]$/.test(e.code)){e.preventDefault();e.stopPropagation();simon.press(Number(e.code.slice(-1))-1);save();refresh();}
@@ -733,6 +797,7 @@ export function setup(ctx) {
     if(!keyHeld||game.mode==='gabi')game.press();keyHeld=true;refresh();
   }
   function onKeyUp(e){
+    if(activeMode==='gambit')return;
     if(activeMode==='snake'||activeMode==='2048'||activeMode==='match3'||activeMode==='plinko'||activeMode==='simon'||activeMode==='duck'||activeMode==='slots'||(e.code!=='Space'&&e.code!=='ArrowUp')||e.target!==canvas)return;
     e.preventDefault();e.stopPropagation();keyHeld=false;game.release();
   }
@@ -755,7 +820,7 @@ export function setup(ctx) {
     
     phoneEl=create('section','bb-phone');phoneEl.hidden=true;phoneEl.setAttribute('aria-label','Funzone OS app launcher');
     const phoneTop=create('div','bb-phone-top');phoneTop.append(create('strong','', 'FUNZONE OS'),create('small','', 'THE WORST PHONE. THE BEST GAMES.'));phoneEl.append(phoneTop);
-    const phoneHero=create('div','bb-phone-hero');phoneHero.append(image('gabu_magnate','bb-phone-mascot'),create('div','bb-phone-copy','Nine games. One highly questionable executive.'));phoneEl.append(phoneHero);
+    const phoneHero=create('div','bb-phone-hero');phoneHero.append(image('gabu_magnate','bb-phone-mascot'),create('div','bb-phone-copy',`${GAME_ROSTER.length} games. One highly questionable executive.`));phoneEl.append(phoneHero);
     const appGrid=create('div','bb-app-grid');
     for(const [id,label,art] of GAME_ROSTER){
       const b=button('bb-app','',()=>{switchMode(id,true);},`Open ${label}`);b.dataset.game=id;
@@ -808,8 +873,9 @@ export function setup(ctx) {
     shopNotice=create('p','bb-shop-notice','');shopNotice.setAttribute('role','status');shopNotice.setAttribute('aria-live','polite');shopEl.append(shopNotice);
     phoneEl.append(shopEl);root.append(phoneEl);
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label',"Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. Arrows focus any action and Enter activates it. Escape closes Joker details. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.");
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
+    gambitAnnounce=create('p','bb-sr-only');gambitAnnounce.setAttribute('role','status');gambitAnnounce.setAttribute('aria-live','polite');gameStage.append(gambitAnnounce);
     const plinkoHost=create('div','bb-plinko-host');
     plinkoHost.append(image('gabu_peek','bb-plinko-host-art'));
     gameStage.append(plinkoHost);
@@ -842,13 +908,13 @@ export function setup(ctx) {
     bind(document,'visibilitychange',()=>{if(document.hidden){keyHeld=false;game.release();active().pause();save();refresh();}});
     bind(canvas,'contextmenu',e=>e.preventDefault());
     drawer=ctx.ui.registerDrawerTab({id:'fuckass_funzone',title:'Fuckass Funzone',shortName:'Funzone',iconSvg:FUNZONE_TAB_SVG,description:'The arcade inside your model wait time',
-      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','phone','funzone','waiting','thinking']});
+      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','gambit','poker','jokers','phone','funzone','waiting','thinking']});
     writeStyle(drawer.root);
     const panel=create('section','bb bb-drawer');
     const banner=image('funzone_logo','bb-drawer-logo');banner.alt='Fuckass Funzone Arcade';panel.append(banner);
     const hero=create('section','bb-drawer-hero');hero.setAttribute('aria-label','Funzone OS launcher');
     const heroCopy=create('div','bb-drawer-hero-copy');
-    heroCopy.append(create('span','bb-drawer-eyebrow','YOUR POCKET ARCADE'),create('h2','bb-drawer-heading','Nine games. One terrible idea.'),
+    heroCopy.append(create('span','bb-drawer-eyebrow','YOUR POCKET ARCADE'),create('h2','bb-drawer-heading',`${GAME_ROSTER.length} games. One terrible idea.`),
       create('p','bb-drawer-subtitle','Your model thinks. Gabu judges. You play.'));
     const launcherButton=button('bb-drawer-os-button','',()=>{show();openPhone();},'Open Funzone OS');
     launcherButton.append(svgIcon('phone',18),create('span','', 'OPEN FUNZONE OS'),svgIcon('arrow',16));
@@ -975,6 +1041,10 @@ export function setup(ctx) {
     const slotInfo=drawerGamePanel('slots');
     tip(slotInfo,'A three-reel fictional-ticket slot machine. Any pair pays 1× your stake; triples pay 3–40×. No cash value or purchases. FREE practice never awards tickets.');
     slotDrawerSelect=makeSelect(slotInfo,'Default stake','FREE spins pay zero; wagering 1, 3 or 5 tickets pays according to the reels.',[[0,'FREE practice'],[1,'1 ticket'],[3,'3 tickets'],[5,'5 tickets']],slotStake,'Slots default stake',v=>{slotStake=Number(v);save();refresh();});
+    const gambitInfo=drawerGamePanel('gambit');
+    tip(gambitInfo,'A six-round poker roguelike with twelve original Jokers. Select one to five cards from your eight-card hand, then Play or Discard. Only cards contributing to the detected poker hand score. You get four plays and three discards per round. Score preview includes all current boosts; add-chip effects apply before added Mult, then multiplier boosts. Joker position does not change scoring.');
+    tip(gambitInfo,'Clear the target to earn run coins and visit the shop. Buy Jokers or reveal three booster choices and keep one. Upgrade Packs improve a hand category or one particular card. You may equip three Jokers; replace one explicitly when full. Sell Jokers for two run coins. Run coins reset on a new run and never spend or award arcade tickets. All pack choices and purchases survive reload.');
+    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or skips score counting, D discards, P pauses, arrows focus any visible action, Enter activates it, and Escape closes Joker details. Tap a Joker for its full effect. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){

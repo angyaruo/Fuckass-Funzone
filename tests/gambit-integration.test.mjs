@@ -1,0 +1,148 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { setup } from '../dist/frontend.js';
+import { GambitGame } from '../src/gambit.js';
+import { gambitActions } from '../src/gambit-render.js';
+
+class ElementMock {
+  constructor(tag = 'div') {
+    this.tagName = tag.toUpperCase(); this.children = []; this.listeners = new Map(); this.attributes = new Map();
+    this.style = {}; this.dataset = {}; this.className = ''; this.textContent = '';
+    this.complete = true; this.naturalWidth = this.naturalHeight = 120;
+    this.classList = { toggle: (name, on) => {
+      const classes = new Set(this.className.split(' ').filter(Boolean));
+      if (on) classes.add(name); else classes.delete(name); this.className = [...classes].join(' ');
+    } };
+  }
+  append(...nodes) { this.children.push(...nodes); }
+  appendChild(node) { this.append(node); return node; }
+  replaceChildren(...nodes) { this.children = nodes; this.textContent = ''; }
+  setAttribute(key, value) { this.attributes.set(key, value); }
+  addEventListener(name, fn) { if (!this.listeners.has(name)) this.listeners.set(name, new Set()); this.listeners.get(name).add(fn); }
+  removeEventListener(name, fn) { this.listeners.get(name)?.delete(fn); }
+  dispatch(name, payload = {}) { for (const fn of [...(this.listeners.get(name) || [])]) fn({ target: this, preventDefault() {}, stopPropagation() {}, ...payload }); }
+  focus() {}
+  getBoundingClientRect() { return { left: 0, top: 0, width: 360, height: 452 }; }
+  setPointerCapture() {}
+  hasPointerCapture() { return false; }
+  releasePointerCapture() {}
+  getContext() {
+    if (this.tagName !== 'CANVAS') return null;
+    return new Proxy({ createLinearGradient: () => ({ addColorStop() {} }), measureText: value => ({ width: String(value).length * 6 }) }, {
+      get(target, name) { return name in target ? target[name] : () => {}; }, set(target, name, value) { target[name] = value; return true; }
+    });
+  }
+}
+const flatten = node => [node, ...node.children.flatMap(child => child instanceof ElementMock ? flatten(child) : [])];
+function withHost(initial, run) {
+  const names = ['window', 'document', 'Image', 'HTMLElement', 'localStorage', 'requestAnimationFrame', 'cancelAnimationFrame'];
+  const previous = Object.fromEntries(names.map(name => [name, globalThis[name]]));
+  const key = 'fuckass_funzone:v1:gambit-integration', cache = new Map([[key, JSON.stringify(initial)]]), queued = new Map();
+  const window = new ElementMock('window'), document = new ElementMock('document');
+  document.createElement = tag => new ElementMock(tag); document.createElementNS = (_, tag) => new ElementMock(tag); document.hidden = false;
+  Object.assign(globalThis, { window, document, HTMLElement: ElementMock, Image: class extends ElementMock { constructor() { super('img'); } },
+    localStorage: { getItem: k => cache.get(k) || null, setItem: (k, v) => cache.set(k, v) } });
+  let rafId = 0, clock = 0, stop, placements;
+  globalThis.requestAnimationFrame = fn => { queued.set(++rafId, fn); return rafId; };
+  globalThis.cancelAnimationFrame = id => queued.delete(id);
+  const mount = () => {
+    placements = {};
+    const handle = () => ({ root: new ElementMock('section'), setVisible(value) { this.visible = value; }, destroy() {} });
+    stop = setup({ host: { extensionInstallationId: 'gambit-integration' }, events: { on: () => () => {} }, ui: {
+      createFloatWidget: () => (placements.widget = handle()), registerDrawerTab: () => (placements.drawer = handle()),
+      registerInputBarAction: () => (placements.action = { onClick(fn) { this.click = fn; return () => {}; }, destroy() {} })
+    } });
+  };
+  const nodes = () => flatten(placements.widget.root);
+  const findClass = name => nodes().find(node => node.className.split(' ').includes(name));
+  const api = {
+    save: () => JSON.parse(cache.get(key)), window,
+    pick(id = 'gambit') {
+      findClass('bb-phone-button').dispatch('click');
+      const app = nodes().find(node => node.className === 'bb-app' && node.dataset.game === id);
+      assert.ok(app, `${id} has an entry in the production launcher`); app.dispatch('click');
+    },
+    key(code, target) { findClass('bb-float').dispatch('keydown', { target: target || findClass('bb-canvas'), code }); },
+    tap(x, y) {
+      const canvas = findClass('bb-canvas'); canvas.dispatch('pointerdown', { pointerType: 'touch', pointerId: 1, clientX: x, clientY: y });
+      canvas.dispatch('pointerup', { pointerId: 1, clientX: x, clientY: y });
+    },
+    action(kind, index, view) {
+      const game = new GambitGame({ saved: api.save().puzzles.gambit }); game.start();
+      const item = gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index));
+      assert.ok(item?.enabled, `${kind} is an enabled visible control`); api.tap(item.x + item.w / 2, item.y + item.h / 2);
+    },
+    primary: () => findClass('bb-mainbutton'),
+    announcements: () => nodes().filter(node => node.attributes.get('aria-live') === 'polite').map(node => node.textContent).join(' '),
+    frames(count = 1) { for (let i = 0; i < count; i++) { clock += 120; for (const [id, fn] of [...queued]) { queued.delete(id); fn(clock); } } },
+    reload() { stop(); mount(); placements.action.click(); },
+  };
+  try { mount(); run(api); } finally {
+    stop?.(); assert.equal(queued.size, 0, 'teardown cancels the cabinet animation loop');
+    for (const [name, value] of Object.entries(previous)) { if (value === undefined) delete globalThis[name]; else globalThis[name] = value; }
+  }
+}
+function knownRun() {
+  const game = new GambitGame({ seed: 123 }); game.start();
+  game.hand = [1, 14, 2, 16, 31, 42, 8, 24];
+  game.deck = Array.from({ length: 52 }, (_, id) => id).filter(id => !game.hand.includes(id)); game.discard = [];
+  return game;
+}
+function shopRun() {
+  const game = knownRun(); game.roundScore = game.target - 1; game.score = game.roundScore;
+  game.toggleCard(1); game.playHand(); game.continueScore(); assert.equal(game.phase, 'shop'); return game;
+}
+
+test('bundled Gambit routes number/Space/D and touch controls, reports score, pauses, and keeps other games saved', () => {
+  const game = knownRun(), futurePuzzles = { tetris: { board: ['keep this newer save'] }, solitaire: { waste: [51] }, froggy: { pond: 3 } };
+  withHost({ tickets: 73, bests: { gambit: 0, tetris: 2345, solitaire: 110, froggy: 900 }, puzzles: { ...futurePuzzles, gambit: game.snapshot() } }, h => {
+    h.pick(); h.frames();
+    h.key('Digit8', new ElementMock('textarea')); assert.deepEqual(h.save().puzzles.gambit.selected, [], 'chat typing never selects a card');
+    h.key('Digit8'); assert.equal(h.save().puzzles.gambit.selected.length, 1);
+    h.key('KeyD'); assert.equal(h.save().puzzles.gambit.discardsLeft, 2); assert.equal(h.save().puzzles.gambit.selected.length, 0);
+    h.key('Digit1'); h.key('Digit2');
+    const selected = new GambitGame({ saved: h.save().puzzles.gambit }), expected = selected.preview();
+    assert.equal(expected.id, 'pair'); assert.match(h.announcements(), new RegExp(`Pair, ${expected.total} points`));
+    h.key('Space'); assert.equal(h.save().puzzles.gambit.phase, 'score');
+    assert.equal(h.save().puzzles.gambit.score, expected.total); assert.equal(h.save().puzzles.gambit.playsLeft, 3);
+    h.key('KeyP'); const paused = h.save().puzzles.gambit;
+    h.key('Digit1'); h.key('KeyD'); h.frames(20); assert.deepEqual(h.save().puzzles.gambit, paused);
+    assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
+    h.key('KeyP'); h.frames(20); assert.equal(h.save().puzzles.gambit.phase, 'score', 'score screen waits for player');
+    h.key('Space'); assert.equal(h.save().puzzles.gambit.phase, 'play');
+    h.action('card', 0); assert.equal(h.save().puzzles.gambit.selected.length, 1, 'touch selects a real card');
+    h.window.dispatch('blur'); assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
+    const beforeReload = h.save(); h.reload();
+    assert.deepEqual(h.save().puzzles.gambit, beforeReload.puzzles.gambit, 'reload restores the selected hand paused');
+    assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
+    for (const id of Object.keys(futurePuzzles)) assert.deepEqual(h.save().puzzles[id], futurePuzzles[id]);
+    assert.equal(h.save().bests.tetris, 2345); assert.equal(h.save().bests.solitaire, 110); assert.equal(h.save().bests.froggy, 900);
+    assert.equal(h.save().tickets, 73, 'Gambit coins and scoring cannot spend or mint arcade tickets');
+  });
+});
+
+test('bundled Joker inspection blocks play shortcuts until dismissed', () => {
+  withHost({ tickets: 11, puzzles: { gambit: knownRun().snapshot() } }, h => {
+    h.pick(); h.key('Digit1'); const before = h.save().puzzles.gambit;
+    h.action('joker', 0); h.key('Digit2'); h.key('Space'); h.key('KeyD');
+    assert.deepEqual(h.save().puzzles.gambit, before, 'inspection does not pass hotkeys through to the table');
+    h.key('Escape'); h.key('Digit2'); assert.equal(h.save().puzzles.gambit.selected.length, 2);
+    h.key('Space'); assert.equal(h.save().puzzles.gambit.phase, 'score');
+  });
+});
+
+test('bundled booster purchase, keyboard choice, and reload preserve one paid set of offers', () => {
+  const game = shopRun(), money = game.money;
+  withHost({ tickets: 25, puzzles: { gambit: game.snapshot() } }, h => {
+    h.pick(); h.action('buy', 2); const paid = h.save().puzzles.gambit;
+    assert.equal(paid.phase, 'pack'); assert.equal(paid.money, money - 4); assert.equal(paid.shop[2].sold, true);
+    h.reload(); assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
+    assert.deepEqual(h.save().puzzles.gambit, paid, 'reload does not reroll or charge the unopened choice again');
+    h.key('Space'); h.key('ArrowRight'); h.key('Enter');
+    assert.equal(h.save().puzzles.gambit.pack.selected, 0, 'keyboard can inspect a pack option');
+    h.action('claim'); const saved = h.save().puzzles.gambit;
+    assert.equal(saved.phase, 'shop'); assert.ok(saved.jokers.includes(paid.pack.options[0].id));
+    assert.equal(saved.money, money - 4); assert.equal(saved.shop[2].sold, true); assert.equal(h.save().tickets, 25);
+    h.reload(); assert.deepEqual(h.save().puzzles.gambit, saved, 'claimed Joker and charge survive another reload');
+  });
+});

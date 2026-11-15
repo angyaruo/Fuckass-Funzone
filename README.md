@@ -16,7 +16,7 @@
 
 ## Pick a game
 
-Open **Funzone OS** from the arcade drawer to launch any of the nine games in the floating cabinet.
+Open **Funzone OS** from the arcade drawer to launch any of the ten games in the floating cabinet.
 
 | Game | How to play |
 | --- | --- |
@@ -29,6 +29,15 @@ Open **Funzone OS** from the arcade drawer to launch any of the nine games in th
 | **Simon Says** | Repeat the flashing sequence with the four pads or keys 1–4. |
 | **Duck Hunt** | Tap or click flying ducks. Choose a timer or play an untimed hunt. |
 | **Gabu Slots** | Spin in free practice or choose a fictional-ticket wager. |
+| **Gabu's Gambit** | Build poker hands across six rounds, equip three original Jokers, and open Joker or Upgrade booster packs between rounds. |
+
+### Gabu's Gambit prototype
+
+Select one to five cards from an eight-card hand; your score preview includes your equipped boosts. Beat each target in four plays, with three optional discards. Between rounds, buy Jokers and booster packs with run coins; arcade tickets are separate. Packs reveal three options and require an explicit choice. Runs, purchases, and revealed packs survive reload; the cabinet restores them paused.
+
+Use taps or keys **1–8** to select cards, **Space** to play or continue a scoring breakdown, **D** to discard, and **P** to pause. Arrow keys focus every visible action; **Enter** activates it and **Escape** closes Joker details. See [the full rules and development notes](docs/GABUS-GAMBIT.md).
+
+This prototype lives on `codex/gabus-gambit`, based directly on upstream `master`. The separate Tetris/Solitaire/Froggy contribution is kept on its own branch.
 
 ### Visit the Prize Counter
 
@@ -54,3 +63,7 @@ Earn tickets as you play and trade them for cabinet themes, Snake skins, Plinko 
 https://github.com/kittyafterdark/Fuckass-Funzone
 ```
 2. Paste it on the Extensions sidebar tab > Add Extensions
+
+## Local development
+
+Run `npm run check` to rebuild the self-contained extension and run the tests; no npm dependencies are required. For the playable mock-host preview, run `python -m http.server 8766 --bind 127.0.0.1` from this repository and open [Gabu's Gambit locally](http://127.0.0.1:8766/demo-gambit-qa.html). The preview also includes isolated shop and booster examples. Live Lumiverse and real touch-device checks remain pending.

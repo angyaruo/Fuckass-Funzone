@@ -5,7 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
+const read=(p)=>{
+  const source=fs.readFileSync(path.join(root,p),'utf8');
+  return /\.(?:js|css)$/.test(p)?source.replace(/\r\n/g,'\n'):source;
+};
 const matches=(text,frag)=>(text.split(frag).length-1);
 function requireOnce(src, needle, place) {
   if(matches(src,needle)!==1) throw Error(`${place}: expected exactly one build anchor: ${needle}`);
@@ -22,8 +25,20 @@ const shop=read('src/shop.js');
 const miniGames=read('src/mini-games.js');
 const miniRender=read('src/mini-games-render.js');
 const rewards=read('src/rewards.js');
+const gambitModules=[['gambit-rules','GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand'],['gambit','GambitGame'],['gambit-render','drawGambit, gambitActions, gambitHitAt']];
+function bundleGambitModule(name){
+  const source=read(`src/${name}.js`);
+  const names=[...source.matchAll(/^export\s+(?:const|let|class|function)\s+(\w+)/gm)].map(match=>match[1]);
+  if(!names.length)throw Error(`No public exports in ${name}`);
+  const body=source.replace(/^import\s+\{[^}]*\}\s+from\s+['"]\.\/gambit-rules\.js['"];?\s*$/gm,'').replace(/^export\s+/gm,'');
+  return `const {${names.join(',')}}=(()=>{\n${body}\nreturn {${names.join(',')}};\n})();`;
+}
 let ui=read('src/frontend.js');
 const css=read('src/style.css');
+for(const [name,imports] of gambitModules){
+  const anchor=`import { ${imports} } from './${name}.js';`;
+  requireOnce(ui,anchor,`${name} import`);ui=ui.replace(anchor,()=>bundleGambitModule(name));
+}
 const arcadeSvg=read('assets/funzone/arcade-tab.svg').trim();
 if(!/^<svg\s[^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/.test(arcadeSvg) || !arcadeSvg.includes('viewBox="0 0 32 32"') || !arcadeSvg.endsWith('</svg>') || /<\/?(?:script|foreignObject|image|text|use|style)\b|on(?:load|click|error)\s*=|href\s*=|url\s*\(|https?:\/\/(?!www\.w3\.org\/2000\/svg)/i.test(arcadeSvg)) throw Error('Unsafe or invalid arcade tab SVG');
 const importAnchor="import { ArcadeEngine, WORLD, MODE, DEFAULT_SETTINGS, sanitizeSettings, lifecycleTransition, gabiFlightFrame } from './engine.js';";
@@ -54,7 +69,7 @@ const assetPaths=Object.fromEntries([
   ...['smug','annoyed','hype','panic','dizzy','sleepy','shock'].map(k=>[`gabu_${k}`,`assets/match3/gabu-${k}.png`]),
   ['gabu_magnate','assets/plinko/gabu-monocle.png'],['gabu_peek','assets/plinko/gabu-peek.png'],['plinko_chip','assets/plinko/cat-chip.png'],['plinko_app','assets/plinko/plinko-app.png'],
 ]);
-const svgPaths={...Object.fromEntries(['simon','duck','slots'].map(k=>[`${k}_app`,`assets/funzone/${k}-app.svg`])),...Object.fromEntries(['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>[`match_vec_${k}`,`assets/match3/vector/${k}.svg`])),match_vec_hint:'assets/match3/vector/hint.svg',plinko_crest:'assets/plinko/cat-crest.svg'};
+const svgPaths={...Object.fromEntries(['simon','duck','slots','gambit'].map(k=>[`${k}_app`,`assets/funzone/${k}-app.svg`])),...Object.fromEntries(['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>[`match_vec_${k}`,`assets/match3/vector/${k}.svg`])),match_vec_hint:'assets/match3/vector/hint.svg',plinko_crest:'assets/plinko/cat-crest.svg'};
 const assets={};
 for(const [key,p] of Object.entries(assetPaths)) {
   const contents=fs.readFileSync(path.join(root,p));
@@ -92,6 +107,7 @@ ui=ui.replace(importAnchor,pureEngine).replace(puzzleAnchor,purePuzzles).replace
 const banner=`/* Fuckass Funzone 2.6.3 | self-contained Spindle frontend | ${Object.keys(assets).length} embedded PNG/SVG assets | generated from editable src/ */\n`;
 // Artifact is validated in memory before writes.
 const candidate=banner+ui;
+if(/^import\s/m.test(candidate))throw Error('Unresolved runtime import');
 if(candidate.includes('BUILD_ASSETS')||candidate.includes('BUILD_CSS')||candidate.includes('BUILD_TAB_SVG')||candidate.includes("from './engine.js'")||candidate.includes("from './puzzles.js'")||candidate.includes("from './puzzle-render.js'")||candidate.includes("from './match3.js'")||candidate.includes("from './match3-render.js'")||candidate.includes("from './reactions.js'")||candidate.includes("from './plinko.js'")||candidate.includes("from './plinko-render.js'")||candidate.includes("from './rewards.js'")||candidate.includes("from './shop.js'")||candidate.includes("from './mini-games.js'")||candidate.includes("from './mini-games-render.js'"))throw Error('Unresolved build marker');
 const old=path.join(root,'dist/frontend.js');
 fs.mkdirSync(path.dirname(old),{recursive:true});
