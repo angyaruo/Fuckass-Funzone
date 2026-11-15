@@ -86,7 +86,7 @@ export function drawCakeTower(canvas, game, { best = 0, images = {}, reduced = f
     rounded(ctx, CAKE_W / 2 - PLATE_W / 2, ground - 4, PLATE_W, 8, 4, '#f4fbff'); ctx.strokeStyle = '#a9cde3'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.roundRect(CAKE_W / 2 - PLATE_W / 2, ground - 4, PLATE_W, 8, 4); ctx.stroke();
   }
-  const shown = game.tiers.length - (game.fallen || 0);
+  const shown = game.tiers.length;
   for (let i = 0; i < shown; i++) {
     const bottomY = screen(i * LAYER_H); if (bottomY - LAYER_H > CAKE_H || bottomY < -10) continue;
     drawCakeTier(ctx, game.tiers[i].flavor, game.tierX(i), bottomY, i);
@@ -94,7 +94,8 @@ export function drawCakeTower(canvas, game, { best = 0, images = {}, reduced = f
     if (tierNumber % 10 === 0) candle(ctx, game.tierX(i), bottomY - LAYER_H + 1, time);
     else if (tierNumber % 5 === 0) for (const dx of [-34, 0, 34]) strawberry(ctx, game.tierX(i) + dx, bottomY - LAYER_H - 3);
   }
-  for (const c of game.crumbs) drawCakeTier(ctx, c.flavor, c.x, screen(c.y), 3, c.spin);
+  // Fallen tiers spin around their middle, so one that lands upside down still rests on the surface under it.
+  for (const c of game.crumbs) { ctx.save(); ctx.translate(c.x, screen(c.y) - LAYER_H / 2); ctx.rotate(c.spin); drawCakeTier(ctx, c.flavor, 0, LAYER_H / 2, 3); ctx.restore(); }
   // Crane rail and ribbon: the hanging tier swings from a pink bow.
   rounded(ctx, 0, 6, CAKE_W, 12, 0, '#ff9fbd'); for (let i = 0; i < 12; i++) rounded(ctx, i * 32 + 4, 9, 18, 6, 3, '#ffd1e1');
   const swinging = game.status !== 'dead' && game.phase === 'swing', hx = game.hookX(), hangBottom = CAKE_HANG;

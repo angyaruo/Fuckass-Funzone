@@ -450,6 +450,12 @@ const SAYINGS=Object.freeze({
   ]
  },
  chess:{
+  new_best:[
+   "NEW CHESS RECORD?! Who let you get good at this?!",
+   "Personal best! My telemetry is flashing gold and I hate it!",
+   "Record broken! Frame it before you hang your queen again!",
+   "New high score! Fine! FINE! The kittens respect you now!"
+  ],
   capture:[
    "Hey! That kitten had a family. And a tiny hat.",
    "You took my piece?! I was emotionally invested in that little guy.",
@@ -525,22 +531,22 @@ const SAYINGS=Object.freeze({
   win:[
    "CHECKMATE?! On ME?! Run the tape back, the physics engine lagged!",
    "No way. NO WAY. My king has nowhere to nap. I'm going to scream.",
-   "You actually beat me. I'm updating your file to 'Genuinely Dangerous'.",
+   "You ACTUALLY beat me?! I'm updating your file to 'Genuinely Dangerous'!",
    "CATMATE! Okay, that was clean. I hate how clean that was.",
-   "My right eye just blue-screened. Fine. You win. This time.",
-   "Mate delivered! Somewhere a chess coach is crying happy tears.",
+   "My right eye just BLUE-SCREENED! Fine! You win! THIS TIME!",
+   "MATE?! Somebody unplug me, I can't watch the replay!",
    "I lost to a kitten in a party hat. This is the worst arc of my life.",
    "That was a real checkmate. Not a fluke. I'm furious and impressed."
   ],
   death:[
-   "Checkmate! Your king is officially out of naps.",
-   "CATMATE, baby! Gabu remains undefeated in this canon!",
-   "And that's mate. Did the paw prints not tip you off?",
-   "Game! My ocular sensor called that eight moves ago.",
-   "Checkmate. Shake my paw. Gracefully. I'll wait.",
-   "Your king got boxed in like a cat in a delivery box. Adorable. Lost.",
-   "That's the end of your story. Mine continues. Rematch?",
-   "Mate! Write that down in your little notebook of losses."
+   "CHECKMATE! You walked your king into a box and TAPED IT SHUT!",
+   "MATE! Did you think the king was decorative?! He was the WHOLE GAME!",
+   "CATMATE, BABY! My right eye called this eight moves ago and you just let it happen!",
+   "Your king is boxed in like a cat in a shipping crate. Pathetic. Rematch.",
+   "THAT'S MATE! Every single one of your kittens just watched you choke!",
+   "Checkmate. Logging this under 'protagonist forgot how chess works'.",
+   "GAME OVER! You blundered so hard the board needs a therapist!",
+   "Mate in the books! Write it in your little notebook of losses, dumbass."
   ],
   draw:[
    "A draw? We argued in circles for ten minutes for NOTHING?",
@@ -559,6 +565,12 @@ const SAYINGS=Object.freeze({
   ]
  },
  berry:{
+  new_best:[
+   "NEW BERRY RECORD?! My blueberries are filing a complaint!",
+   "Personal best! Okay, your column game is actually disgusting!",
+   "Record smashed! I'm updating your file to 'Berry Menace'!",
+   "High score! Don't get cocky, I'm still the blueberry king!"
+  ],
   block:[
    "You saw that?! I was SO close to four!",
    "Blocked. Fine. My right eye had that column locked in.",
@@ -592,19 +604,19 @@ const SAYINGS=Object.freeze({
   ],
   win:[
    "FOUR STRAWBERRIES?! My blueberries are in shambles!",
-   "You connected four. I'm pretending my sensor lagged.",
+   "You connected FOUR?! My sensor lagged! It LAGGED!",
    "That diagonal came out of NOWHERE. Respect. Hatred. Both.",
    "Okay! Fine! Strawberries win this round! Next!",
-   "Four in a row. My diagnostics are sulking in the corner.",
+   "Four in a row?! My diagnostics are screaming into a pillow!",
    "Another round to you?! Your streak is getting suspicious."
   ],
   death:[
-   "FOUR BLUEBERRIES! Streak over, sweetie.",
-   "Connected! Did you not see that coming? I literally told you.",
-   "And that's four. My cyber eye never misses a line.",
-   "Gabu wins! Put the strawberries back in the fridge.",
-   "Streak terminated. Beautiful run, though. Mostly.",
-   "Four in a row. Write it on my trophy. In glitter."
+   "FOUR BLUEBERRIES! You let me line up four like it was a TUTORIAL!",
+   "CONNECTED! I literally built that right in front of your face!",
+   "And that's four! My cyber eye never misses a line, and you never see one!",
+   "Streak DEAD! Put your sad little strawberries back in the fridge!",
+   "You had ONE job. Block the column. You did NOT block the column!",
+   "GAME! That diagonal sat there for three turns! What were you looking at?!"
   ],
   draw:[
    "A full basket and nobody won? This is the dullest fruit salad ever.",
@@ -614,6 +626,12 @@ const SAYINGS=Object.freeze({
   ]
  },
  tictac:{
+  new_best:[
+   "NEW RECORD?! In tic-tac-toe?! Okay, nerd, okay!",
+   "Personal best! Your pocky game is getting suspicious!",
+   "High score! My donuts are reconsidering their life choices!",
+   "Record broken! Frame it, it's the peak of your gaming career!"
+  ],
   block:[
    "Hey! That was my winning square!",
    "Blocked. Ugh. I wanted that donut line so bad.",
@@ -636,27 +654,39 @@ const SAYINGS=Object.freeze({
   ],
   win:[
    "THREE POCKY?! In tic-tac-toe?! I'm deleting my settings.",
-   "You beat me at the simplest game ever made. I need a minute.",
-   "Okay, that was a fork. I fell for a fork. Don't tell anyone.",
+   "You beat me at the SIMPLEST GAME EVER MADE?! I need a minute!",
+   "A FORK?! I fell for a FORK?! Don't you dare tell anyone!",
    "Win for the pocky! I'm recalibrating my donut strategy.",
-   "Three in a row. Clean. Annoying. Clean."
+   "Three in a row?! Clean! Annoying! CLEAN!"
   ],
   death:[
-   "Three donuts! Glazed you right up.",
-   "Gabu wins tic-tac-toe! The easiest flex of my career.",
-   "Lost at tic-tac-toe. To me. Sit with that.",
-   "Three in a row! Didn't even need my right eye for that one.",
-   "Streak over. You got outplayed by pastry."
+   "THREE DONUTS! You lost TIC-TAC-TOE! The game TODDLERS draw!",
+   "Glazed and defeated! How do you even LOSE this?!",
+   "Lost at tic-tac-toe. To me. Sit with that. For a while.",
+   "Three in a row! I didn't even need my right eye for that one!",
+   "Streak over! Outplayed by pastry! PASTRY!"
   ],
   draw:[
    "Cat's game. Nobody ate anything. Tragic.",
    "Draw. As the ancient scrolls foretold.",
    "Tic-tac-toe draw. Riveting. Truly the peak of gaming.",
-   "Nobody wins. Everyone gets a snack anyway. Next round.",
+   "Nobody wins. Nobody learned anything. Next round.",
    "Another draw. My diagnostics are falling asleep."
   ]
  },
  cake:{
+  land:[
+   "Off-center. The cake noticed.",
+   "Sloppy drop. The tower is already gossiping about it.",
+   "That tier landed crooked. Aim with your eyes open.",
+   "Not perfect. Not even close. Keep stacking."
+  ],
+  new_best:[
+   "NEW CAKE RECORD! This thing is scraping the stratosphere!",
+   "Personal best! The bakery is calling it a structural miracle!",
+   "Record height! My telemetry needs a longer neck!",
+   "High score! Don't you DARE topple it now!"
+  ],
   perfect:[
    "Perfect stack. Okay, pastry chef, I see you.",
    "Dead center. My right-eye level tool approves.",
@@ -694,14 +724,26 @@ const SAYINGS=Object.freeze({
    "This tower is taller than my patience. Keep going!"
   ],
   death:[
-   "THE CAKE! NOOOO! All that frosting, on the floor!",
-   "It toppled! A tragic end for a delicious skyscraper!",
-   "Out of cake! My diagnostics are crying sprinkles!",
-   "Total cake collapse. Bake another, I'll hold the plate.",
-   "Down it goes! That was a disaster, and it smelled amazing."
+   "THE CAKE! NOOO! All that frosting, splattered on the floor!",
+   "IT TOPPLED! You built a leaning tower of disappointment!",
+   "Out of cake! My diagnostics are crying sprinkles over your stacking!",
+   "Total cake collapse! Gravity filed a restraining order against your hands!",
+   "DOWN IT GOES! That was a disaster, and it smelled AMAZING, which makes it worse!"
   ]
  },
  bubble:{
+  pop:[
+   "Pop. Basic. Keep going.",
+   "Three of a kind. The bare minimum, achieved.",
+   "Popped. Don't expect confetti.",
+   "Cool. Now pop something that actually matters."
+  ],
+  new_best:[
+   "NEW BUBBLE RECORD! Your aim stopped being a crime!",
+   "Personal best! My right eye is tracking every glorious pop!",
+   "Record smashed! The bubbles fear you now!",
+   "High score! Keep popping, don't you dare choke!"
+  ],
   big_pop:[
    "Big pop! Look at all those bubbles go!",
    "Six at once?! That's a satisfying little crunch!",
@@ -738,14 +780,26 @@ const SAYINGS=Object.freeze({
    "All popped! That was gorgeous. Do it again!"
   ],
   death:[
-   "BUBBLE OVERFLOW! They touched the cushion line!",
-   "Game over! The bubbles have taken the arcade!",
-   "They reached the bottom! Too many misses, protagonist!",
-   "Overflow! My ocular sensor is drowning in bubbles!",
-   "Bubbles win. You lose. I'm going to go pop something to cope."
+   "BUBBLE OVERFLOW! They touched the line! You let them TOUCH THE LINE!",
+   "Game over! The bubbles have taken the arcade and it's YOUR fault!",
+   "They reached the bottom! Too many misses, protagonist! WAY too many!",
+   "Overflow! My ocular sensor is drowning in your bad aim!",
+   "Bubbles win! You lose! I'm going to go pop something to cope!"
   ]
  },
  boop:{
+  boop:[
+   "Boop. Riveting stuff.",
+   "Another bun booped. Gold star. A tiny one.",
+   "You booped a bunny. The bar was on the floor.",
+   "Keep booping. That's the whole game, protagonist."
+  ],
+  new_best:[
+   "NEW BOOP RECORD! Your finger is a weapon!",
+   "Personal best! The bunnies are filing for witness protection!",
+   "Record smashed! Booping at Mach 2, holy shit!",
+   "High score! Keep booping, don't you dare slow down now!"
+  ],
   gold:[
    "GOLDEN BUNNY! You booped the rich one!",
    "A golden boop! My right eye just registered pure treasure.",
@@ -783,14 +837,26 @@ const SAYINGS=Object.freeze({
    "Swing and a miss! The garden saw that."
   ],
   death:[
-   "Time's up! Count your boops, protagonist.",
-   "Round over! The bunnies need a nap after that.",
-   "That's time! My ocular sensor tallied every single boop.",
-   "Clock's out! The garden is closed for snacks.",
-   "Done! Fur everywhere, dignity questionable."
+   "TIME'S UP! That's it?! The bunnies are laughing at your score!",
+   "Round over! Half those bunnies strolled off untouched, you absolute slowpoke!",
+   "Clock's out! My ocular sensor counted every boop and every miss. MOSTLY misses.",
+   "That's time! The garden is closed and your reflexes are under review!",
+   "DONE! Fur everywhere, dignity nowhere!"
   ]
  },
  wafer:{
+  pull:[
+   "Wafer out. Tower still standing. For now.",
+   "Fine. That one didn't kill us.",
+   "A pull. Not clean, not a crime. Next.",
+   "Still up. My right eye is tracking every wobble."
+  ],
+  new_best:[
+   "NEW WAFER RECORD! Steadiest hands in the arcade, apparently!",
+   "Personal best! The tower respects you. I don't. But the tower does.",
+   "Record smashed! My right eye can't find a single wobble!",
+   "High score! Don't celebrate yet, the tower is still standing!"
+  ],
   perfect:[
    "Clean pull. Not even a crumb moved. Show-off.",
    "Smooth as frosting. My right eye didn't even register a wobble.",
@@ -813,20 +879,26 @@ const SAYINGS=Object.freeze({
   ],
   win:[
    "NO! It fell on MY pull?! The table is uneven! I demand a recount!",
-   "Crumbs. Everywhere. And they're all my fault. Ugh, fine, you win.",
-   "My right eye calculated that pull perfectly. The wafers betrayed me.",
+   "CRUMBS! EVERYWHERE! And they're all MY fault?!",
+   "My right eye calculated that pull PERFECTLY! The wafers BETRAYED me!",
    "I toppled it?! Delete this from the timeline immediately.",
    "That tower was cursed and you KNEW it. Round to you."
   ],
   death:[
-   "CRASH! Wafers everywhere and it's all on you, sweetheart.",
-   "Toppled! I'll be eating the evidence, thanks.",
-   "And down it goes! My steady paws remain undefeated.",
-   "That was the wrong wafer. Every part of that was the wrong wafer.",
-   "Streak over! The tower has chosen its villain, and it's you."
+   "CRASH! Wafers everywhere and it's ALL on you!",
+   "TOPPLED! You pulled the one wafer holding the whole tower up! Genius!",
+   "Down it goes! My paws stay steady and yours stay a crime!",
+   "That was the wrong wafer! Every part of that was the wrong wafer!",
+   "Streak OVER! The tower has chosen its villain, and it's YOU!"
   ]
  },
  memory:{
+  new_best:[
+   "NEW STICKER RECORD! Who installed extra RAM in you?!",
+   "Personal best! Your memory is genuinely terrifying!",
+   "Record smashed! The stickers have nowhere left to hide!",
+   "High score! Don't forget it. Oh wait, you won't. Freak."
+  ],
   match:[
    "A pair! Your memory works. Sometimes.",
    "Match found. Don't let it go to your hippocampus.",
@@ -890,9 +962,14 @@ export class ReactionDirector {
   if(game==='wafer'&&event==='perfect'&&count%2!==1)return null;
   if(game==='memory'&&event==='match'&&count%3!==1)return null;
   if(game==='memory'&&event==='miss'&&count%4!==1)return null;
-  const rival=game==='chess'||game==='berry'||game==='tictac'||game==='wafer'; // Gabu is the opponent here, so the moods flip.
-  if(rival&&event==='win'){mood='shock';priority=5;duration=3.8;}
-  else if(rival&&event==='death'){mood='smug';priority=5;duration=3.8;}
+  if(game==='bubble'&&event==='pop'&&count%4!==1)return null;
+  if(game==='boop'&&event==='boop'&&count%8!==0)return null;
+  if(game==='wafer'&&event==='pull'&&count%3!==1)return null;
+  if(game==='cake'&&event==='land'&&count%3!==1)return null;
+  // Where Gabu is the opponent, the result is Gabu's own: a player win is Gabu losing (panic), a player loss is Gabu winning (hype).
+  const rival=game==='chess'||game==='berry'||game==='tictac'||game==='wafer';
+  if(rival&&event==='win'){mood='panic';priority=5;duration=3.8;}
+  else if(rival&&event==='death'){mood='hype';priority=5;duration=3.8;}
   else if(event==='draw'){mood='dizzy';priority=4;duration=3.4;}
   else if(event==='queen_taken'||event==='promote'){mood='shock';priority=4;}
   else if(event==='queen_lost'){mood='hype';priority=4;}
@@ -918,6 +995,7 @@ export class ReactionDirector {
   else if(event==='match'){mood='smug';priority=1;}
   else if(event==='streak'){mood='hype';priority=3;}
   else if(event==='miss'&&game==='memory'){mood='annoyed';priority=1;}
+  else if(event==='land'&&game==='cake'){mood='annoyed';priority=1;}
   else if(event==='special_created'){mood='hype';priority=3;}
   else if(event==='no_moves'){mood='shock';priority=6;duration=4.2;}
   else if(event==='cascade'||event==='win'||event==='new_best'){mood='hype';priority=5;duration=3.8;}

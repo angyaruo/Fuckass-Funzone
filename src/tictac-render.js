@@ -42,7 +42,7 @@ export function drawDonutMark(ctx, cx, cy, size, alpha = 1) {
   ctx.restore();
 }
 const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', sharp: 'SHARP GABU' });
-export function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false, time = 0 } = {}) {
+export function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2c1a33'); bg.addColorStop(1, '#1b1322'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);

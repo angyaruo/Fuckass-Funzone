@@ -51,7 +51,12 @@ const GAME_ROSTER = Object.freeze([
 ]);
 /** Gabu opponents and pace presets share one vocabulary across the newer board and toy games. */
 const GABU_LEVELS = Object.freeze([['chill','Chill · forgiving'],['normal','Normal'],['sharp','Sharp · no mercy']]);
-const TOY_PACES = Object.freeze([['chill','Chill · slow'],['normal','Normal'],['chaos','Chaos · fast']]);
+// Each pace label names what actually changes in that game.
+const TOY_PACES = Object.freeze({
+ cake:[['chill','Chill · slow swing'],['normal','Normal'],['chaos','Chaos · fast swing']],
+ bubble:[['chill','Chill · fewer colors'],['normal','Normal'],['chaos','Chaos · more colors']],
+ boop:[['chill','Chill · slow bunnies'],['normal','Normal'],['chaos','Chaos · fast bunnies']],
+});
 const GAME_IDS = GAME_ROSTER.map(([id])=>id);
 
 /** Every HUD icon is a real SVG shape or PNG. No emoji, ASCII pseudo-icons, or icon fonts. */
@@ -526,8 +531,14 @@ export function setup(ctx) {
     wafer:{select:'tick',pull:'drop',gabu_pull:'drop',perfect:'coin',risky:'hit',gabu_risky:'hit',round:'start'},
     memory:{flip:'tick',match:'coin',streak:'score',miss:'drop',forgot:'hit'},
   });
+  // Like the flight engine, each run of a newer game announces a NEW BEST once, when it first passes the best it started from.
+  const RECORD_GAMES=new Set(['chess','berry','tictac','cake','bubble','boop','wafer','memory']),recordBase={},recordAnnounced={};
   function classicEvent(id,event,data){
     const current=classicGames[id];if(!current)return;
+    if(RECORD_GAMES.has(id)){
+      if(event==='reset'){recordBase[id]=bests[id];recordAnnounced[id]=false;}
+      else if(event==='score'&&!recordAnnounced[id]&&current.score>recordBase[id]){recordAnnounced[id]=true;reactions.emit(id,'new_best',{score:current.score,previousBest:recordBase[id]});}
+    }
     if(['score','move','win','death'].includes(event))pendingClassicScores.add(id);
     if(['score','move','undo','win','death','hit','home','level','hop','lock','hold','gabu_move','draw','drop','gabu_drop','place','gabu_place','round','land','miss','shoot','swap','ceiling','clear','boop','gold','bot','whiff','escape','pull','gabu_pull','flip','match','streak','forgot'].includes(event))classicSavePending=true;
     if(event==='death')sound.play('death');else if(event==='win'||event==='line')sound.play('score');
@@ -542,6 +553,7 @@ export function setup(ctx) {
   }
   for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame],['chess',ChessGame],['berry',BerryDropGame],['tictac',TicTacTreatsGame],['cake',CakeTowerGame],['bubble',BubbleGame],['boop',BoopGame],['wafer',WobblyWafersGame],['memory',StickerMatchGame]]){
     classicGames[id]=new Game({saved:persisted?.puzzles?.[id],level:gabuLevels[id],pace:toyPaces[id],onEvent:(event,data)=>classicEvent(id,event,data)});
+    if(RECORD_GAMES.has(id)){recordBase[id]=bests[id];recordAnnounced[id]=false;}
   }
   const bind=(el,event,fn,options)=>{el.addEventListener(event,fn,options);listeners.push(()=>el.removeEventListener(event,fn,options));};
   const active=()=>classicGames[activeMode]||(activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game);
@@ -618,7 +630,7 @@ export function setup(ctx) {
     
     if(soundButton)setIconLabel(soundButton,settings.sound?'volume':'mute',settings.sound?'Sound on':'Sound off');
     if(ticketEl)ticketEl.textContent=String(tickets);
-    if(rootEl){rootEl.dataset.cabinet=shopState.equipped.cabinet;rootEl.dataset.shopOpen=String(shopOpen);}
+    if(rootEl){rootEl.dataset.cabinet=shopState.equipped.cabinet;rootEl.dataset.shopOpen=String(shopOpen);rootEl.dataset.phoneOpen=String(phoneOpen&&!shopOpen);}
     if(undoButton)undoButton.hidden=activeMode!=='2048'&&activeMode!=='solitaire'&&activeMode!=='chess';
     for(const [id,select] of presetSelects)select.value=gabuLevels[id]||toyPaces[id];
     if(matchSizeSelect){matchSizeSelect.hidden=activeMode!=='match3';matchSizeSelect.value=String(match3.width);}
@@ -751,8 +763,8 @@ export function setup(ctx) {
     else if(activeMode==='berry'){const col=berryColumnAt(x,y);if(current.phase==='over')current.nextRound();else if(col>=0)current.drop(col);}
     else if(activeMode==='tictac'){const cell=tictacCellAt(x,y);if(current.phase==='over')current.nextRound();else if(cell>=0)current.place(cell);}
     else if(activeMode==='cake')current.release();
-    else if(activeMode==='boop'){const hole=boopHoleAt(x,y);if(hole>=0)current.boop(hole);}
-    else if(activeMode==='wafer'){const hit=waferAt(x,y,current.layers.length);current.choose(hit?hit.row:-1,hit?hit.slot:0);}
+    else if(activeMode==='boop'){const hole=boopHoleAt(x,y,current);if(hole>=0)current.boop(hole);}
+    else if(activeMode==='wafer'){const hit=waferAt(x,y,current.layers.length,current.lean(settings.reduceMotion));current.choose(hit?hit.row:-1,hit?hit.slot:0);}
     else if(activeMode==='memory'){const card=memoryCardAt(x,y,current.cols,current.rows);if(card>=0)current.flip(card);}
     else if(activeMode==='bubble'){current.setAim(x,y);bubbleAiming=true;try{canvas?.setPointerCapture?.(e.pointerId);}catch{}}
     else if(activeMode==='tetris'){
@@ -780,7 +792,8 @@ export function setup(ctx) {
       activeMode==='chess'?['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyU','KeyZ','Backspace','Escape']:
       activeMode==='berry'?['ArrowLeft','ArrowRight','KeyA','KeyD','ArrowDown','KeyS','Enter','Space',...DIGITS.slice(0,BERRY_COLS)]:
       activeMode==='tictac'||activeMode==='boop'?[...Object.keys(directions),'Enter','Space',...DIGITS]:
-      activeMode==='wafer'||activeMode==='memory'?[...Object.keys(directions),'Enter','Space','Escape']:
+      activeMode==='wafer'?[...Object.keys(directions),'Enter','Space','Escape']:
+      activeMode==='memory'?[...Object.keys(directions),'Enter','Space']:
       activeMode==='cake'?['Space','Enter','ArrowDown','KeyS']:
       activeMode==='bubble'?['ArrowLeft','ArrowRight','KeyA','KeyD','ArrowUp','KeyW','Space','Enter','KeyC','KeyX']:
       ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyF','KeyU','KeyZ','Backspace','Escape'];
@@ -815,8 +828,9 @@ export function setup(ctx) {
       }
     }else if(activeMode==='berry'||activeMode==='tictac'){
       const over=current.phase==='over',act=()=>activeMode==='berry'?current.drop():current.place();
-      if(e.repeat&&!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS'].includes(e.code)){/* held action keys never auto-repeat a move */}
-      else if(over&&(e.code==='Enter'||e.code==='Space'||DIGITS.includes(e.code)))current.nextRound();
+      // Holding an action key never repeats a move; only the cursor keys auto-repeat.
+      if(e.repeat&&!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS'].includes(e.code))return;
+      if(over&&(e.code==='Enter'||e.code==='Space'||DIGITS.includes(e.code)))current.nextRound();
       else if(DIGITS.includes(e.code)){const n=Number(e.code.slice(-1))-1;if(activeMode==='berry')current.drop(n);else current.place(n);}
       else if(e.code==='Enter'||e.code==='Space'||activeMode==='berry'&&(e.code==='ArrowDown'||e.code==='KeyS'))act();
       else if(activeMode==='berry')current.moveCursor(e.code==='ArrowLeft'||e.code==='KeyA'?-1:1);
@@ -832,7 +846,7 @@ export function setup(ctx) {
       else if(!current.selected)current.moveCursor(directions[e.code]==='left'?-1:directions[e.code]==='right'?1:0,directions[e.code]==='up'?1:directions[e.code]==='down'?-1:0);
     }else if(activeMode==='memory'){
       if(e.code==='Enter'||e.code==='Space'){if(!e.repeat)current.flip();}
-      else if(e.code!=='Escape')current.moveCursor(directions[e.code]==='left'?-1:directions[e.code]==='right'?1:0,directions[e.code]==='up'?-1:directions[e.code]==='down'?1:0);
+      else current.moveCursor(directions[e.code]==='left'?-1:directions[e.code]==='right'?1:0,directions[e.code]==='up'?-1:directions[e.code]==='down'?1:0);
     }else if(activeMode==='cake'){
       if(!e.repeat)current.release();
     }else if(activeMode==='bubble'){
@@ -1207,19 +1221,19 @@ export function setup(ctx) {
     tip(treatsInfo,'Tic-tac-toe with pocky crosses against Gabu\u2019s donuts. Tap a square, use the arrows and Space, or press 1\u20139 (top-left to bottom-right). Wins and draws build your streak score; one loss ends it. Sharp Gabu never makes a mistake, so a draw is the best result there. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('tictac',makeSelect(treatsInfo,'Gabu difficulty','How often Gabu slips up. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.tictac,'Tic Tac Treats difficulty',v=>{gabuLevels.tictac=v;save();refresh();}));
     const cakeInfo=drawerGamePanel('cake');
-    tip(cakeInfo,'Tap, Space, Enter or Down drops the swinging tier. Land it dead center for a PERFECT that steadies the tower and builds a streak; sloppy drops make it wobble, and too much wobble topples the cake. Missing the cake entirely costs one of three hearts. Every 100 new personal-best points earns a ticket.');
-    presetSelects.set('cake',makeSelect(cakeInfo,'Swing pace','Chill swings slower with a wider perfect window; Chaos swings faster with a tighter one. Changes apply to your next cake.',TOY_PACES,toyPaces.cake,'Cake Tower pace',v=>{toyPaces.cake=v;save();refresh();}));
+    tip(cakeInfo,'Tap, Space, Enter or Down drops the swinging tier. Land it dead center for a PERFECT that steadies the tower and builds a streak; sloppy drops make it wobble. A tier only stays if its middle sits over the tier below, and when the stack leans too far or wobbles too hard, the top slides off. Misses and collapses each cost one of three hearts. Every 100 new personal-best points earns a ticket.');
+    presetSelects.set('cake',makeSelect(cakeInfo,'Swing pace','Chill swings slower with a wider perfect window; Chaos swings faster with a tighter one. Changes apply to your next cake.',TOY_PACES.cake,toyPaces.cake,'Cake Tower pace',v=>{toyPaces.cake=v;save();refresh();}));
     const bubbleInfo=drawerGamePanel('bubble');
     tip(bubbleInfo,'Drag to aim and release to shoot, or aim with Left/Right and shoot with Space. C swaps in the next bubble. Three or more of a kind pop, and anything left hanging falls for bonus points. Every few misses a new row pushes down; a bubble past the dashed line ends the run. Clear the board to level up. Every 300 new personal-best points earns a ticket.');
-    presetSelects.set('bubble',makeSelect(bubbleInfo,'Bubble pace','Chill uses fewer colors and forgives more misses; Chaos adds a color and pushes rows sooner. Changes apply to your next run.',TOY_PACES,toyPaces.bubble,'Bubble Bloom pace',v=>{toyPaces.bubble=v;save();refresh();}));
+    presetSelects.set('bubble',makeSelect(bubbleInfo,'Board difficulty','Chill uses fewer colors and forgives more misses; Chaos adds a color and pushes rows sooner. Changes apply to your next run.',TOY_PACES.bubble,toyPaces.bubble,'Bubble Bloom difficulty',v=>{toyPaces.bubble=v;save();refresh();}));
     const boopInfo=drawerGamePanel('boop');
     tip(boopInfo,'Bunnies pop out of the nine burrows; boop them before they duck back down. Golden bunnies are worth 50 and every five-boop streak adds a bonus. Gabu\u2019s little robots are decoys: booping one costs 20 points and your streak. Tap a burrow, press 1\u20139 (top-left to bottom-right), or move with the arrows and boop with Space. Rounds last 45 seconds. Every 100 new personal-best points earns a ticket.');
-    presetSelects.set('boop',makeSelect(boopInfo,'Bunny pace','Chill bunnies stay up longer and fewer pop up at once; Chaos bunnies are quick and crowded. Changes apply to your next round.',TOY_PACES,toyPaces.boop,'Boop-a-Bun pace',v=>{toyPaces.boop=v;save();refresh();}));
+    presetSelects.set('boop',makeSelect(boopInfo,'Bunny pace','Chill bunnies stay up longer and fewer pop up at once; Chaos bunnies are quick and crowded. Changes apply to your next round.',TOY_PACES.boop,toyPaces.boop,'Boop-a-Bun pace',v=>{toyPaces.boop=v;save();refresh();}));
     const waferInfo=drawerGamePanel('wafer');
-    tip(waferInfo,'Take turns with Gabu pulling wafers from the tower and stacking them on top. Tap a wafer to pick it, then tap again while the steady-hand meter is green for a clean pull; sloppy pulls make the tower wobble. You can\u2019t pull from the top two layers, and a layer left with one edge wafer can\u2019t hold anything up. Whoever topples the tower loses the round; Gabu toppling it extends your streak. Arrows move, Space picks and pulls, Escape cancels. Every 100 new personal-best points earns a ticket.');
-    presetSelects.set('wafer',makeSelect(waferInfo,'Gabu difficulty','How steady Gabu\u2019s paws are and how well it picks wafers. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.wafer,'Wobbly Wafers difficulty',v=>{gabuLevels.wafer=v;save();refresh();}));
+    tip(waferInfo,'Take turns with Gabu pulling wafers from the tower and stacking them on top. Tap a wafer to pick it, then tap again while the steady-hand meter is green for a clean pull; sloppy pulls make the tower wobble. You can\u2019t pull from the top two layers, and a layer left with only an edge wafer tips everything above it. The outline turns yellow on risky wafers and red on ones that would topple the tower. Whoever topples the tower loses the round; Gabu toppling it extends your streak. Arrows move, Space picks and pulls, Escape cancels. Every 100 new personal-best points earns a ticket.');
+    presetSelects.set('wafer',makeSelect(waferInfo,'Gabu difficulty','How steady Gabu\u2019s paws are and how well Gabu picks wafers. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.wafer,'Wobbly Wafers difficulty',v=>{gabuLevels.wafer=v;save();refresh();}));
     const memoryInfo=drawerGamePanel('memory');
-    tip(memoryInfo,'Flip two cards at a time to find matching sticker pairs. Matches in a row build a streak bonus, and finishing the page adds a bonus that shrinks with every miss. Tap a card, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
+    tip(memoryInfo,'Each new page starts face up for a few seconds so you can memorize it (3 on Cozy, 3.5 on Classic, 4 on Busy); tap to start early. Then flip two cards at a time to find matching sticker pairs. Matches in a row build a streak bonus, and finishing the page adds a bonus that shrinks with every miss. Tap a card, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('memory',makeSelect(memoryInfo,'Board size','Cozy has 6 pairs, Classic 8 and Busy 10. Changes apply to your next new page.',[['cozy','Cozy · 6 pairs'],['classic','Classic · 8 pairs'],['busy','Busy · 10 pairs']],toyPaces.memory,'Sticker Match board size',v=>{toyPaces.memory=v;save();refresh();}));
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');

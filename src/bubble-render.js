@@ -33,10 +33,10 @@ export function drawBubble(ctx, kindIndex, x, y, r = BUBBLE_R, alpha = 1) {
   ctx.globalAlpha = alpha * .6; ctx.beginPath(); ctx.ellipse(-r * .42, -r * .48, r * .26, r * .14, -.6, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
   ctx.restore();
 }
-/** Dotted guide that follows one wall bounce, so bank shots are planned, not guessed. */
-function aimGuide(ctx, game, reduced, time) {
-  let x = LAUNCH_X, y = LAUNCH_Y, vx = Math.cos(game.aim), vy = -Math.sin(game.aim), travelled = 0, bounces = 0;
-  const offset = reduced ? 0 : (time * 40) % 14;
+/** Dotted guide that follows one wall bounce, so bank shots are planned, not guessed.
+ * Dots sit at fixed distances along the path and never animate: a moving or blinking guide is hard on sensitive eyes. */
+function aimGuide(ctx, game) {
+  let x = LAUNCH_X, y = LAUNCH_Y, vx = Math.cos(game.aim), vy = -Math.sin(game.aim), travelled = 0, bounces = 0, nextDot = 30;
   const occupied = [], reach = (BUBBLE_R * 1.7) ** 2;
   for (let r = 0; r < BUBBLE_ROWS; r++) for (let c = 0; c < BUBBLE_COLS; c++) if (game.grid[r][c] >= 0) occupied.push(game.center(r, c));
   ctx.fillStyle = '#ffffffb0';
@@ -44,7 +44,7 @@ function aimGuide(ctx, game, reduced, time) {
     x += vx * 2; y += vy * 2; travelled += 2;
     if (x < BUBBLE_LEFT + BUBBLE_R || x > RIGHT - BUBBLE_R) { if (++bounces > 1) break; vx = -vx; }
     if (occupied.some(p => (p.x - x) ** 2 + (p.y - y) ** 2 < reach)) break;
-    if (travelled > 30 && Math.round(travelled - offset) % 14 === 0) { ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill(); }
+    if (travelled >= nextDot) { nextDot += 14; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill(); }
   }
 }
 function launcher(ctx, game) {
@@ -62,7 +62,7 @@ function launcher(ctx, game) {
   rounded(ctx, -3, -30, 6, 12, 3, '#ffffffcc'); ctx.restore();
   if (!game.shot) drawBubble(ctx, game.current, LAUNCH_X, LAUNCH_Y);
 }
-export function drawBubbleBloom(canvas, game, { best = 0, reduced = false, time = 0 } = {}) {
+export function drawBubbleBloom(canvas, game, { best = 0 } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2a1d44'); bg.addColorStop(1, '#1a1428'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -92,7 +92,7 @@ export function drawBubbleBloom(canvas, game, { best = 0, reduced = false, time 
       ctx.restore();
     } else drawBubble(ctx, e.kind, e.x, e.y, BUBBLE_R, Math.max(0, 1 - e.age / 1.4));
   }
-  if (game.status === 'playing' && !game.shot) aimGuide(ctx, game, reduced, time);
+  if (game.status === 'playing' && !game.shot) aimGuide(ctx, game);
   if (game.shot) drawBubble(ctx, game.shot.kind, game.shot.x, game.shot.y);
   launcher(ctx, game);
   rounded(ctx, 30, 400, 66, 34, 10, '#3f2f60'); drawTxt(ctx, 'NEXT', 38, 421, 8, '#cfc4ea'); drawBubble(ctx, game.next, 79, 417, 11);

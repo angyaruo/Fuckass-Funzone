@@ -35,11 +35,11 @@ Open **Funzone OS** from the arcade drawer to launch any of the twenty games in 
 | **Catmate Chess** | Full-rules chess against Gabu with plush cat pieces. Tap a kitten, then a glowing paw print, or use the arrows and Enter. Z undoes. |
 | **Berry Drop** | Connect four strawberries before Gabu's blueberries do. Tap a column or press 1–7. Keep the win streak alive. |
 | **Tic Tac Treats** | Pocky crosses against Gabu's donuts. Tap a square or press 1–9. Wins and draws build your streak. |
-| **Cake Tower** | Drop each swinging tier with a tap or Space. Perfect drops steady the cake; sloppy ones make it wobble. |
+| **Cake Tower** | Drop each swinging tier with a tap or Space. Perfect drops steady the cake; sloppy ones make it wobble, and a stack that leans too far slides off. |
 | **Bubble Bloom** | Drag to aim and release, or aim with the arrows and shoot with Space. Pop three of a kind and drop what hangs. |
 | **Boop-a-Bun** | Boop bunnies as they pop out of their burrows. Golden ones pay extra; skip Gabu's robot decoys. |
 | **Wobbly Wafers** | Take turns with Gabu pulling wafers from the tower. Tap a wafer, then tap again while the meter is green. Don't topple it. |
-| **Sticker Match** | Flip two cards at a time to find every pair of stickers. Choose a cozy, classic, or busy page. |
+| **Sticker Match** | Memorize the face-up page, then flip two cards at a time to find every pair of stickers. Choose a cozy, classic, or busy page. |
 
 Tetris, Solitaire, Froggy, and the eight newest games pause with **P** or the cabinet's main button. They also pause when the window loses focus; saved games resume paused. Solitaire supports keyboard play: arrows choose cards/piles, Enter selects, D draws, F moves the selected top card to its foundation, Z/U undoes, and Escape cancels selection. Undo history lasts for the current session; the board itself survives reloads.
 

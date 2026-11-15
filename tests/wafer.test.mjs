@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WobblyWafersGame, pullRisk, pullableLayers, supports, WAFER_START_LAYERS } from '../src/wafer.js';
+import { WobblyWafersGame, pullRisk, pullableLayers, supports, WAFER_START_LAYERS, WAFER_BASE, WAFER_TABLE, layerHeight } from '../src/wafer.js';
 import { waferAt, drawWobblyWafers } from '../src/wafer-render.js';
 
 const tower = (n = WAFER_START_LAYERS) => Array.from({ length: n }, () => [true, true, true]);
@@ -62,4 +62,22 @@ test('Wobbly Wafers renderer hit-tests wafers and draws every state', () => {
   const canvas = { width: 720, height: 904, getContext: () => ctx }, g = new WobblyWafersGame({ random: () => .5 });
   drawWobblyWafers(canvas, g, {}); g.start(); g.choose(3, 1); drawWobblyWafers(canvas, g, {}); g.layers[2] = [true, false, true]; g.cancel(); g.choose(2, 0); g.pull(); drawWobblyWafers(canvas, g, {});
   assert.ok(text.includes('CRASH!')); assert.ok(text.includes('TAP AGAIN WHILE IT’S GREEN TO PULL'));
+});
+
+test('Wobbly Wafers physics: the tower breaks at the pulled layer, the stump stands, and every falling wafer lands on something', () => {
+  const g = new WobblyWafersGame({ random: () => .5 }); g.start();
+  g.layers[5] = [true, false, true]; g.choose(5, 0); g.meter = .5; g.pull();
+  assert.equal(g.result, 'loss'); assert.equal(g.breakRow, 5, 'the break is the layer that lost its support');
+  const above = g.layers.slice(6).flat().filter(Boolean).length; assert.equal(g.crumbs.length, above, 'exactly the wafers above the break fall');
+  assert.ok(g.crumbs.every(c => c.vx < 0), 'with only the right edge left, the weight sits over the empty left side, so the top tips left');
+  for (let i = 0; i < 80; i++) g.update(.05);
+  assert.ok(g.crumbs.every(c => c.rest), 'every wafer comes to rest');
+  const stumpTop = WAFER_BASE - 6 * layerHeight(g.layers.length);
+  for (const c of g.crumbs) {
+    const bottom = c.y + c.h / 2, surfaces = [stumpTop, WAFER_BASE, WAFER_TABLE, ...g.crumbs.filter(o => o !== c).map(o => o.y - o.h / 2)];
+    assert.ok(surfaces.some(y => Math.abs(bottom - y) < .01), `a wafer rests on a surface, not in the air (bottom ${bottom.toFixed(2)})`);
+    assert.ok(bottom <= WAFER_TABLE + .01, 'nothing sinks through the table');
+  }
+  const saved = g.snapshot(), back = new WobblyWafersGame({ saved });
+  assert.equal(back.breakRow, 5); assert.deepEqual(back.pulledOut, { row: 5, slot: 0 });
 });

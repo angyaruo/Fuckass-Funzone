@@ -74,7 +74,7 @@ function negamax(board, depth, alpha, beta, who, ply) {
   }
   return any ? best : 0;
 }
-/** Gabu's column. Chill sometimes just vibes; every level still takes a win or blocks one in front of it. */
+/** Gabu's column. Chill sometimes picks at random; every level still takes a win or blocks one in front of it. */
 export function chooseBerryColumn(board, levelName = 'normal', random = Math.random, who = 2) {
   const scratch = [...board], open = ORDER.filter(col => dropRow(scratch, col) >= 0); if (!open.length) return -1;
   const wins = winningColumns(scratch, who); if (wins.length) return wins[0];

@@ -128,8 +128,8 @@ test('bundled Berry Drop, Tic Tac Treats, Cake Tower, Bubble Bloom, Boop-a-Bun, 
     h.pick('wafer'); h.tap(180, 290); h.frames(2); h.tap(5, 5); h.frames(1);
     const wafer = h.save().puzzles.wafer; assert.equal(wafer.layers.flat().filter(Boolean).length, 36, 'one wafer moved from the middle to the top');
     assert.ok(wafer.layers.length === 13 || wafer.status === 'dead', 'the pulled wafer started a new top layer');
-    h.pick('memory'); h.key('Space'); h.key('ArrowRight'); h.key('Space');
-    assert.equal(h.save().puzzles.memory.moves, 1, 'two keyboard flips make one turn');
+    h.pick('memory'); h.key('Space'); h.key('Space'); h.key('ArrowRight'); h.key('Space');
+    assert.equal(h.save().puzzles.memory.moves, 1, 'the first Space ends the countdown, then two keyboard flips make one turn');
     for (const id of ['berry', 'tictac', 'cake', 'bubble', 'boop', 'wafer', 'memory']) h.pick(id);
     h.reload(); assert.equal(h.primary().attributes.get('aria-label'), 'Resume', 'reload resumes the last game paused');
   });
@@ -144,7 +144,8 @@ test('Gabu judges the new games with Kitty\u2019s face art, and Sound off stays 
     assert.ok(h.audio.notes > 0, 'the same synth plays the new games once Sound is on');
   });
   const board = Array(64).fill(''); board[4] = 'k'; board[27] = 'q'; board[36] = 'P'; board[60] = 'K';
-  withHost({ puzzles: { chess: { version: 1, board, turn: 'w', castling: '', ep: -1, halfmove: 0, fullmove: 12, level: 'normal', score: 0,
+  // A high existing best keeps the NEW BEST reaction out of the way, so this checks the queen reaction alone.
+  withHost({ bests: { chess: 999 }, puzzles: { chess: { version: 1, board, turn: 'w', castling: '', ep: -1, halfmove: 0, fullmove: 12, level: 'normal', score: 0,
     result: null, reason: null, lastMove: null, status: 'paused' } } }, h => {
     h.pick('chess'); assert.equal(h.save().puzzles.chess.board[27], 'q', 'the hanging-queen save restored');
     h.tap(200, 242); h.tap(160, 202); h.frames(1);
@@ -153,6 +154,11 @@ test('Gabu judges the new games with Kitty\u2019s face art, and Sound off stays 
     assert.equal(shown.hidden, false, 'Gabu reacts to losing the queen');
     assert.equal(shown.art, 'gabu_shock', 'with Kitty\u2019s existing shocked Gabu face');
     assert.ok(shown.line.length > 10);
+  });
+  withHost({ bests: { chess: 5 }, puzzles: { chess: { version: 1, board, turn: 'w', castling: '', ep: -1, halfmove: 0, fullmove: 12, level: 'normal', score: 0,
+    result: null, reason: null, lastMove: null, status: 'paused' } } }, h => {
+    h.pick('chess'); h.tap(200, 242); h.tap(160, 202); h.frames(1);
+    assert.equal(h.reaction().art, 'gabu_hype', 'passing the old best of 5 announces a NEW BEST with the hype face');
   });
 });
 
@@ -163,9 +169,9 @@ test('difficulty and pace choices persist and apply to the next new game, not th
     select.value = 'sharp'; select.dispatch('change');
     assert.equal(h.save().gabuLevels.chess, 'sharp'); assert.equal(h.save().puzzles.chess.level, 'normal', 'the running game keeps its level');
     findRestart(h).dispatch('click'); assert.equal(h.save().puzzles.chess.level, 'sharp', 'restart starts a Sharp game');
-    const pace = h.drawerSelect('Bubble Bloom pace'); pace.value = 'chill'; pace.dispatch('change');
+    const pace = h.drawerSelect('Bubble Bloom difficulty'); pace.value = 'chill'; pace.dispatch('change');
     h.pick('bubble'); findRestart(h).dispatch('click'); assert.equal(h.save().puzzles.bubble.pace, 'chill');
-    h.reload(); assert.equal(h.drawerSelect('Catmate Chess difficulty').value, 'sharp'); assert.equal(h.drawerSelect('Bubble Bloom pace').value, 'chill');
+    h.reload(); assert.equal(h.drawerSelect('Catmate Chess difficulty').value, 'sharp'); assert.equal(h.drawerSelect('Bubble Bloom difficulty').value, 'chill');
   });
 });
 function findControl(h, title) { return flatten(h.findClass('bb-controls')).find(n => n.title === title); }

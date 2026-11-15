@@ -4,6 +4,8 @@
 export const STICKERS = Object.freeze(['star', 'moon', 'rainbow', 'cloud', 'mushroom', 'flower', 'planet', 'ghost', 'cherry', 'sun']);
 export const MEMORY_SIZES = Object.freeze({ cozy: [4, 3], classic: [4, 4], busy: [5, 4] });
 const SIZE_BONUS = Object.freeze({ cozy: 100, classic: 200, busy: 320 });
+// Seconds to memorize the face-up page before it turns over. Bigger pages get more time but less per card, so Busy stays the hardest.
+export const MEMORY_PREVIEW = Object.freeze({ cozy: 3, classic: 3.5, busy: 4 });
 const PEEK = .9;
 const size = value => Object.hasOwn(MEMORY_SIZES, value) ? value : 'classic';
 const unit = random => Math.max(0, Math.min(.999999999, Number(random()) || 0));
@@ -21,14 +23,16 @@ export class StickerMatchGame {
     for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(unit(this.random) * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
     this.cards = kinds.map(kind => ({ kind, up: false, matched: false, seen: false, turn: 0 }));
     this.status = 'idle'; this.score = 0; this.moves = 0; this.misses = 0; this.matches = 0; this.streak = 0; this.bestStreak = 0;
-    this.elapsed = 0; this.hide = 0; this.cursor = 0; this.won = false; this.onEvent('reset');
+    this.elapsed = 0; this.hide = 0; this.preview = 0; this.cursor = 0; this.won = false; this.onEvent('reset');
   }
   get cols() { return MEMORY_SIZES[this.size][0]; }
   get rows() { return MEMORY_SIZES[this.size][1]; }
   start() {
     if (this.status === 'playing') return;
     if (this.status === 'dead') this.reset();
-    const resumed = this.status === 'paused'; this.status = 'playing'; this.onEvent(resumed ? 'resume' : 'start');
+    const resumed = this.status === 'paused'; this.status = 'playing';
+    if (!resumed) this.preview = MEMORY_PREVIEW[this.size];
+    this.onEvent(resumed ? 'resume' : 'start');
   }
   pause() { if (this.status === 'playing') { this.status = 'paused'; this.onEvent('pause'); } }
   togglePause() { if (this.status === 'playing') this.pause(); else if (this.status === 'paused') this.start(); }
@@ -42,6 +46,8 @@ export class StickerMatchGame {
     if (this.status === 'idle') { this.start(); return false; }
     if (this.status !== 'playing' || !Number.isInteger(index) || !this.cards[index]) return false;
     this.cursor = index;
+    // A tap during the memorize countdown just ends it early.
+    if (this.preview > 0) { this.preview = 0; this.onEvent('preview_end'); return false; }
     if (this.faceUp().length === 2) this.coverMisses();
     const card = this.cards[index]; if (card.up || card.matched) return false;
     const open = this.faceUp();
@@ -70,15 +76,17 @@ export class StickerMatchGame {
   update(delta) {
     if (!Number.isFinite(delta) || delta <= 0) return;
     const dt = Math.min(delta, .12);
-    for (const c of this.cards) c.turn = Math.max(0, Math.min(1, c.turn + (c.up || c.matched ? dt : -dt) * 7));
+    for (const c of this.cards) c.turn = Math.max(0, Math.min(1, c.turn + (c.up || c.matched || this.preview > 0 ? dt : -dt) * 7));
     if (this.status !== 'playing') return;
+    // The clock waits while the page is face up for memorizing.
+    if (this.preview > 0) { this.preview = Math.max(0, this.preview - dt); if (this.preview === 0) this.onEvent('preview_end'); return; }
     this.elapsed = Math.min(99999, this.elapsed + dt);
     if (this.hide > 0) { this.hide -= dt; if (this.hide <= 0) this.coverMisses(); }
   }
   snapshot() {
     return { version: 1, size: this.size, kinds: this.cards.map(c => c.kind), matched: this.cards.map(c => c.matched), seen: this.cards.map(c => c.seen),
       score: this.score, moves: this.moves, misses: this.misses, matches: this.matches, streak: this.streak, bestStreak: this.bestStreak,
-      elapsed: Math.round(this.elapsed * 10) / 10, cursor: this.cursor, status: this.status === 'playing' ? 'paused' : this.status };
+      elapsed: Math.round(this.elapsed * 10) / 10, preview: Math.round(this.preview * 10) / 10, cursor: this.cursor, status: this.status === 'playing' ? 'paused' : this.status };
   }
   restore(data) {
     if (!data || data.version !== 1 || !Object.hasOwn(MEMORY_SIZES, data.size)) return false;
@@ -97,6 +105,7 @@ export class StickerMatchGame {
     if (data.matches !== matches || done !== (data.status === 'dead')) return false;
     Object.assign(this, { size: data.size, score: data.score, moves: data.moves, misses: data.misses, matches, streak: data.streak, bestStreak: data.bestStreak,
       elapsed: data.elapsed, cursor: data.cursor, won: done, hide: 0 });
+    this.preview = Number.isFinite(data.preview) && data.preview > 0 && !done ? Math.min(data.preview, MEMORY_PREVIEW[data.size]) : 0;
     this.cards = data.kinds.map((kind, i) => ({ kind, up: false, matched: data.matched[i], seen: data.seen[i], turn: data.matched[i] ? 1 : 0 }));
     this.status = data.status === 'playing' ? 'paused' : data.status; return true;
   }

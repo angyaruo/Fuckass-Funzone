@@ -1,18 +1,18 @@
 /** Wobbly Wafers canvas: a tea-party table, a swaying tower of pastel wafer cookies, and a steady-hand meter. */
-import { pullRisk, pullableLayers } from './wafer.js';
+import { pullRisk, pullableLayers, layerHeight, waferCenterX, WAFER_BASE, WAFER_TABLE, WAFER_W, SAUCER_RX } from './wafer.js';
 
-const W = 360, H = 452, BASE = 380, WAFER_W = 52, GAP = 3;
+const W = 360, H = 452, BASE = WAFER_BASE;
 const FLAVORS = [['#ffb7c9', '#fff4f7', '#e8869f'], ['#f6d79a', '#fffaf0', '#cfa65c'], ['#a9765f', '#ffe9f1', '#7a4f3d'], ['#bfe3a4', '#f6fff0', '#86b86a']];
 const rounded = (ctx, x, y, w, h, r, fill) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); };
 const drawTxt = (ctx, t, x, y, size, color = '#fbf3ef', align = 'left') => {
   ctx.font = `800 ${size}px ui-sans-serif,system-ui,sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillText(String(t), x, y); ctx.textAlign = 'left';
 };
 const drawSprite = (ctx, img, x, y, w, h) => { if (!img?.complete || !img.naturalWidth) return false; ctx.drawImage(img, x, y, w, h); return true; };
-export const waferLayout = count => ({ layerH: Math.min(22, 290 / count) });
-const slotX = slot => W / 2 + (slot - 1) * (WAFER_W + GAP) - WAFER_W / 2;
-export function waferAt(x, y, count) {
+export const waferLayout = count => ({ layerH: layerHeight(count) });
+const slotX = slot => waferCenterX(slot) - WAFER_W / 2;
+export function waferAt(x, y, count, lean = 0) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-  const { layerH } = waferLayout(count), row = Math.floor((BASE - y) / layerH), slot = [0, 1, 2].find(s => x >= slotX(s) && x < slotX(s) + WAFER_W);
+  const { layerH } = waferLayout(count), row = Math.floor((BASE - y) / layerH), dx = lean * row / count, slot = [0, 1, 2].find(s => x - dx >= slotX(s) && x - dx < slotX(s) + WAFER_W);
   return row >= 0 && row < count && slot !== undefined ? { row, slot } : null;
 }
 /** One wafer: alternate layers show the striped side or the waffle top, so the tower reads as crossed layers. */
@@ -31,8 +31,8 @@ export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced 
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const wall = ctx.createLinearGradient(0, 0, 0, H); wall.addColorStop(0, '#3a2a4d'); wall.addColorStop(1, '#2a1f38'); ctx.fillStyle = wall; ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 8; i++) { ctx.fillStyle = '#ffffff08'; ctx.fillRect(i * 48, 50, 24, BASE - 40); }
-  for (let i = 0; i < 12; i++) { ctx.fillStyle = i % 2 ? '#ffd1e1' : '#fff4f7'; ctx.fillRect(i * 30, BASE + 12, 30, 22); }
-  ctx.beginPath(); ctx.ellipse(W / 2, BASE + 4, 100, 10, 0, 0, Math.PI * 2); ctx.fillStyle = '#f4fbff'; ctx.fill(); ctx.strokeStyle = '#a9cde3'; ctx.lineWidth = 1.4; ctx.stroke();
+  for (let i = 0; i < 12; i++) { ctx.fillStyle = i % 2 ? '#ffd1e1' : '#fff4f7'; ctx.fillRect(i * 30, WAFER_TABLE, 30, 22); }
+  ctx.beginPath(); ctx.ellipse(W / 2, BASE + 4, SAUCER_RX, 10, 0, 0, Math.PI * 2); ctx.fillStyle = '#f4fbff'; ctx.fill(); ctx.strokeStyle = '#a9cde3'; ctx.lineWidth = 1.4; ctx.stroke();
   rounded(ctx, 0, 0, W, 48, 0, '#2c1a33');
   drawWafer(ctx, 15, 17, 22, 14, 0, false);
   drawTxt(ctx, 'WOBBLY WAFERS', 42, 31, 12, '#ffe6ef');
@@ -43,12 +43,13 @@ export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced 
   const wobble = Math.min(100, game.wobble);
   drawTxt(ctx, 'WOBBLE', 20, 84, 9, '#cdbbe0'); rounded(ctx, 66, 76, 120, 9, 4.5, '#ffffff22');
   rounded(ctx, 66, 76, 120 * wobble / 100, 9, 4.5, wobble >= 70 ? '#ff6f9f' : wobble >= 40 ? '#ffcf5a' : '#7fcf8a');
-  const n = game.layers.length, { layerH } = waferLayout(n), lean = reduced ? 0 : Math.sin(game.sway * 3) * wobble / 100 * 9;
+  const n = game.layers.length, { layerH } = waferLayout(n), lean = game.lean(reduced);
   const fallen = game.phase === 'over';
   for (let row = 0; row < n; row++) {
     const y = BASE - (row + 1) * layerH, dx = lean * row / n;
     for (let slot = 0; slot < 3; slot++) {
-      if (!game.layers[row][slot] || fallen && row > 1) continue;
+      // After a topple only the stump below the break stands; the wafer pulled out to cause it is gone.
+      if (!game.layers[row][slot] || fallen && (row > game.breakRow || game.pulledOut?.row === row && game.pulledOut?.slot === slot)) continue;
       const x = slotX(slot) + dx, chosen = game.selected?.row === row && game.selected?.slot === slot;
       drawWafer(ctx, x + (chosen ? (slot === 0 ? -6 : slot === 2 ? 6 : 0) * game.meter : 0), y + 1, WAFER_W, layerH - 2, row + slot, row % 2 === 1);
       if (chosen) {
@@ -63,10 +64,10 @@ export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced 
   // Pullable layers end at a faint line, so the off-limits top is obvious.
   if (game.phase === 'turn') { const limit = BASE - pullableLayers(game.layers) * layerH; ctx.strokeStyle = '#ffffff30'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(78, limit); ctx.lineTo(282, limit); ctx.stroke(); ctx.setLineDash([]); }
   for (const c of game.crumbs) {
-    ctx.save(); ctx.translate(slotX(c.slot) + WAFER_W / 2 + c.x, BASE - (c.row + .5) * layerH + c.y); ctx.rotate(c.spin);
-    drawWafer(ctx, -WAFER_W / 2, -layerH / 2, WAFER_W, layerH - 2, c.row + c.slot, c.row % 2 === 1); ctx.restore();
+    ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.spin);
+    drawWafer(ctx, -WAFER_W / 2, -c.h / 2, WAFER_W, c.h, c.flavor, c.crossed); ctx.restore();
   }
-  if (game.lastPull && game.lastPull.age < .4 && !fallen) {
+  if (game.lastPull && game.lastPull.age < .4) {
     const p = game.lastPull, t = p.age / .4, dir = p.slot === 0 ? -1 : p.slot === 2 ? 1 : (p.row % 2 ? 1 : -1);
     ctx.globalAlpha = 1 - t; drawWafer(ctx, slotX(p.slot) + dir * t * 90, BASE - (p.row + 1) * layerH + 1, WAFER_W, layerH - 2, p.row + p.slot, p.row % 2 === 1); ctx.globalAlpha = 1;
   }

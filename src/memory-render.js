@@ -79,8 +79,9 @@ export function drawStickerMatch(canvas, game, { best = 0, reduced = false } = {
     if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#5fd8d2'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(x - 3, y - 3, cw + 6, ch + 6, 12); ctx.stroke(); }
   });
   rounded(ctx, 0, 412, W, 40, 0, '#2c1a33');
-  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : 'FLIP TWO CARDS TO FIND A PAIR', 180, 430, 11, game.status === 'dead' ? '#ffe08a' : '#fdf2f7', 'center');
-  drawTxt(ctx, 'TAP  ·  ARROWS + SPACE', 180, 445, 8, '#bfa9c4', 'center');
+  const memorizing = game.status === 'playing' && game.preview > 0;
+  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : memorizing ? `MEMORIZE THE PAGE · ${Math.ceil(game.preview)}` : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : 'FLIP TWO CARDS TO FIND A PAIR', 180, 430, 11, game.status === 'dead' || memorizing ? '#ffe08a' : '#fdf2f7', 'center');
+  drawTxt(ctx, memorizing ? 'TAP TO START EARLY' : 'TAP  ·  ARROWS + SPACE', 180, 445, 8, '#bfa9c4', 'center');
   if (game.status === 'dead') overlay(ctx, 'ALL MATCHED!', `${game.moves} turns · ${game.misses} misses · best streak ${game.bestStreak}`, 'PRESS PLAY FOR A NEW PAGE', '#7fcf8a');
   else if (game.status === 'paused') overlay(ctx, 'PAUSED', 'No peeking. Gabu is watching.', 'PRESS PLAY TO RESUME', '#b8a7ff');
   else if (game.status === 'idle') overlay(ctx, 'STICKER MATCH', 'Flip two cards. Find every pair.', 'PRESS PLAY OR TAP TO START', '#ff9fc0');

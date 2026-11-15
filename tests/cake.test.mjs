@@ -30,8 +30,13 @@ test('Cake Tower sloppy drops wobble, misses cost hearts, and the run ends by mi
   assert.equal(g.hearts, 0); assert.equal(g.status, 'dead'); assert.equal(g.endReason, 'miss');
   assert.equal(events.filter(e => e === 'miss').length, 3); assert.ok(events.includes('death'));
   const t = new CakeTowerGame({ random: () => .5, onEvent: e => events.push(e) }); t.start();
-  dropAt(t, 180); t.sway = 39; t.swayPhase = 0; dropAt(t, t.topX() + 50);
-  assert.equal(t.status, 'dead'); assert.equal(t.endReason, 'topple'); assert.ok(t.fallen > 0);
+  // Landing is judged against the swaying top at that moment, so these tiers are placed directly.
+  const place = (g, dx) => { g.drop = { x: g.topX() + dx, y: 0, vx: 0, vy: 0, flavor: g.flavor }; g.land(g.drop.x); };
+  dropAt(t, 180); t.sway = 0; dropAt(t, 180); t.sway = 39; t.swayPhase = 0; place(t, 45);
+  assert.equal(t.status, 'playing', 'a collapse costs a heart, not the whole run'); assert.equal(t.hearts, 2);
+  assert.equal(t.tiers.length, 2, 'only the tiers above the weakest joint fall'); assert.equal(t.crumbs.length, 1); assert.ok(events.includes('collapse'));
+  t.hearts = 1; t.sway = 39; place(t, 45);
+  assert.equal(t.status, 'dead'); assert.equal(t.endReason, 'topple');
 });
 
 test('Cake Tower pace changes the real swing speed and perfect window', () => {
@@ -64,4 +69,22 @@ test('Cake Tower renderer draws idle, swinging, falling and toppled states', () 
   drawCakeTower(canvas, g, {}); g.start(); drawCakeTower(canvas, g, {}); g.release(); g.update(.05); drawCakeTower(canvas, g, {});
   g.finish('topple'); drawCakeTower(canvas, g, {});
   assert.ok(text.includes('IT TOPPLED!')); assert.ok(text.includes('CAKE TOWER'));
+});
+
+test('Cake Tower physics: a tier only stays over its support, an unbalanced stack slides off, and fallen tiers land and rest', () => {
+  const events = [], g = new CakeTowerGame({ random: () => .5, onEvent: e => events.push(e) }); g.start();
+  dropAt(g, 180 + 80); assert.equal(g.tiers.length, 0, 'a first tier centered past the plate edge falls off'); assert.equal(g.hearts, 2);
+  dropAt(g, 180 + 70); assert.equal(g.tiers.length, 1, 'a first tier centered over the plate stays');
+  const place = dx => { g.drop = { x: g.topX() + dx, y: 0, vx: 0, vy: 0, flavor: g.flavor }; g.land(g.drop.x); };
+  g.sway = 0; g.tiers[0].x = 180; place(-40); assert.equal(g.tiers.length, 2, 'forty pixels over is still supported');
+  place(-40);
+  assert.equal(g.tiers.length, 1, 'the two leaning tiers have their center of mass past the bottom tier, so both slide off');
+  assert.ok(events.includes('collapse')); assert.equal(g.hearts, 1);
+  for (let i = 0; i < 60; i++) g.update(.05);
+  assert.ok(g.crumbs.length >= 3 && g.crumbs.every(c => c.rest), 'every fallen tier comes to rest');
+  for (const c of g.crumbs) {
+    const surfaces = [0, -24, ...g.crumbs.filter(o => o !== c).map(o => o.y + 26)];
+    assert.ok(surfaces.some(y => Math.abs(c.y - y) < .01), `a fallen tier rests on a surface, not in the air (y ${c.y.toFixed(2)})`);
+    assert.ok(c.y >= -24, 'nothing sinks through the counter');
+  }
 });

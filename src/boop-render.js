@@ -6,11 +6,25 @@ const rounded = (ctx, x, y, w, h, r, fill) => { ctx.fillStyle = fill; ctx.beginP
 const drawTxt = (ctx, t, x, y, size, color = '#fbf3ef', align = 'left') => {
   ctx.font = `800 ${size}px ui-sans-serif,system-ui,sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillText(String(t), x, y); ctx.textAlign = 'left';
 };
-export const boopHoleAt = (x, y) => {
-  if (!Number.isFinite(x) || !Number.isFinite(y) || x < 14 || x >= 346 || y < 92 || y >= 400) return -1;
-  const col = Math.min(2, Math.floor((x - 14) / (332 / 3))), row = y < 210 ? 0 : y < 310 ? 1 : 2;
-  return row * 3 + col;
-};
+/** A tap on a raised critter belongs to that critter's burrow, even where its ears poke into the row above.
+ * Otherwise the nearest burrow mouth wins, so a tap is never judged against a hole the player didn't aim at. */
+export function boopHoleAt(x, y, game = null) {
+  if (!Number.isFinite(x) || !Number.isFinite(y) || x < 14 || x >= 346 || y < 92 || y >= 410) return -1;
+  let best = -1, bestDistance = Infinity;
+  for (let i = 0; i < BOOP_HOLES && game; i++) {
+    const rise = game.height?.(i) || 0; if (!game.holes?.[i] || rise <= 0) continue;
+    const cx = COLS[i % 3], cy = ROWS[Math.floor(i / 3)], base = cy + 6 + (1 - rise) * 78;
+    if (Math.abs(x - cx) <= 34 && y >= base - 84 && y <= cy + RY) {
+      const distance = Math.abs(x - cx) + Math.abs(y - (base - 30)); if (distance < bestDistance) { bestDistance = distance; best = i; }
+    }
+  }
+  if (best >= 0) return best;
+  for (let i = 0; i < BOOP_HOLES; i++) {
+    const distance = Math.hypot(x - COLS[i % 3], (y - ROWS[Math.floor(i / 3)]) * 1.4);
+    if (distance < bestDistance) { bestDistance = distance; best = i; }
+  }
+  return bestDistance <= 80 ? best : -1;
+}
 /** A fluffy bunny (white or golden) or one of Gabu's little robots, drawn standing at the origin. */
 export function drawCritter(ctx, kind, squish = 1) {
   ctx.save(); ctx.scale(1, squish); ctx.lineWidth = 1.6; ctx.lineJoin = 'round';

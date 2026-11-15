@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { StickerMatchGame, MEMORY_SIZES, STICKERS } from '../src/memory.js';
+import { StickerMatchGame, MEMORY_SIZES, MEMORY_PREVIEW, STICKERS } from '../src/memory.js';
 import { memoryCardAt, drawStickerMatch, memoryLayout } from '../src/memory-render.js';
 
 const pairOf = (g, kind) => g.cards.flatMap((c, i) => c.kind === kind ? [i] : []);
+// Starts a page and skips the memorize countdown, the way a player's first tap does.
+const begin = g => { g.start(); g.flip(0); return g; };
 
 test('Sticker Match deals every sticker exactly twice for each board size', () => {
   for (const [size, [cols, rows]] of Object.entries(MEMORY_SIZES)) {
@@ -14,7 +16,7 @@ test('Sticker Match deals every sticker exactly twice for each board size', () =
 });
 
 test('matches score with a growing streak, misses flip back, and a third tap covers a showing miss', () => {
-  const events = [], g = new StickerMatchGame({ random: () => .37, onEvent: e => events.push(e) }); g.start();
+  const events = [], g = begin(new StickerMatchGame({ random: () => .37, onEvent: e => events.push(e) }));
   for (const k of [0, 1, 2]) { const [a, b] = pairOf(g, k); g.flip(a); g.flip(b); }
   assert.equal(g.matches, 3); assert.equal(g.score, 20 + 30 + 40); assert.ok(events.includes('streak'));
   const [a] = pairOf(g, 3), [b] = pairOf(g, 4); g.flip(a); g.flip(b);
@@ -26,7 +28,7 @@ test('matches score with a growing streak, misses flip back, and a third tap cov
 });
 
 test('missing a pair you had already seen counts as forgetting', () => {
-  const events = [], g = new StickerMatchGame({ random: () => .37, onEvent: e => events.push(e) }); g.start();
+  const events = [], g = begin(new StickerMatchGame({ random: () => .37, onEvent: e => events.push(e) }));
   const [a1, a2] = pairOf(g, 0), [b1] = pairOf(g, 1);
   g.flip(a1); g.flip(b1); for (let i = 0; i < 10; i++) g.update(.1);
   g.flip(a2); const [c1] = pairOf(g, 2); g.flip(c1);
@@ -34,7 +36,7 @@ test('missing a pair you had already seen counts as forgetting', () => {
 });
 
 test('finishing a page wins with a bonus that shrinks with misses, and pause stops the clock', () => {
-  const events = [], g = new StickerMatchGame({ pace: 'cozy', random: () => .37, onEvent: e => events.push(e) }); g.start();
+  const events = [], g = begin(new StickerMatchGame({ pace: 'cozy', random: () => .37, onEvent: e => events.push(e) }));
   for (let i = 0; i < 10; i++) g.update(.1); g.pause(); g.update(.1); g.update(.1);
   assert.ok(Math.abs(g.elapsed - 1) < 1e-9, 'the clock only runs while playing'); g.start();
   for (let k = 0; k < 6; k++) { const [a, b] = pairOf(g, k); g.flip(a); g.flip(b); }
@@ -43,7 +45,7 @@ test('finishing a page wins with a bonus that shrinks with misses, and pause sto
 });
 
 test('Sticker Match saves restore paused with no cards left showing, and tampered pages are rejected', () => {
-  const g = new StickerMatchGame({ pace: 'busy', random: () => .37 }); g.start();
+  const g = begin(new StickerMatchGame({ pace: 'busy', random: () => .37 }));
   const [a, b] = pairOf(g, 0); g.flip(a); g.flip(b); const [c] = pairOf(g, 1); g.flip(c);
   const saved = g.snapshot(), back = new StickerMatchGame({ saved });
   assert.equal(back.status, 'paused'); assert.equal(back.size, 'busy'); assert.equal(back.matches, 1); assert.equal(back.faceUp().length, 0);
@@ -63,6 +65,25 @@ test('Sticker Match renderer maps taps to cards and draws every state', () => {
     set(target, name, value) { target[name] = value; return true; },
   });
   const canvas = { width: 720, height: 904, getContext: () => ctx };
-  for (const size of Object.keys(MEMORY_SIZES)) { const g = new StickerMatchGame({ pace: size }); drawStickerMatch(canvas, g, {}); g.start(); g.flip(0); g.update(.2); drawStickerMatch(canvas, g, {}); }
+  for (const size of Object.keys(MEMORY_SIZES)) { const g = new StickerMatchGame({ pace: size }); drawStickerMatch(canvas, g, {}); g.start(); drawStickerMatch(canvas, g, {}); g.flip(0); g.flip(0); g.update(.2); drawStickerMatch(canvas, g, {}); }
+  assert.ok(text.some(t => /^MEMORIZE THE PAGE · \d$/.test(t)), 'the countdown shows while the page is face up');
   assert.ok(text.includes('STICKER MATCH'));
+});
+
+test('each new page starts face up for a memorize countdown that grows with the board but shrinks per card', () => {
+  const perCard = [];
+  for (const size of ['cozy', 'classic', 'busy']) {
+    const events = [], g = new StickerMatchGame({ pace: size, random: () => .37, onEvent: e => events.push(e) }); g.start();
+    assert.equal(g.preview, MEMORY_PREVIEW[size]); perCard.push(MEMORY_PREVIEW[size] / g.cards.length);
+    g.update(.1); g.update(.1); assert.ok(g.cards.every(c => c.turn > 0), 'every card turns face up');
+    assert.equal(g.flip(3), false, 'a tap during the countdown does not flip a card'); assert.equal(g.preview, 0); assert.equal(g.cards[3].up, false);
+    assert.ok(events.includes('preview_end'));
+  }
+  assert.ok(perCard[0] > perCard[1] && perCard[1] > perCard[2], 'bigger boards get less time per card');
+  const g = new StickerMatchGame({ pace: 'classic', random: () => .37 }); g.start();
+  for (let i = 0; i < 20; i++) g.update(.1); assert.ok(g.preview > 0); assert.equal(g.elapsed, 0, 'the clock waits during the countdown');
+  for (let i = 0; i < 20; i++) g.update(.1); assert.equal(g.preview, 0); assert.ok(g.elapsed > 0);
+  for (let i = 0; i < 10; i++) g.update(.1); assert.ok(g.cards.every(c => c.turn === 0), 'the page turns back over');
+  const mid = new StickerMatchGame({ random: () => .37 }); mid.start(); mid.update(.1); mid.pause();
+  const back = new StickerMatchGame({ saved: mid.snapshot() }); assert.ok(back.preview > 3, 'a save during the countdown resumes the countdown');
 });
