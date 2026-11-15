@@ -63,6 +63,14 @@ export class GambitGame {
     else if (this.selected.length < 5) this.selected.push(id); else return false;
     this.onEvent('select'); return true;
   }
+  sortHand(mode) {
+    if (this.status !== 'playing' || this.phase !== 'play' || !['rank', 'suit'].includes(mode)) return false;
+    const rank = id => id % 13 === 0 ? 14 : id % 13 + 1;
+    const suit = id => Math.floor(id / 13);
+    this.hand = [...this.hand].sort((a, b) => mode === 'rank' ?
+      rank(b) - rank(a) || suit(a) - suit(b) : suit(a) - suit(b) || rank(b) - rank(a));
+    this.onEvent('sort', { mode }); return true;
+  }
   preview() {
     return this.selected.length ? scoreGambitHand(this.selected, this.jokers, this.handLevels, {
       round: this.round, playsLeft: this.playsLeft, discardsUsed: 3 - this.discardsLeft, cardBoosts: this.cardBoosts,

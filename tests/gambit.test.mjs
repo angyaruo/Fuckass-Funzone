@@ -38,6 +38,29 @@ test('seeded deals conserve a standard deck and cap selection without treating c
   assert.equal(game.toggleCard(5), true); assertDeck(game);
 });
 
+test('rank and suit sorting preserve selected identities, run resources, random state, and reload order', () => {
+  let observed;
+  const game = create({ onEvent: event => { if (event === 'sort') observed = game.snapshot(); } });
+  assert.equal(game.sortHand('rank'), false, 'idle sorting does not change a run');
+  game.start(); handFixture(game, [1, 26, 12, 39, 15, 8, 38, 27]); select(game, [39, 15]);
+  const before = game.snapshot();
+  assert.equal(game.sortHand('rank'), true);
+  assert.deepEqual(game.hand, [26, 39, 12, 38, 8, 15, 1, 27], 'Aces rank high with deterministic suit ties');
+  assert.deepEqual(observed, game.snapshot(), 'sort observers see the final order');
+  assert.deepEqual(game.selected, [39, 15], 'sorting moves cards without changing the selected identities');
+  assert.deepEqual({ ...game.snapshot(), hand: before.hand }, before, 'only hand order changes');
+  assert.equal(game.sortHand('suit'), true);
+  assert.deepEqual(game.hand, [12, 8, 1, 15, 26, 38, 27, 39], 'suits group Clubs, Diamonds, Spades, Hearts with ranks descending');
+  assertDeck(game);
+  const sorted = game.snapshot(), restored = create({ saved: sorted });
+  assert.equal(restored.status, 'paused'); assert.deepEqual(restored.snapshot(), sorted);
+  assert.equal(game.sortHand('invalid'), false); assert.deepEqual(game.snapshot(), sorted);
+  game.pause(); const paused = game.snapshot();
+  assert.equal(game.sortHand('rank'), false); assert.deepEqual(game.snapshot(), paused);
+  game.start(); game.playHand(); const scoring = game.snapshot();
+  assert.equal(game.sortHand('suit'), false); assert.deepEqual(game.snapshot(), scoring, 'sorting is unavailable during scoring');
+});
+
 test('plays use the visible preview once, pause freezes score animation, and Continue is explicit', () => {
   const game = create(); game.start(); handFixture(game, [1, 14, 2, 16, 31, 42, 8, 24]);
   assert.equal(game.playHand(), false); assert.equal(game.playsLeft, 4);

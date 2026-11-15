@@ -17,7 +17,7 @@ class ElementMock {
   getBoundingClientRect(){return {left:0,top:0,width:360,height:452}}
   setPointerCapture(){} hasPointerCapture(){return false}releasePointerCapture(){}
   getContext(){if(this.tagName!=='CANVAS')return null;return {
-    setTransform(){},clearRect(){},fillRect(){},strokeRect(){},beginPath(){},roundRect(){},fill(){},stroke(){},ellipse(){},arc(){},moveTo(){},lineTo(){},bezierCurveTo(){},quadraticCurveTo(){},closePath(){},fillText(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},createLinearGradient(){return{addColorStop(){}}}
+    setTransform(){},clearRect(){},fillRect(){},strokeRect(){},beginPath(){},roundRect(){},fill(){},stroke(){},ellipse(){},arc(){},moveTo(){},lineTo(){},bezierCurveTo(){},quadraticCurveTo(){},closePath(){},fillText(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){},createLinearGradient(){return{addColorStop(){}}}
   };}
 }
 function flatten(node){return [node,...node.children.flatMap(c=>c instanceof ElementMock?flatten(c):[])];}

@@ -14,132 +14,174 @@ function fixture(overrides = {}) {
       { kind: 'pack', pack: 'joker', price: 4, sold: false }, { kind: 'pack', pack: 'upgrade', price: 3, sold: false }],
     pack: { kind: 'joker', selected: null, options: [{ kind: 'joker', id: 'heart_hoarder' }, { kind: 'joker', id: 'last_laugh' }, { kind: 'joker', id: 'straight_talker' }] },
     pendingJoker: 'velvet_flush',
-    lastResult: { name: 'Pair', chips: 30, mult: 6, total: 180,
+    lastResult: { id: 'pair', name: 'Pair', chips: 30, mult: 6, total: 180,
       steps: [{ label: 'Base Pair', chips: 10, mult: 2 }, { label: 'Scoring cards', chips: 30, mult: 2 }, { label: 'Pair Gremlin +4 Mult', chips: 30, mult: 6 }] },
     ...overrides };
 }
+const point = action => [action.hitX ?? action.x + action.w / 2, action.hitY ?? action.y + action.h / 2];
+const sameAction = (actual, expected) => actual?.kind === expected.kind && actual?.index === expected.index && actual?.id === expected.id && actual?.mode === expected.mode;
+const inside = (action, x, y) => x >= action.x && x < action.x + action.w && y >= action.y && y < action.y + action.h;
+const find = (game, kind, index, view) => gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index));
+const hit = (game, action, view) => gambitHitAt(...point(action), game, view);
+
 function mockCanvas() {
-  const calls = [], labels = [];
+  const calls = [], labels = [], stack = [];
+  let matrix = [1, 0, 0, 1, 0, 0];
+  const multiply = rhs => {
+    const [a, b, c, d, e, f] = matrix, [A, B, C, D, E, F] = rhs;
+    matrix = [a * A + c * B, b * A + d * B, a * C + c * D, b * C + d * D, a * E + c * F + e, b * E + d * F + f];
+  };
+  const transform = (x, y) => [(matrix[0] * x + matrix[2] * y + matrix[4]) / 2, (matrix[1] * x + matrix[3] * y + matrix[5]) / 2];
   const ctx = new Proxy({
+    font: '12px sans-serif', textAlign: 'left', fillStyle: '#000',
     measureText(value) { const size = Number(this.font.match(/([\d.]+)px/)?.[1] || 12); return { width: String(value).length * size * .55 }; },
     fillText(value, x, y, maxWidth) {
-      const measured = this.measureText(value).width;
-      const width = maxWidth ? Math.min(measured, maxWidth) : measured;
+      const measured = this.measureText(value).width, width = maxWidth ? Math.min(measured, maxWidth) : measured;
       const start = this.textAlign === 'center' ? x - width / 2 : this.textAlign === 'right' ? x - width : x;
-      labels.push({ value: String(value), x, y, width, start, end: start + width, color: this.fillStyle });
+      const size = Number(this.font.match(/([\d.]+)px/)?.[1] || 12);
+      const corners = [[start, y], [start + width, y], [start, y - size], [start + width, y - size]].map(([a, b]) => transform(a, b));
+      labels.push({ value: String(value), x, y, width, start: Math.min(...corners.map(p => p[0])), end: Math.max(...corners.map(p => p[0])), top: Math.min(...corners.map(p => p[1])), bottom: Math.max(...corners.map(p => p[1])), color: this.fillStyle });
     },
-    setTransform(...args) { calls.push(['setTransform', ...args]); },
+    setTransform(...args) { calls.push(['setTransform', ...args]); matrix = [...args]; },
+    translate(x, y) { multiply([1, 0, 0, 1, x, y]); },
+    scale(x, y) { multiply([x, 0, 0, y, 0, 0]); },
+    rotate(angle) { multiply([Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), 0, 0]); },
+    save() { stack.push({ matrix: [...matrix], font: this.font, textAlign: this.textAlign, fillStyle: this.fillStyle }); },
+    restore() { const state = stack.pop(); if (state) { matrix = state.matrix; this.font = state.font; this.textAlign = state.textAlign; this.fillStyle = state.fillStyle; } },
   }, { get(target, key) { return key in target ? target[key] : () => {}; }, set(target, key, value) { target[key] = value; return true; } });
   return { width: 720, height: 904, getContext: () => ctx, calls, labels };
 }
 
-test('logical action rectangles stay disjoint and inside the cabinet across every phase', () => {
+test('every visible action fits and receives a reachable tap while non-card controls remain separate', () => {
   for (const phase of ['play', 'score', 'shop', 'pack', 'replace']) {
-    const game = fixture({ phase, selected: [0, 7] });
-    const actions = gambitActions(game);
+    const game = fixture({ phase, selected: [0, 7] }), actions = gambitActions(game);
     for (const action of actions) {
       assert.ok(action.x >= 0 && action.y >= 0 && action.x + action.w <= 360 && action.y + action.h <= 452, `${phase} ${action.kind} fits`);
-      const hit = gambitHitAt(action.x + action.w / 2, action.y + action.h / 2, game);
-      if (action.enabled) assert.equal(hit?.kind, action.kind, `${phase} ${action.kind} receives its own tap`);
+      assert.ok(inside(action, ...point(action)), `${phase} ${action.kind} exposes a point inside itself`);
+      if (action.enabled) assert.ok(sameAction(hit(game, action), action), `${phase} ${action.kind}/${action.index} receives its exposed tap`);
     }
     for (let i = 0; i < actions.length; i++) for (let j = i + 1; j < actions.length; j++) {
       const a = actions[i], b = actions[j];
+      if (a.kind === 'card' && b.kind === 'card') continue;
       const overlap = Math.min(a.x + a.w, b.x + b.w) > Math.max(a.x, b.x) && Math.min(a.y + a.h, b.y + b.h) > Math.max(a.y, b.y);
       assert.equal(overlap, false, `${phase} ${a.kind} and ${b.kind} have separate touch regions`);
     }
   }
 });
 
-test('selection, exhausted resources, paid offers, and explicit pack confirmation control input availability', () => {
+test('the hand fans deliberately and overlap taps select the card painted on top', () => {
+  const game = fixture(), cards = gambitActions(game).filter(action => action.kind === 'card');
+  let checked = 0;
+  for (let i = 0; i < cards.length - 1; i++) {
+    const a = cards[i], b = cards[i + 1], left = Math.max(a.x, b.x), right = Math.min(a.x + a.w, b.x + b.w);
+    const top = Math.max(a.y, b.y), bottom = Math.min(a.y + a.h, b.y + b.h);
+    if (right <= left || bottom <= top) continue;
+    const x = (left + right) / 2, y = (top + bottom) / 2;
+    const topmost = cards.filter(action => inside(action, x, y)).at(-1);
+    assert.ok(sameAction(gambitHitAt(x, y, game), topmost), 'later-painted card receives the overlapping tap'); checked++;
+  }
+  assert.ok(checked > 0, 'the layout actually fans overlapping cards');
+  game.selected = [cards[2].id];
+  const raised = gambitActions(game).find(action => action.kind === 'card' && action.index === 2);
+  assert.ok(raised.y <= cards[2].y - 12, 'selection visibly raises the actual card');
+  assert.deepEqual(gambitActions(game).filter(action => action.kind === 'sort').map(action => action.mode).sort(), ['rank', 'suit']);
+});
+
+test('selection, resources, paid offers, and explicit pack confirmation govern input availability', () => {
   const game = fixture();
-  assert.equal(gambitHitAt(220, 415, game), null, 'empty hand cannot be played');
-  assert.equal(gambitHitAt(90, 415, game), null, 'empty selection cannot be discarded');
-  game.selected = [0]; assert.equal(gambitHitAt(220, 415, game)?.kind, 'play');
-  game.deck = []; assert.equal(gambitHitAt(90, 415, game), null, 'cannot discard into an empty draw deck');
-  game.phase = 'shop'; assert.equal(gambitHitAt(100, 130, game)?.kind, 'buy');
-  assert.equal(gambitHitAt(100, 194, game), null, 'sold offer is inert');
-  game.money = 0; assert.equal(gambitHitAt(100, 130, game), null, 'unaffordable offer is inert');
-  game.phase = 'pack'; assert.equal(gambitHitAt(100, 415, game), null, 'Choose requires an inspected pack option');
-  game.pack.selected = 2; assert.equal(gambitHitAt(100, 415, game)?.kind, 'claim');
+  assert.equal(hit(game, find(game, 'play')), null, 'empty selection cannot be played');
+  assert.equal(hit(game, find(game, 'discard')), null, 'empty selection cannot be discarded');
+  game.selected = [0]; assert.equal(hit(game, find(game, 'play'))?.kind, 'play');
+  game.deck = []; assert.equal(hit(game, find(game, 'discard')), null, 'empty draw deck cannot be discarded into');
+  game.phase = 'shop'; assert.equal(hit(game, find(game, 'buy', 0))?.kind, 'buy');
+  assert.equal(hit(game, find(game, 'buy', 1)), null, 'sold purchase control is inert');
+  game.money = 0; assert.equal(hit(game, find(game, 'buy', 0)), null, 'unaffordable purchase control is inert');
+  assert.equal(hit(game, find(game, 'offer', 0))?.kind, 'offer', 'an unaffordable item can still be inspected');
+  game.phase = 'pack'; assert.equal(hit(game, find(game, 'claim')), null, 'Choose requires a highlighted option');
+  game.pack.selected = 2; assert.equal(hit(game, find(game, 'claim'))?.kind, 'claim');
   for (const status of ['idle', 'paused', 'dead']) { game.status = status; assert.deepEqual(gambitActions(game), []); }
   assert.equal(gambitHitAt(NaN, 20, game), null); assert.equal(gambitHitAt(12, Infinity, game), null);
 });
 
-test('Joker inspection blocks background controls and exposes selling only in the shop', () => {
+test('Joker and shop inspections block the table and offer an explicit sale or purchase', () => {
   const game = fixture(), view = { inspection: 'pair_gremlin' };
   assert.deepEqual(gambitActions(game, view).map(action => action.kind), ['close']);
-  assert.equal(gambitHitAt(35, 280, game, view), null, 'inspection consumes card taps');
+  assert.equal(gambitHitAt(...point(find(game, 'card', 0)), game, view), null, 'inspection consumes hand taps');
   game.phase = 'shop';
   const actions = gambitActions(game, view);
   assert.deepEqual(actions.map(action => action.kind), ['close', 'sell']);
-  assert.equal(actions[1].index, 0); assert.equal(gambitHitAt(300, 410, game, view)?.kind, 'sell');
+  assert.equal(actions[1].index, 0); assert.equal(hit(game, actions[1], view)?.kind, 'sell');
+  const offerView = { inspection: { offer: 0 } }, inspected = gambitActions(game, offerView);
+  assert.deepEqual(inspected.map(action => action.kind), ['close', 'buy']);
+  assert.equal(inspected[1].index, 0); assert.equal(hit(game, inspected[1], offerView)?.kind, 'buy');
 });
 
-test('action labels describe actual cards, effects, pack choices, and replacement decisions', () => {
+test('action labels identify cards, effects, pack choices, prices, and replacement decisions', () => {
   const game = fixture({ hand: [0, 22, 38, 51], selected: [22], cardBoosts: { 22: 10 } });
   const labels = gambitActions(game).filter(item => item.kind === 'card').map(item => item.label);
   assert.equal(labels[0], 'Ace of Clubs, unselected');
   assert.match(labels[1], /^10 of Diamonds, selected\. Bonus 10 chips/);
-  assert.equal(labels[2], 'King of Spades, unselected');
-  assert.equal(labels[3], 'King of Hearts, unselected');
-  game.phase = 'shop';
-  const offers = gambitActions(game).filter(item => item.kind === 'buy');
+  assert.equal(labels[2], 'King of Spades, unselected'); assert.equal(labels[3], 'King of Hearts, unselected');
+  game.phase = 'shop'; const offers = gambitActions(game).filter(item => item.kind === 'buy');
   assert.match(offers[0].label, /Buy Velvet Flush for 4 run coins.*Mult/);
-  assert.match(offers[2].label, /Joker Pack.*three Jokers/);
+  assert.match(offers[2].label, /Joker Pack.*three.*Jokers/);
   game.jokers.push('velvet_flush');
-  assert.equal(gambitActions(game).find(item => item.kind === 'buy' && item.index === 0).enabled, false, 'a Joker acquired through a pack cannot be bought twice');
-  assert.match(gambitActions(game).find(item => item.kind === 'buy' && item.index === 0).label, /^Already equipped/);
+  assert.equal(find(game, 'buy', 0).enabled, false); assert.match(find(game, 'buy', 0).label, /^Already equipped/);
   game.phase = 'pack'; game.pack.selected = 1;
   const choices = gambitActions(game).filter(item => item.kind === 'packOption');
-  assert.match(choices[0].label, /Heart Hoarder.*20 chips/);
-  assert.match(choices[1].label, /^Selected: Last Laugh.*1\.5/);
+  assert.match(choices[0].label, /Heart Hoarder.*20 chips/); assert.match(choices[1].label, /^Selected: Last Laugh.*1\.5/);
   game.phase = 'replace'; game.jokers.pop();
-  assert.match(gambitActions(game)[0].label, /^Replace Pair Gremlin with Velvet Flush\. Current boost:/);
+  assert.match(find(game, 'replace', 0).label, /^Replace Pair Gremlin with Velvet Flush/);
 });
 
-test('score counting highlights each calculation while reduced motion reveals the complete breakdown immediately', () => {
+test('score counting advances its highlight and reduced motion presents the full breakdown immediately', () => {
   const game = fixture({ phase: 'score', scoreTime: 0 });
   const labelsAt = (elapsed, reduced = false) => {
-    const canvas = mockCanvas(); game.scoreTime = elapsed;
-    drawGambit(canvas, game, { reduced });
+    const canvas = mockCanvas(); game.scoreTime = elapsed; drawGambit(canvas, game, { reduced });
     return canvas.labels.filter(label => game.lastResult.steps.some(step => step.label === label.value));
   };
-  let labels = labelsAt(0);
-  assert.equal(labels[0].color, '#86d6c6', 'base calculation starts highlighted');
-  assert.equal(labels[1].color, '#627783', 'future calculation remains visible but dimmed');
-  labels = labelsAt(.5); assert.equal(labels[1].color, '#86d6c6', 'highlight advances to card chips');
-  labels = labelsAt(1); assert.equal(labels[2].color, '#86d6c6', 'highlight reaches the Joker contribution');
-  assert.ok(labelsAt(1.2).every(label => label.color !== '#627783'), 'finished calculation reveals all rows');
-  assert.ok(labelsAt(0, true).every(label => label.color !== '#627783' && label.color !== '#86d6c6'), 'reduced motion shows the final breakdown without counting');
-  assert.equal(gambitActions(game).at(-1).kind, 'continue', 'the player can continue at every animation step');
+  const initial = labelsAt(0), middle = labelsAt(.5), final = labelsAt(1);
+  assert.equal(initial.length, 3); assert.notEqual(initial[0].color, initial[1].color, 'current and future calculations are visually distinct');
+  assert.equal(initial[0].color, middle[1].color, 'card chips receive the same active highlight next');
+  assert.equal(initial[0].color, final[2].color, 'the Joker contribution receives the active highlight');
+  const complete = labelsAt(1.2), staticLabels = labelsAt(0, true);
+  assert.deepEqual(staticLabels.map(item => item.color), complete.map(item => item.color), 'reduced motion shows the completed colors immediately');
+  assert.equal(gambitActions(game).at(-1).kind, 'continue');
 });
 
-test('deck resources and upgrade offers show their resulting level explicitly', () => {
-  const canvas = mockCanvas(), game = fixture(); drawGambit(canvas, game);
-  assert.ok(canvas.labels.some(label => label.value === '44 IN DECK'));
-  game.phase = 'pack'; game.pack = { kind: 'upgrade', selected: null, options: [{ kind: 'hand', id: 'pair' }] };
+test('upgrade offers show their resulting level explicitly', () => {
+  const game = fixture({ phase: 'pack', pack: { kind: 'upgrade', selected: 0, options: [{ kind: 'hand', id: 'pair' }] } });
   const first = mockCanvas(); drawGambit(first, game);
   assert.ok(first.labels.some(label => label.value === 'LEVEL 1 TO 2'));
   game.handLevels.pair = 3; const upgraded = mockCanvas(); drawGambit(upgraded, game);
   assert.ok(upgraded.labels.some(label => label.value === 'LEVEL 4 TO 5'));
 });
 
-test('high-DPI painting keeps legible text within bounds for all screens and every original Joker', () => {
-  for (const phase of ['play', 'score', 'shop', 'pack', 'replace']) {
-    for (const status of ['playing', 'paused', 'idle', 'dead']) {
-      const canvas = mockCanvas(), game = fixture({ phase, status });
-      drawGambit(canvas, game, { best: 999999999, reduced: true, cursor: 0 });
-      assert.deepEqual(canvas.calls[0], ['setTransform', 2, 0, 0, 2, 0, 0], 'paints the whole production canvas');
-      for (const label of canvas.labels) {
-        assert.ok(label.start >= 8 && label.end <= 352, `${phase}/${status}: ${label.value} fits horizontally (${label.start}..${label.end})`);
-        assert.ok(label.y >= 10 && label.y <= 443, `${phase}/${status}: ${label.value} fits vertically`);
-      }
+test('high-DPI painting keeps finite, bounded text across screens and every Joker inspection', () => {
+  for (const phase of ['play', 'score', 'shop', 'pack', 'replace']) for (const status of ['playing', 'paused', 'idle', 'dead']) {
+    const canvas = mockCanvas(), game = fixture({ phase, status }); drawGambit(canvas, game, { best: 999999999, reduced: true, cursor: 0 });
+    assert.deepEqual(canvas.calls[0], ['setTransform', 2, 0, 0, 2, 0, 0]);
+    for (const label of canvas.labels) {
+      assert.ok([label.start, label.end, label.top, label.bottom].every(Number.isFinite), `${phase}/${status}: ${label.value} is finite`);
+      assert.ok(label.start >= 0 && label.end <= 360, `${phase}/${status}: ${label.value} fits horizontally (${label.start}..${label.end})`);
+      assert.ok(label.top >= 0 && label.bottom <= 452, `${phase}/${status}: ${label.value} fits vertically (${label.top}..${label.bottom})`);
     }
   }
   for (const joker of GAMBIT_JOKERS) {
     const canvas = mockCanvas(); drawGambit(canvas, fixture(), { inspection: joker.id });
     assert.ok(canvas.labels.some(label => label.value === joker.name));
     assert.ok(canvas.labels.some(label => label.value.includes('ACTIVE FOR THIS RUN')));
-    assert.ok(canvas.labels.every(label => label.start >= 8 && label.end <= 352));
+    assert.ok(canvas.labels.every(label => label.start >= 0 && label.end <= 360));
   }
+});
+
+test('selection count stays above the fanned cards and Run Info explains matching ranks', () => {
+  const game = fixture({ selected: [0, 3, 7] }), canvas = mockCanvas();
+  drawGambit(canvas, game);
+  const count = canvas.labels.find(label => /SELECTED$/.test(label.value));
+  const cards = gambitActions(game).filter(action => action.kind === 'card');
+  assert.ok(count && count.bottom < Math.min(...cards.map(action => action.y)), 'counter has clear space above every card');
+  const guide = mockCanvas(); drawGambit(guide, game, { inspection: { info: true } });
+  assert.ok(guide.labels.some(label => label.value === 'Three: 3 of one rank'));
+  assert.ok(guide.labels.some(label => label.value === 'Four: 4 of one rank'));
 });

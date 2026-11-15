@@ -3224,6 +3224,14 @@ class GambitGame {
     else if (this.selected.length < 5) this.selected.push(id); else return false;
     this.onEvent('select'); return true;
   }
+  sortHand(mode) {
+    if (this.status !== 'playing' || this.phase !== 'play' || !['rank', 'suit'].includes(mode)) return false;
+    const rank = id => id % 13 === 0 ? 14 : id % 13 + 1;
+    const suit = id => Math.floor(id / 13);
+    this.hand = [...this.hand].sort((a, b) => mode === 'rank' ?
+      rank(b) - rank(a) || suit(a) - suit(b) : suit(a) - suit(b) || rank(b) - rank(a));
+    this.onEvent('sort', { mode }); return true;
+  }
   preview() {
     return this.selected.length ? scoreGambitHand(this.selected, this.jokers, this.handLevels, {
       round: this.round, playsLeft: this.playsLeft, discardsUsed: 3 - this.discardsLeft, cardBoosts: this.cardBoosts,
@@ -3386,296 +3394,460 @@ class GambitGame {
 
 return {GAMBIT_TARGETS,GambitGame};
 })();
-const {gambitActions,gambitHitAt,drawGambit}=(()=>{
-/** Original card-table artwork and shared touch/keyboard targets. Logical size: 360 x 452. */
+const {GAMBIT_SUIT_COLORS,drawGambitCard,drawGambitJoker,drawGambitDeck,drawGambitPack}=(()=>{
+/** Original vector card artwork. Suit order matches the rules: C, D, S, H. */
+const GAMBIT_SUIT_COLORS = Object.freeze(['#17765b', '#c05a11', '#244d93', '#c8324a']);
 
-const ink = '#f8efdc', muted = '#b7b2c9', gold = '#e8bf76', mint = '#86d6c6';
-const jokerBy = id => GAMBIT_JOKERS.find(item => item.id === id);
-const handBy = id => GAMBIT_HANDS.find(item => item.id === id);
-const number = value => Math.floor(Number(value) || 0).toLocaleString('en-US');
-const region = (kind, x, y, w, h, label, extra = {}) => ({ kind, x, y, w, h, label, enabled: true, ...extra });
-const cardName = id => {
-  const rank = id % 13 + 1;
-  return (({ 1: 'Ace', 11: 'Jack', 12: 'Queen', 13: 'King' })[rank] || rank) + ' of ' + ['Clubs', 'Diamonds', 'Spades', 'Hearts'][Math.floor(id / 13)];
+const ivory = '#fff9e9', ink = '#253748', gold = '#e7b84d';
+const validRect = (ctx, x, y, w, h) => !!ctx && [x, y, w, h].every(Number.isFinite) && w > 0 && h > 0;
+const frame = (ctx, x, y, w, h, fill, stroke = null, radius = 5, lineWidth = 1) => {
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.fillStyle = fill; ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); }
 };
-const ownedOffer = (game, offer) => offer.kind === 'joker' && game.jokers.includes(offer.id);
-function offerLabel(game, offer) {
-  const name = offer.kind === 'joker' ? jokerBy(offer.id)?.name || 'Joker' : offer.pack === 'joker' ? 'Joker Pack' : 'Upgrade Pack';
-  const detail = offer.kind === 'joker' ? jokerBy(offer.id)?.description || '' : offer.pack === 'joker' ? 'Reveal three Jokers and keep one.' : 'Reveal three hand or card boosts and keep one.';
-  const state = offer.sold ? 'Sold. ' : ownedOffer(game, offer) ? 'Already equipped. ' : game.money < offer.price ? 'Not enough run coins. ' : '';
-  return state + 'Buy ' + name + ' for ' + offer.price + ' run coins. ' + detail;
-}
+const oval = (ctx, x, y, rx, ry, fill, stroke = null) => {
+  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+};
+const polygon = (ctx, points, fill, stroke = null, lineWidth = 1) => {
+  ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); }
+};
+const label = (ctx, value, x, y, size, color = ink, maxWidth = 90) => {
+  ctx.font = `900 ${size}px ui-monospace,Consolas,monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = color; ctx.fillText(String(value), x, y, maxWidth);
+};
+const line = (ctx, points, color, width = 2) => {
+  ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+};
 
-/** These exact rectangles drive painting, pointer hits, and keyboard focus. */
-function gambitActions(game, { inspection = null } = {}) {
-  if (game.status !== 'playing') return [];
-  if (inspection) {
-    const index = game.jokers.indexOf(inspection);
-    return [region('close', 14, 390, game.phase === 'shop' && index >= 0 ? 220 : 332, 48, 'BACK TO TABLE'),
-      ...(game.phase === 'shop' && index >= 0 ? [region('sell', 244, 390, 102, 48, 'SELL +$2', { index })] : [])];
-  }
-  if (game.phase === 'pack') {
-    const options = game.pack?.options || [];
-    return [...options.map((option, index) => {
-      const copy = optionCopy(option, game);
-      return region('packOption', 14, 76 + index * 98, 332, 88, (game.pack.selected === index ? 'Selected: ' : 'Inspect ') + copy.title + '. ' + copy.detail, { index });
-    }),
-      region('claim', 14, 390, 220, 48, 'CHOOSE CARD', { enabled: Number.isInteger(game.pack?.selected) }),
-      region('skip', 244, 390, 102, 48, 'SKIP')];
-  }
-  if (game.phase === 'replace') {
-    return [...game.jokers.map((id, index) => region('replace', 14, 164 + index * 70, 332, 62, 'Replace ' + (jokerBy(id)?.name || 'Joker') + ' with ' + (jokerBy(game.pendingJoker)?.name || 'incoming Joker') + '. Current boost: ' + (jokerBy(id)?.description || ''), { id, index })),
-      region('skip', 14, 390, 332, 48, 'KEEP CURRENT JOKERS')];
-  }
-  const jokerY = game.phase === 'shop' ? 54 : 102;
-  const jokers = game.jokers.map((id, index) => region('joker', 14 + index * 112, jokerY, 108, 47, 'Inspect ' + (jokerBy(id)?.name || 'Joker') + '. ' + (jokerBy(id)?.description || ''), { id, index }));
-  if (game.phase === 'shop') {
-    return [...jokers, ...game.shop.map((offer, index) => region('buy', 14, 112 + index * 62, 332, 56, offerLabel(game, offer), {
-      index, enabled: !offer.sold && game.money >= offer.price && !ownedOffer(game, offer),
-    })), region('next', 14, 390, 332, 48, 'NEXT ROUND')];
-  }
-  if (game.phase === 'score') return [...jokers, region('continue', 14, 390, 332, 48, 'CONTINUE')];
-  if (game.phase !== 'play') return [];
-  return [...jokers, ...game.hand.map((id, index) => region('card', 13 + index * 42, 266 - (game.selected.includes(id) ? 10 : 0), 39, 76, cardName(id) + ', ' + (game.selected.includes(id) ? 'selected' : 'unselected') + (game.cardBoosts[id] ? '. Bonus ' + game.cardBoosts[id] + ' chips when scoring.' : ''), { id, index })),
-    region('discard', 14, 390, 158, 48, 'DISCARD', { enabled: game.selected.length > 0 && game.discardsLeft > 0 && game.deck.length > 0 }),
-    region('play', 188, 390, 158, 48, 'PLAY HAND', { enabled: game.selected.length > 0 && game.playsLeft > 0 })];
-}
-
-function gambitHitAt(x, y, game, view = {}) {
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-  return gambitActions(game, view).find(item => item.enabled && x >= item.x && x < item.x + item.w && y >= item.y && y < item.y + item.h) || null;
-}
-
-function box(ctx, x, y, w, h, fill, stroke = null, r = 9) {
-  ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill();
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
-}
-function text(ctx, value, x, y, size = 12, color = ink, align = 'left', maxWidth = null) {
-  const str = String(value); ctx.font = `750 ${size}px ui-sans-serif,system-ui,sans-serif`;
-  ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = color;
-  if (maxWidth) ctx.fillText(str, x, y, maxWidth); else ctx.fillText(str, x, y);
-}
-function wrap(ctx, value, x, y, width, size = 11, color = muted, maxLines = 3, lineHeight = size + 4) {
-  ctx.font = `750 ${size}px ui-sans-serif,system-ui,sans-serif`;
-  const measure = str => ctx.measureText ? ctx.measureText(str).width : str.length * size * .57;
-  const words = String(value).split(/\s+/), lines = []; let current = '';
-  for (const word of words) {
-    const next = current ? current + ' ' + word : word;
-    if (current && measure(next) > width) { lines.push(current); current = word; }
-    else current = next;
-  }
-  if (current) lines.push(current);
-  lines.slice(0, maxLines).forEach((line, index) => {
-    let content = line;
-    if (index === maxLines - 1 && lines.length > maxLines) {
-      while (content.length && measure(content + '...') > width) content = content.slice(0, -1);
-      content += '...';
-    }
-    text(ctx, content, x, y + index * lineHeight, size, color, 'left', width);
-  });
-}
 function suit(ctx, kind, x, y, size, color) {
-  const r = size / 2; ctx.fillStyle = color; ctx.beginPath();
-  if (kind === 1) { ctx.moveTo(x, y - r); ctx.lineTo(x + r * .7, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .7, y); ctx.closePath(); }
-  else if (kind === 3) {
-    ctx.moveTo(x, y + r); ctx.bezierCurveTo(x - r * 1.6, y - r * .1, x - r * .8, y - r * 1.5, x, y - r * .45);
-    ctx.bezierCurveTo(x + r * .8, y - r * 1.5, x + r * 1.6, y - r * .1, x, y + r);
+  const r = size / 2;
+  ctx.beginPath(); ctx.fillStyle = color;
+  if (kind === 1) {
+    ctx.moveTo(x, y - r); ctx.lineTo(x + r * .7, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .7, y); ctx.closePath();
+  } else if (kind === 3) {
+    ctx.moveTo(x, y + r);
+    ctx.bezierCurveTo(x - r * 1.65, y - r * .1, x - r * .8, y - r * 1.5, x, y - r * .45);
+    ctx.bezierCurveTo(x + r * .8, y - r * 1.5, x + r * 1.65, y - r * .1, x, y + r);
   } else if (kind === 2) {
-    ctx.moveTo(x, y - r); ctx.bezierCurveTo(x - r * 1.8, y + r * .5, x - r * .55, y + r, x, y + r * .25);
+    ctx.moveTo(x, y - r);
+    ctx.bezierCurveTo(x - r * 1.8, y + r * .5, x - r * .55, y + r, x, y + r * .25);
     ctx.bezierCurveTo(x + r * .55, y + r, x + r * 1.8, y + r * .5, x, y - r);
-    ctx.moveTo(x, y); ctx.lineTo(x - r * .4, y + r); ctx.lineTo(x + r * .4, y + r); ctx.closePath();
+    ctx.moveTo(x, y); ctx.lineTo(x - r * .38, y + r); ctx.lineTo(x + r * .38, y + r); ctx.closePath();
   } else {
-    for (const [dx, dy] of [[0, -.48], [-.47, .15], [.47, .15]]) { ctx.moveTo(x + (dx + .5) * r, y + dy * r); ctx.arc(x + dx * r, y + dy * r, r * .5, 0, Math.PI * 2); }
-    ctx.moveTo(x, y); ctx.lineTo(x - r * .4, y + r); ctx.lineTo(x + r * .4, y + r); ctx.closePath();
+    for (const [dx, dy] of [[0, -.48], [-.47, .15], [.47, .15]]) {
+      ctx.moveTo(x + (dx + .5) * r, y + dy * r); ctx.arc(x + dx * r, y + dy * r, r * .5, 0, Math.PI * 2);
+    }
+    ctx.moveTo(x, y); ctx.lineTo(x - r * .38, y + r); ctx.lineTo(x + r * .38, y + r); ctx.closePath();
   }
   ctx.fill();
 }
-function card(ctx, id, x, y, width = 39, height = 76, selected = false, boost = 0) {
-  const rank = id % 13 + 1, kind = Math.floor(id / 13), red = kind % 2 === 1;
-  const label = ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' })[rank] || rank;
-  const color = red ? '#a53359' : '#253b44';
-  box(ctx, x, y, width, height, '#f8efd9', selected ? gold : '#baa98b', 5);
-  if (selected) { ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.strokeRect(x + 2, y + 2, width - 4, height - 4); }
-  text(ctx, label, x + 5, y + 15, 13, color); suit(ctx, kind, x + width - 9, y + 10, 10, color);
-  suit(ctx, kind, x + width / 2, y + height / 2, Math.min(22, width * .6), color);
-  text(ctx, boost ? '+' + boost : label, x + width - 5, y + height - 7, boost ? 10 : 12, boost ? '#5c764f' : color, 'right', width - 8);
-}
-function emblem(ctx, id, x, y, radius = 16) {
-  const index = Math.max(0, GAMBIT_JOKERS.findIndex(item => item.id === id));
-  const colors = [mint, '#e9a6c4', gold, '#b8a1e9'];
-  ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = '#172a34'; ctx.fill(); ctx.strokeStyle = colors[index % 4]; ctx.lineWidth = 1.2; ctx.stroke();
-  if (index % 4 === 0) {
-    ctx.beginPath(); ctx.moveTo(x - radius * .65, y + radius * .2); ctx.quadraticCurveTo(x, y - radius * .8, x + radius * .65, y + radius * .2);
-    ctx.quadraticCurveTo(x, y + radius * .8, x - radius * .65, y + radius * .2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(x, y + radius * .1, radius * .2, 0, Math.PI * 2); ctx.fillStyle = colors[index % 4]; ctx.fill();
-  } else if (index % 4 === 1) suit(ctx, 3, x, y, radius * 1.25, colors[index % 4]);
-  else if (index % 4 === 2) {
-    ctx.beginPath(); ctx.moveTo(x - radius * .6, y + radius * .4); ctx.lineTo(x - radius * .7, y - radius * .4); ctx.lineTo(x - radius * .2, y); ctx.lineTo(x, y - radius * .65); ctx.lineTo(x + radius * .2, y); ctx.lineTo(x + radius * .7, y - radius * .4); ctx.lineTo(x + radius * .6, y + radius * .4); ctx.closePath(); ctx.fillStyle = gold; ctx.fill();
-  } else {
-    ctx.beginPath(); ctx.moveTo(x, y - radius * .65); ctx.lineTo(x + radius * .5, y); ctx.lineTo(x, y + radius * .65); ctx.lineTo(x - radius * .5, y); ctx.closePath(); ctx.stroke();
-  }
-}
-function background(ctx) {
-  ctx.fillStyle = '#101c27'; ctx.fillRect(0, 0, 360, 452);
-  for (let y = 7; y < 452; y += 14) { ctx.fillStyle = '#ffffff02'; ctx.fillRect(0, y, 360, 1); }
-  ctx.strokeStyle = '#37535d'; ctx.lineWidth = 1; ctx.strokeRect(6, 6, 348, 440);
-  for (const [x, y, sx, sy] of [[10, 10, 1, 1], [350, 10, -1, 1], [10, 442, 1, -1], [350, 442, -1, -1]]) {
-    ctx.beginPath(); ctx.moveTo(x + 14 * sx, y); ctx.lineTo(x, y); ctx.lineTo(x, y + 14 * sy); ctx.strokeStyle = gold; ctx.stroke();
-  }
-}
-function header(ctx, game, title = "GABU'S GAMBIT") {
-  text(ctx, title, 16, 28, 16, ink, 'left', 252);
-  text(ctx, 'ROUND ' + game.round + '/6', 344, 27, 10, gold, 'right');
-}
-function jokerRow(ctx, game, y) {
-  for (let index = 0; index < 3; index++) {
-    const id = game.jokers[index], x = 14 + index * 112;
-    box(ctx, x, y, 108, 47, id ? '#263340' : '#172630', id ? '#6f7182' : '#344a54', 7);
-    if (!id) { text(ctx, 'EMPTY SLOT', x + 54, y + 28, 9, '#768b91', 'center'); continue; }
-    emblem(ctx, id, x + 20, y + 23, 12);
-    const name = jokerBy(id)?.name || id;
-    wrap(ctx, name, x + 37, y + 18, 65, 9, ink, 2, 12);
-    text(ctx, 'TAP TO INSPECT', x + 54, y + 42, 6.5, muted, 'center');
-  }
-}
-function button(ctx, item, active = false, selected = false) {
-  box(ctx, item.x, item.y, item.w, item.h, item.enabled ? active ? '#376761' : '#2b3449' : '#1b2733', selected ? '#b7f0dc' : item.enabled ? active ? '#91cdb6' : '#85809a' : '#40505c');
-  text(ctx, item.label, item.x + item.w / 2, item.y + item.h / 2 + 4, 11, item.enabled ? ink : '#788a92', 'center', item.w - 12);
-}
-function optionCopy(option, game) {
-  if (option.kind === 'joker') {
-    const item = jokerBy(option.id);
-    return { title: item?.name || 'Joker', detail: item?.description || '', tag: item?.rarity || 'JOKER', art: 'joker' };
-  }
-  if (option.kind === 'hand') {
-    const item = handBy(option.id);
-    return { title: (item?.name || option.id) + ' upgrade', detail: 'Raise this hand by one level: +15 base chips and +1 base multiplier.', tag: 'LEVEL ' + ((game.handLevels[option.id] || 0) + 1) + ' TO ' + ((game.handLevels[option.id] || 0) + 2), art: 'hand' };
-  }
-  return { title: cardName(option.id), detail: 'Add +10 chips whenever this card scores. The boost stays with the card throughout the run.', tag: 'CARD BOOST', art: 'card' };
-}
-function cardOption(ctx, option, game, x, y, w, h, selected = false, tag = null) {
-  const copy = optionCopy(option, game);
-  box(ctx, x, y, w, h, selected ? '#314742' : '#23313e', selected ? gold : '#4e626e');
-  if (copy.art === 'card') card(ctx, option.id, x + 10, y + 10, 42, h - 20, false, Math.min(30, (game.cardBoosts[option.id] || 0) + 10));
-  else if (copy.art === 'joker') emblem(ctx, option.id, x + 32, y + h / 2, 20);
-  else {
-    box(ctx, x + 13, y + h / 2 - 21, 39, 42, '#1d2837', gold, 5);
-    text(ctx, '+1', x + 32, y + h / 2 + 5, 19, gold, 'center');
-  }
-  text(ctx, tag || copy.tag.toUpperCase(), x + 65, y + 15, 8, mint, 'left', w - 77);
-  text(ctx, copy.title, x + 65, y + 32, 12, ink, 'left', w - 77);
-  wrap(ctx, copy.detail, x + 65, y + 49, w - 77, h > 70 ? 10 : 9, muted, 2, h > 70 ? 14 : 11);
-}
-function playScreen(ctx, game, best, reduced) {
-  header(ctx, game);
-  box(ctx, 14, 39, 332, 54, '#1f303a', '#52616e');
-  text(ctx, number(game.roundScore), 26, 62, 20, ink); text(ctx, '/ ' + number(game.target) + ' TARGET', 26, 81, 9, muted);
-  text(ctx, '$' + game.money, 333, 61, 16, gold, 'right'); text(ctx, 'RUN ' + number(game.score) + ' / BEST ' + number(best), 333, 81, 8, muted, 'right', 200);
-  const ratio = Math.max(0, Math.min(1, game.roundScore / Math.max(1, game.target)));
-  ctx.fillStyle = '#15232d'; ctx.fillRect(16, 89, 328, 3); ctx.fillStyle = mint; ctx.fillRect(16, 89, 328 * ratio, 3);
-  jokerRow(ctx, game, 102);
-  if (game.phase === 'score') {
-    const report = game.lastResult;
-    text(ctx, report?.name || 'HAND SCORED', 180, 176, 16, gold, 'center');
-    text(ctx, '+' + number(report?.total || 0), 180, 207, 26, mint, 'center');
-    const steps = report?.steps || [], visible = steps.slice(-8), offset = steps.length - visible.length;
-    const elapsed = Math.max(0, Math.min(1.2, game.scoreTime || 0));
-    const activeStep = reduced || elapsed >= 1.2 ? -1 : Math.min(steps.length - 1, Math.floor(elapsed / 1.2 * steps.length));
-    visible.forEach((step, index) => {
-      const y = 232 + index * 17, current = index + offset === activeStep, future = activeStep >= 0 && index + offset > activeStep;
-      if (current) box(ctx, 20, y - 12, 320, 16, '#315048', null, 3);
-      text(ctx, step.label, 24, y, 9, future ? '#627783' : current ? mint : muted, 'left', 202);
-      text(ctx, number(step.chips) + ' x ' + Number(step.mult.toFixed(2)), 335, y, 10, future ? '#627783' : current || index === visible.length - 1 ? gold : ink, 'right', 99);
-    });
-    text(ctx, 'Every boost is counted in the same order.', 180, 377, 9, muted, 'center');
-    return;
-  }
-  const report = game.preview();
-  text(ctx, report?.name || 'CHOOSE YOUR HAND', 180, 183, 16, report ? gold : ink, 'center');
-  text(ctx, report ? number(report.chips) + ' CHIPS  x  ' + Number(report.mult.toFixed(2)) + ' MULT' : 'Select 1 to 5 cards. Make the target.', 180, 206, 11, muted, 'center');
-  if (report) text(ctx, number(report.total), 180, 235, 25, mint, 'center');
-  else text(ctx, 'Jokers turn modest hands into trouble.', 180, 232, 10, '#7fa9a6', 'center');
-  game.hand.forEach((id, index) => {
-    const selected = game.selected.includes(id), x = 13 + index * 42, y = 266 - (selected ? 10 : 0);
-    card(ctx, id, x, y, 39, 76, selected, game.cardBoosts[id] || 0);
-    text(ctx, index + 1, x + 19.5, 356, 9, selected ? gold : '#80949b', 'center');
-  });
-  text(ctx, game.playsLeft + ' PLAYS', 20, 376, 10, mint);
-  text(ctx, game.deck.length + ' IN DECK', 180, 376, 9, muted, 'center');
-  text(ctx, game.discardsLeft + ' DISCARDS', 340, 376, 10, muted, 'right');
-}
-function shopScreen(ctx, game) {
-  header(ctx, game, 'THE BACK ROOM');
-  text(ctx, 'RUN CASH  $' + game.money + '  /  CHOOSE YOUR NEXT EDGE', 16, 44, 9, gold);
-  jokerRow(ctx, game, 54);
-  game.shop.forEach((offer, index) => {
-    const y = 112 + index * 62, owned = ownedOffer(game, offer), enabled = !offer.sold && game.money >= offer.price && !owned;
-    box(ctx, 14, y, 332, 56, offer.sold ? '#17232e' : '#243440', enabled ? '#687b83' : '#3a4d57');
-    let title, detail;
-    if (offer.kind === 'joker') { const item = jokerBy(offer.id); title = item?.name || offer.id; detail = item?.description || ''; emblem(ctx, offer.id, 38, y + 28, 15); }
-    else {
-      title = offer.pack === 'joker' ? 'Joker Pack' : 'Upgrade Pack';
-      detail = offer.pack === 'joker' ? 'Reveal three Jokers. Choose one to keep.' : 'Reveal three hand or card boosts. Choose one.';
-      box(ctx, 25, y + 11, 27, 34, offer.pack === 'joker' ? '#584361' : '#305951', gold, 4);
-      text(ctx, '?', 38.5, y + 34, 19, gold, 'center');
-    }
-    text(ctx, title, 65, y + 20, 11, offer.sold ? '#70828c' : ink, 'left', 210);
-    wrap(ctx, detail, 65, y + 33, 211, 9.5, offer.sold ? '#667780' : muted, 2, 12);
-    box(ctx, 285, y + 9, 51, 38, enabled ? '#3b5c51' : '#26313e', enabled ? '#84b7a4' : '#465261', 6);
-    text(ctx, offer.sold ? 'SOLD' : owned ? 'OWNED' : '$' + offer.price, 310.5, y + 33, offer.sold || owned ? 8 : 16, offer.sold || owned ? '#788a91' : gold, 'center');
-  });
-  text(ctx, 'Tap an equipped Joker to inspect or sell it.', 180, 375, 9, muted, 'center');
-}
-function packScreen(ctx, game) {
-  header(ctx, game, game.pack?.kind === 'joker' ? 'JOKER PACK' : 'UPGRADE PACK');
-  text(ctx, 'THREE POSSIBILITIES. ONE DECISION.', 16, 49, 10, mint);
-  (game.pack?.options || []).forEach((option, index) => cardOption(ctx, option, game, 14, 76 + index * 98, 332, 88, game.pack.selected === index));
-  text(ctx, 'Tap a card to inspect, then choose. Skipping spends the pack.', 180, 377, 8.5, muted, 'center', 330);
-}
-function replaceScreen(ctx, game) {
-  header(ctx, game, 'MAKE SOME ROOM');
-  text(ctx, 'YOUR THREE JOKER SLOTS ARE FULL', 16, 49, 10, gold);
-  if (game.pendingJoker) cardOption(ctx, { kind: 'joker', id: game.pendingJoker }, game, 14, 64, 332, 83, true, 'INCOMING JOKER');
-  game.jokers.forEach((id, index) => cardOption(ctx, { kind: 'joker', id }, game, 14, 164 + index * 70, 332, 62, false, 'REPLACE THIS JOKER'));
-}
-function inspectionScreen(ctx, game, id) {
-  header(ctx, game, 'THE COMPANY YOU KEEP');
-  const item = jokerBy(id); emblem(ctx, id, 180, 116, 47);
-  text(ctx, item?.name || 'Joker', 180, 193, 22, gold, 'center', 314);
-  text(ctx, (item?.rarity || 'JOKER').toUpperCase() + ' / ACTIVE FOR THIS RUN', 180, 216, 9, mint, 'center');
-  wrap(ctx, item?.description || '', 35, 254, 290, 15, ink, 4, 23);
-  text(ctx, 'Added chips, added Mult, then multiplier boosts.', 180, 361, 10, muted, 'center', 325);
-  if (game.phase === 'shop') text(ctx, 'Selling returns $2 to this run.', 180, 378, 10, gold, 'center');
-}
-function overlay(ctx, game) {
-  ctx.fillStyle = '#0c1529dc'; ctx.fillRect(8, 8, 344, 436);
-  box(ctx, 26, 133, 308, 185, '#243041', '#8d8f9c', 13);
-  text(ctx, game.status === 'dead' ? game.won ? 'HOUSE OUTPLAYED' : 'THE HOUSE HOLDS' : game.status === 'paused' ? 'RUN ON HOLD' : "GABU'S GAMBIT", 180, 170, 20, gold, 'center', 282);
-  wrap(ctx, game.status === 'dead' ? 'Round ' + game.round + ' of 6. Run score: ' + number(game.score) + '.' : 'Build poker hands. Collect unusual company. Make the numbers misbehave.', 47, 204, 266, 12, ink, 3, 18);
-  text(ctx, game.status === 'paused' ? 'PRESS PLAY TO RESUME' : game.status === 'dead' ? 'PRESS PLAY FOR A NEW RUN' : 'PRESS PLAY OR TAP TO START', 180, 284, 10, mint, 'center');
+
+const pipPositions = Object.freeze({
+  2: [[50, 39], [50, 101]],
+  3: [[50, 36], [50, 70], [50, 104]],
+  4: [[32, 39], [68, 39], [32, 101], [68, 101]],
+  5: [[32, 39], [68, 39], [50, 70], [32, 101], [68, 101]],
+  6: [[32, 36], [68, 36], [32, 70], [68, 70], [32, 104], [68, 104]],
+  7: [[32, 36], [68, 36], [50, 53], [32, 70], [68, 70], [32, 104], [68, 104]],
+  8: [[32, 36], [68, 36], [50, 53], [32, 70], [68, 70], [50, 87], [32, 104], [68, 104]],
+  9: [[32, 33], [68, 33], [32, 57], [68, 57], [50, 70], [32, 83], [68, 83], [32, 107], [68, 107]],
+  10: [[32, 33], [68, 33], [50, 45], [32, 57], [68, 57], [32, 83], [68, 83], [50, 95], [32, 107], [68, 107]],
+});
+
+function corner(ctx, rank, kind, color) {
+  label(ctx, ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' })[rank] || rank, 11, 21, 20, color, 21);
+  suit(ctx, kind, 11, 31, 11, color);
 }
 
-function drawGambit(canvas, game, { best = 0, reduced = false, cursor = -1, inspection = null } = {}) {
-  const ctx = canvas?.getContext?.('2d'); if (!ctx) return;
-  ctx.save(); ctx.setTransform(canvas.width / 360, 0, 0, canvas.height / 452, 0, 0);
-  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.globalAlpha = 1; ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
-  background(ctx);
-  if (inspection) inspectionScreen(ctx, game, inspection);
-  else if (game.phase === 'shop') shopScreen(ctx, game);
-  else if (game.phase === 'pack') packScreen(ctx, game);
-  else if (game.phase === 'replace') replaceScreen(ctx, game);
-  else playScreen(ctx, game, best, reduced);
-  const actions = gambitActions(game, { inspection });
-  actions.forEach((action, index) => {
-    if (['play', 'discard', 'continue', 'next', 'claim', 'skip', 'close', 'sell'].includes(action.kind)) button(ctx, action, ['play', 'claim', 'next', 'continue'].includes(action.kind), index === cursor);
-    if (index === cursor) { ctx.strokeStyle = mint; ctx.lineWidth = 2; ctx.strokeRect(action.x - 2, action.y - 2, action.w + 4, action.h + 4); }
-  });
-  if (!reduced && game.phase === 'score' && game.status === 'playing') {
-    const brightness = Math.max(0, Math.min(1, game.scoreTime || 0));
-    ctx.fillStyle = `rgba(134,214,198,${brightness * .25})`; ctx.fillRect(14, 151, 332, 3);
+function courtHalf(ctx, rank, kind, color) {
+  const accent = ['#45ac8b', '#ef9a35', '#5687d1', '#e97987'][kind];
+  // Each court uses the same mirrored framing, but a distinct headpiece and silhouette.
+  polygon(ctx, [[28, 70], [34, 58], [45, 54], [55, 54], [66, 58], [72, 70]], color, ink);
+  polygon(ctx, [[34, 70], [40, 57], [49, 62], [59, 57], [66, 70]], gold, ink);
+  line(ctx, [[42, 59], [50, 68], [58, 59]], accent, 3);
+  if (rank === 12) oval(ctx, 50, 48, 16, 17, '#5b4456');
+  oval(ctx, 50, 47, 11, 13, '#f3d09e', ink);
+  if (rank === 11) {
+    polygon(ctx, [[36, 38], [38, 29], [51, 32], [59, 28], [64, 38]], color, ink);
+    polygon(ctx, [[57, 33], [64, 21], [68, 22], [61, 35]], ivory, ink);
+    frame(ctx, 37, 37, 28, 4, accent, ink, 1);
+  } else if (rank === 12) {
+    polygon(ctx, [[37, 36], [37, 27], [44, 32], [50, 23], [56, 32], [63, 27], [63, 36]], gold, ink);
+    oval(ctx, 50, 31, 2.5, 3, color);
+    oval(ctx, 35, 47, 2, 3, gold); oval(ctx, 65, 47, 2, 3, gold);
+  } else {
+    polygon(ctx, [[36, 36], [35, 24], [43, 29], [50, 19], [57, 29], [65, 24], [64, 36]], gold, ink);
+    frame(ctx, 37, 34, 26, 5, accent, ink, 1);
+    polygon(ctx, [[41, 51], [46, 53], [50, 62], [54, 53], [59, 51], [57, 60], [50, 65], [43, 60]], '#694535', ink);
   }
-  if (game.status !== 'playing') overlay(ctx, game);
+  line(ctx, [[42, 45], [46, 45]], ink, 1.6); line(ctx, [[54, 45], [58, 45]], ink, 1.6);
+  line(ctx, [[50, 46], [48, 51], [52, 51]], '#a67d5c', 1);
+  if (rank !== 13) line(ctx, [[46, 55], [50, 56], [54, 55]], '#8e4251', 1.3);
+  suit(ctx, kind, 50, 67, 9, color);
+}
+
+/** Draw a full playing card; positions and hit testing remain the renderer's responsibility. */
+function drawGambitCard(ctx, id, x, y, w, h, { selected = false, boost = 0, tilt = 0 } = {}) {
+  if (!validRect(ctx, x, y, w, h) || !Number.isInteger(id) || id < 0 || id > 51 || !Number.isFinite(tilt)) return;
+  const rank = id % 13 + 1, kind = Math.floor(id / 13), color = GAMBIT_SUIT_COLORS[kind];
+  ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(tilt); ctx.scale(w / 100, h / 140); ctx.translate(-50, -70);
+  frame(ctx, 2, 4, 98, 136, '#10232d66', null, 6);
+  frame(ctx, 0, 0, 98, 136, ivory, selected ? '#ffce5c' : '#aaaea3', 6, selected ? 3 : 1.5);
+  frame(ctx, 3, 3, 92, 130, '#ffffff00', selected ? '#e4aa2f' : '#e3dcc8', 4, .6);
+  if (rank === 1) {
+    suit(ctx, kind, 49, 73, 47, color);
+    line(ctx, [[34, 109], [64, 109]], color, 1);
+  } else if (rank < 11) {
+    const size = rank <= 5 ? 20 : 16;
+    for (const [px, py] of pipPositions[rank]) {
+      ctx.save(); ctx.translate(px, py); if (py > 70) ctx.rotate(Math.PI);
+      suit(ctx, kind, 0, 0, size, color); ctx.restore();
+    }
+  } else {
+    frame(ctx, 24, 24, 50, 88, '#f7e7b8', color, 1.5, 1.2);
+    courtHalf(ctx, rank, kind, color);
+    ctx.save(); ctx.translate(98, 136); ctx.rotate(Math.PI); courtHalf(ctx, rank, kind, color); ctx.restore();
+    line(ctx, [[25, 68], [73, 68]], color, .8);
+  }
+  corner(ctx, rank, kind, color);
+  ctx.save(); ctx.translate(98, 136); ctx.rotate(Math.PI); corner(ctx, rank, kind, color); ctx.restore();
+  if (Number.isFinite(boost) && boost > 0) {
+    frame(ctx, 30, 115, 39, 14, '#225f64', '#b4ebda', 3, .6);
+    label(ctx, '+' + Math.floor(boost), 49.5, 125, 10, '#edffe4', 36);
+  }
   ctx.restore();
+}
+
+const jokerStyles = Object.freeze({
+  pair_gremlin: ['#174d57', '#e9c554', ['PAIR', 'GREMLIN']],
+  heart_hoarder: ['#7c2948', '#f59daf', ['HEART', 'HOARDER']],
+  last_laugh: ['#59396d', '#edbc5b', ['LAST', 'LAUGH']],
+  growing_suspicion: ['#174d3f', '#b5de6a', ['GROWING', 'SUSPICION']],
+  pocket_ace: ['#285176', '#b1d2e5', ['POCKET', 'ACE']],
+  club_regular: ['#38654d', '#f0c978', ['CLUB', 'REGULAR']],
+  face_value: ['#825531', '#f1cb68', ['FACE', 'VALUE']],
+  clean_slate: ['#345a6d', '#8ce0d6', ['CLEAN', 'SLATE']],
+  little_scheme: ['#57315a', '#d3b2ee', ['LITTLE', 'SCHEME']],
+  straight_talker: ['#286273', '#8be3dc', ['STRAIGHT', 'TALKER']],
+  velvet_flush: ['#5d2b56', '#efa4d3', ['VELVET', 'FLUSH']],
+  lonely_crown: ['#323760', '#edc46c', ['LONELY', 'CROWN']],
+});
+
+function crown(ctx, x, y, size, fill = gold) {
+  polygon(ctx, [[x - size, y + size * .5], [x - size * 1.1, y - size * .6], [x - size * .45, y - size * .1],
+    [x, y - size], [x + size * .45, y - size * .1], [x + size * 1.1, y - size * .6], [x + size, y + size * .5]], fill, '#573f2d', 1.4);
+  frame(ctx, x - size, y + size * .4, size * 2, size * .3, '#dd9b3e', '#573f2d', 1.5);
+}
+function star(ctx, x, y, size, color) {
+  polygon(ctx, Array.from({ length: 8 }, (_, i) => {
+    const radius = i % 2 ? size * .24 : size, angle = -Math.PI / 2 + i * Math.PI / 4;
+    return [x + Math.cos(angle) * radius, y + Math.sin(angle) * radius];
+  }), color);
+}
+function jokerSymbol(ctx, id, accent) {
+  if (id === 'pair_gremlin') {
+    for (const [x, fill] of [[41, '#e6bb54'], [65, '#82d7bc']]) {
+      polygon(ctx, [[x - 12, 61], [x - 19, 43], [x - 3, 49], [x + 13, 43], [x + 12, 64]], fill, ink);
+      oval(ctx, x, 65, 14, 18, fill, ink); oval(ctx, x - 5, 61, 2.5, 3, ivory); oval(ctx, x + 5, 61, 2.5, 3, ivory);
+      oval(ctx, x - 5, 62, 1, 1.8, ink); oval(ctx, x + 5, 62, 1, 1.8, ink);
+      line(ctx, [[x - 7, 71], [x, 75], [x + 7, 70]], ink, 2);
+    }
+  } else if (id === 'heart_hoarder') {
+    ctx.beginPath(); ctx.arc(54, 46, 14, Math.PI, Math.PI * 2); ctx.strokeStyle = gold; ctx.lineWidth = 4; ctx.stroke();
+    suit(ctx, 3, 54, 68, 50, '#ef88a5');
+    oval(ctx, 54, 67, 7, 8, gold, ink); line(ctx, [[54, 66], [54, 76]], ink, 3);
+    for (const x of [30, 78]) oval(ctx, x, 49, 3.5, 3.5, gold, ink);
+  } else if (id === 'last_laugh') {
+    polygon(ctx, [[31, 50], [28, 29], [46, 41], [56, 23], [65, 41], [83, 30], [78, 52]], accent, ink);
+    oval(ctx, 54, 67, 25, 28, '#f8e7cf', ink);
+    line(ctx, [[36, 61], [42, 57], [47, 61]], '#62364e', 3); line(ctx, [[61, 61], [67, 57], [73, 61]], '#62364e', 3);
+    ctx.beginPath(); ctx.moveTo(37, 72); ctx.quadraticCurveTo(54, 84, 72, 72); ctx.quadraticCurveTo(55, 104, 37, 72); ctx.fillStyle = '#7b2e49'; ctx.fill();
+    line(ctx, [[43, 78], [67, 78]], ivory, 4); oval(ctx, 54, 68, 4, 4, '#dc596b');
+  } else if (id === 'growing_suspicion') {
+    ctx.beginPath(); ctx.moveTo(53, 96); ctx.bezierCurveTo(25, 75, 78, 58, 52, 31); ctx.strokeStyle = accent; ctx.lineWidth = 5; ctx.stroke();
+    for (const [x, y, sign] of [[45, 84, -1], [61, 71, 1], [47, 40, -1]]) polygon(ctx, [[x, y], [x + sign * 17, y - 12], [x + sign * 15, y + 4]], '#6cab70', '#d0df83');
+    ctx.beginPath(); ctx.moveTo(29, 57); ctx.quadraticCurveTo(54, 35, 80, 57); ctx.quadraticCurveTo(54, 79, 29, 57); ctx.fillStyle = '#f1df98'; ctx.fill();
+    oval(ctx, 54, 57, 10, 13, '#799748'); oval(ctx, 54, 57, 4, 10, ink);
+  } else if (id === 'pocket_ace') {
+    ctx.save(); ctx.translate(43, 58); ctx.rotate(-.18); frame(ctx, -19, -28, 38, 55, '#ddded3', '#152b43', 3); label(ctx, 'A', 0, -8, 18, GAMBIT_SUIT_COLORS[2]); suit(ctx, 2, 0, 9, 19, GAMBIT_SUIT_COLORS[2]); ctx.restore();
+    frame(ctx, 49, 30, 38, 55, ivory, '#152b43', 3); label(ctx, 'A', 68, 50, 18, GAMBIT_SUIT_COLORS[3]); suit(ctx, 3, 68, 66, 19, GAMBIT_SUIT_COLORS[3]);
+    polygon(ctx, [[25, 72], [83, 72], [79, 94], [54, 102], [29, 94]], '#356d9c', '#acd4e9', 2);
+    line(ctx, [[31, 78], [35, 90], [54, 96], [73, 90], [77, 78]], '#d0b778', 1.5);
+  } else if (id === 'club_regular') {
+    ctx.beginPath(); ctx.arc(78, 65, 15, -Math.PI / 2, Math.PI / 2); ctx.strokeStyle = '#e3be76'; ctx.lineWidth = 8; ctx.stroke();
+    frame(ctx, 28, 46, 45, 46, '#c9e6c0', '#193c35', 6, 2); frame(ctx, 30, 45, 41, 7, '#f8e9bb', '#193c35', 3);
+    suit(ctx, 0, 51, 70, 26, '#1b6f57');
+    for (const x of [40, 54, 67]) { ctx.beginPath(); ctx.moveTo(x, 38); ctx.quadraticCurveTo(x - 7, 31, x, 24); ctx.strokeStyle = '#eff3c5'; ctx.lineWidth = 2; ctx.stroke(); }
+  } else if (id === 'face_value') {
+    oval(ctx, 54, 69, 29, 29, '#b77b28', '#ffe5a3'); oval(ctx, 54, 67, 24, 24, '#eac05c', '#76572c');
+    oval(ctx, 54, 68, 10, 12, '#fff0bb'); line(ctx, [[48, 65], [50, 65]], '#79592f', 2); line(ctx, [[58, 65], [60, 65]], '#79592f', 2);
+    line(ctx, [[49, 73], [54, 75], [59, 73]], '#79592f', 2); crown(ctx, 54, 38, 19, '#f2da86');
+    for (const x of [23, 86]) star(ctx, x, 68, 5, ivory);
+  } else if (id === 'clean_slate') {
+    ctx.save(); ctx.translate(54, 64); ctx.rotate(-.13);
+    frame(ctx, -27, -30, 54, 66, '#143941', '#b4d1c9', 4, 3); line(ctx, [[-17, -16], [15, -16]], '#6d9e9a', 2); line(ctx, [[-17, -7], [8, -7]], '#6d9e9a', 2);
+    polygon(ctx, [[-16, 18], [-2, 3], [21, 15], [6, 31]], '#efaa9f', '#fbe4c4', 1.5); polygon(ctx, [[6, 31], [21, 15], [29, 20], [14, 36]], '#e8deba');
+    ctx.restore(); star(ctx, 77, 34, 11, '#e9f9bc'); star(ctx, 28, 83, 6, '#e9f9bc');
+  } else if (id === 'little_scheme') {
+    line(ctx, [[30, 79], [54, 37], [78, 79], [30, 79]], '#cba0d8', 2);
+    for (const [x, y, fill] of [[30, 79, '#8fd3c0'], [54, 37, '#edbf65'], [78, 79, '#dba4ce']]) {
+      polygon(ctx, [[x, y - 15], [x + 14, y + 11], [x - 14, y + 11]], fill, '#273043', 2);
+      oval(ctx, x, y + 2, 3, 4, '#273043');
+    }
+    star(ctx, 54, 70, 7, ivory);
+  } else if (id === 'straight_talker') {
+    const colors = ['#c78568', '#d5a754', '#9fc77e', '#74cdbb', '#78b8e0'];
+    for (let i = 0; i < 5; i++) { const x = 26 + i * 11, y = 82 - i * 10; frame(ctx, x, y, 15, 17, colors[i], '#132f3c', 2); label(ctx, i + 1, x + 7.5, y + 12, 10, '#193746', 13); }
+    line(ctx, [[28, 61], [48, 42], [72, 22]], '#e2f6cd', 4); polygon(ctx, [[64, 21], [78, 18], [76, 32]], '#e2f6cd');
+  } else if (id === 'velvet_flush') {
+    for (let i = 0; i < 4; i++) {
+      ctx.save(); ctx.translate(54, 93); ctx.rotate((i - 1.5) * .22);
+      frame(ctx, -16, -62, 32, 59, ivory, '#67334d', 3); suit(ctx, i, 0, -37, 21, GAMBIT_SUIT_COLORS[i]); ctx.restore();
+    }
+    oval(ctx, 54, 95, 6, 5, gold, '#603b42');
+  } else {
+    polygon(ctx, [[54, 26], [28, 100], [82, 100]], '#52567e');
+    frame(ctx, 37, 82, 34, 16, '#55416b', '#d4b775', 3); frame(ctx, 41, 92, 5, 9, '#d4b775', null, 1); frame(ctx, 63, 92, 5, 9, '#d4b775', null, 1);
+    crown(ctx, 54, 57, 24); oval(ctx, 54, 56, 4, 6, '#bb4263'); star(ctx, 28, 35, 4, '#e8d3a5');
+  }
+}
+
+/** Twelve distinct illustrated modifiers, drawn as collectible cards rather than badges. */
+function drawGambitJoker(ctx, id, x, y, w, h, { selected = false } = {}) {
+  if (!validRect(ctx, x, y, w, h)) return;
+  const [background, accent, names] = jokerStyles[id] || jokerStyles.lonely_crown;
+  ctx.save(); ctx.translate(x, y); ctx.scale(w / 100, h / 140);
+  frame(ctx, 2, 4, 98, 136, '#10232d66', null, 6);
+  frame(ctx, 0, 0, 98, 136, ivory, selected ? '#ffd763' : '#d3cfb7', 5, selected ? 3 : 1.4);
+  frame(ctx, 5, 5, 88, 126, background, accent, 2, .7);
+  // Original foil-like diagonal hatch, kept quieter than the central illustration.
+  for (let yLine = 12; yLine < 100; yLine += 13) line(ctx, [[22, yLine], [86, yLine + 15]], '#ffffff0c', .6);
+  for (let i = 0; i < 5; i++) label(ctx, 'JOKER'[i], 12, 22 + i * 11, 9, '#fff4ce', 10);
+  ctx.save(); jokerSymbol(ctx, id, accent); ctx.restore();
+  frame(ctx, 20, 106, 68, 23, '#fff1cf', accent, 2, .8);
+  label(ctx, names[0], 54, 116, 8.7, background, 64); label(ctx, names[1], 54, 126, 8.7, background, 64);
+  ctx.restore();
+}
+
+function cardBack(ctx, x, y, w, h) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(w / 100, h / 140);
+  frame(ctx, 0, 0, 98, 136, '#fcf0d6', '#9aa9ab', 5, 1.5);
+  frame(ctx, 5, 5, 88, 126, '#245b81', '#bde1e1', 2, 1.2);
+  for (let row = 0; row < 8; row++) for (let col = 0; col < 5; col++) {
+    const px = 14 + col * 17, py = 17 + row * 14;
+    polygon(ctx, [[px, py - 4], [px + 4, py], [px, py + 4], [px - 4, py]], null, '#79afbb', .8);
+  }
+  polygon(ctx, [[49, 35], [76, 68], [49, 101], [22, 68]], '#1b4b71', '#e7d6a0', 2);
+  oval(ctx, 49, 68, 15, 20, null, '#e7d6a0');
+  suit(ctx, 2, 49, 68, 21, '#f2e4bc');
+  frame(ctx, 10, 10, 78, 116, '#ffffff00', '#d6dfc8', 1, .7);
+  ctx.restore();
+}
+
+/** Backed draw pile, including a count contained within the supplied rectangle. */
+function drawGambitDeck(ctx, x, y, w, h, count) {
+  if (!validRect(ctx, x, y, w, h)) return;
+  ctx.save();
+  const offset = Math.min(w * .06, h * .03, 4), labelHeight = Math.min(h * .18, Math.max(9, h * .11)), cardHeight = Math.max(.1, h - labelHeight - offset * 2);
+  for (let i = 2; i >= 0; i--) cardBack(ctx, x + i * offset, y + i * offset, w - offset * 2, cardHeight);
+  const safeCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  label(ctx, safeCount + '/52', x + w / 2, y + h - 1, labelHeight * .85, '#f8efcf', w);
+  ctx.restore();
+}
+
+/** An unopened booster has a sealed wrapper silhouette, not a playing-card face. */
+function drawGambitPack(ctx, kind, x, y, w, h) {
+  if (!validRect(ctx, x, y, w, h)) return;
+  const joker = kind === 'joker', background = joker ? '#734b86' : '#237ca0', accent = joker ? '#ef9dcd' : '#f0d365';
+  ctx.save(); ctx.translate(x, y); ctx.scale(w / 100, h / 140);
+  const seam = Array.from({ length: 13 }, (_, i) => [8 + i * 7, i % 2 ? 8 : 4]);
+  polygon(ctx, [...seam, [92, 132], ...seam.slice().reverse().map(([px, py]) => [px, 140 - py]), [8, 8]], background, '#f7e9c5', 1.5);
+  frame(ctx, 12, 14, 76, 111, joker ? '#503364' : '#165b7c', accent, 2, 1);
+  for (let i = 0; i < 4; i++) line(ctx, [[18, 19 + i * 3], [82, 19 + i * 3]], '#ffffff29', 1);
+  if (joker) {
+    polygon(ctx, [[28, 54], [26, 34], [44, 47], [54, 27], [64, 47], [81, 34], [79, 57]], '#e5be65', '#352844', 1.5);
+    oval(ctx, 53, 64, 23, 24, '#f7e3c5', '#3e2d50');
+    line(ctx, [[36, 61], [42, 57], [47, 61]], '#73425b', 2.5); line(ctx, [[59, 61], [65, 57], [71, 61]], '#73425b', 2.5);
+    line(ctx, [[42, 74], [53, 80], [65, 73]], '#a74669', 3); oval(ctx, 53, 68, 3, 3, '#de728d');
+  } else {
+    star(ctx, 50, 58, 27, '#f1ce68');
+    line(ctx, [[50, 74], [50, 44]], '#175f82', 6); polygon(ctx, [[36, 54], [50, 38], [64, 54]], '#175f82');
+    for (const [px, py] of [[24, 38], [79, 72], [28, 85]]) star(ctx, px, py, 5, '#b8e9dc');
+  }
+  label(ctx, joker ? 'JOKER' : 'UPGRADE', 50, 107, 13, ivory, 72);
+  label(ctx, 'PACK', 50, 120, 10, accent, 65);
+  for (let i = 0; i < 3; i++) line(ctx, [[18, 129 + i * 2], [82, 129 + i * 2]], '#ffffff32', 1);
+  ctx.restore();
+}
+
+return {GAMBIT_SUIT_COLORS,drawGambitCard,drawGambitJoker,drawGambitDeck,drawGambitPack};
+})();
+const {gambitActions,gambitHitAt,drawGambit}=(()=>{
+/** Familiar poker-table hierarchy, original card art, and shared input geometry. */
+
+
+const C = { ink:'#fff8e7', muted:'#bad3c9', gold:'#f6d97a', blue:'#139bea', red:'#ee5149', dark:'#243740', green:'#23634f', future:'#789c90' };
+const jokerBy = id => GAMBIT_JOKERS.find(item => item.id === id);
+const handBy = id => GAMBIT_HANDS.find(item => item.id === id);
+const number = n => Math.floor(Number(n)||0).toLocaleString('en-US');
+const cardName = id => (({1:'Ace',11:'Jack',12:'Queen',13:'King'})[id%13+1] || id%13+1)+' of '+['Clubs','Diamonds','Spades','Hearts'][Math.floor(id/13)];
+const region = (kind,x,y,w,h,label,extra={}) => ({kind,x,y,w,h,label,enabled:true,...extra});
+const ownedOffer = (game,offer) => offer.kind==='joker'&&game.jokers.includes(offer.id);
+function optionCopy(option,game){
+  if(option.kind==='joker'){const item=jokerBy(option.id);return {title:item?.name||'Joker',detail:item?.description||'',tag:item?.rarity||'Joker'};}
+  if(option.kind==='hand')return {title:(handBy(option.id)?.name||option.id)+' upgrade',detail:'Add 15 base chips and 1 base Mult to this hand for the run.',tag:'LEVEL '+((game.handLevels[option.id]||0)+1)+' TO '+((game.handLevels[option.id]||0)+2)};
+  return {title:cardName(option.id),detail:'This exact card gains 10 chips whenever it scores. The boost lasts for the run.',tag:'CARD ENHANCEMENT'};
+}
+function offerName(offer){return offer.kind==='joker'?jokerBy(offer.id)?.name||'Joker':offer.pack==='joker'?'Joker Pack':'Upgrade Pack';}
+function offerDetail(offer){return offer.kind==='joker'?jokerBy(offer.id)?.description||'':offer.pack==='joker'?'Reveal three different Jokers and choose one.':'Choose a hand-level upgrade or an enhancement for one playing card.';}
+function offerLabel(game,offer){return (offer.sold?'Sold. ':ownedOffer(game,offer)?'Already equipped. ':game.money<offer.price?'Not enough run coins. ':'')+'Buy '+offerName(offer)+' for '+offer.price+' run coins. '+offerDetail(offer);}
+function handGeometry(game){
+  const n=game.hand.length,step=n>1?192/(n-1):0;
+  return game.hand.map((id,index)=>{const offset=index-(n-1)/2,y=302+Math.abs(offset)*2-(game.selected.includes(id)?18:0),x=n===1?207:111+index*step;
+    return {id,index,x,y,w:46,h:68,tilt:offset*.015,hitX:x+(index<n-1?Math.min(step*.4,18):23),hitY:y+19};});
+}
+function shopGeometry(index){const col=index%2,row=Math.floor(index/2);return {x:113+col*121,y:row===0?160:282,w:108,h:row===0?92:73,buyY:row===0?257:360};}
+
+/** The action list is paint order; overlapping hand cards receive taps from the top down. */
+function gambitActions(game,{inspection=null}={}){
+  if(game.status!=='playing')return [];
+  if(inspection){
+    const index=typeof inspection==='string'?game.jokers.indexOf(inspection):-1;
+    const offer=typeof inspection==='object'&&Number.isInteger(inspection.offer)?game.shop[inspection.offer]:null;
+    const secondary=offer?'buy':game.phase==='shop'&&index>=0?'sell':null;
+    return [region('close',109,390,secondary?144:238,48,'BACK TO TABLE'),...(secondary?[region(secondary,261,390,86,48,offer?offerLabel(game,offer):'Sell '+jokerBy(inspection)?.name+' for 2 run coins',{displayLabel:offer?'BUY $'+offer.price:'SELL +$2',index:offer?inspection.offer:index,enabled:!offer||(!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price)})]:[])];
+  }
+  const info=region('info',12,402,82,35,'RUN INFO');
+  if(game.phase==='pack')return [info,...(game.pack?.options||[]).map((option,index)=>{const copy=optionCopy(option,game);return region('packOption',111+index*80,111,72,111,(game.pack.selected===index?'Selected: ':'Inspect ')+copy.title+'. '+copy.detail,{index});}),region('claim',109,390,150,48,'CHOOSE CARD',{enabled:Number.isInteger(game.pack?.selected)}),region('skip',269,390,78,48,'SKIP')];
+  if(game.phase==='replace')return [info,...game.jokers.map((id,index)=>region('replace',111+index*80,255,72,102,'Replace '+jokerBy(id)?.name+' with '+jokerBy(game.pendingJoker)?.name,{id,index})),region('skip',109,390,238,48,'KEEP CURRENT JOKERS')];
+  const jokers=game.jokers.map((id,index)=>region('joker',113+index*78,27,66,92,'Inspect '+jokerBy(id)?.name+'. '+jokerBy(id)?.description,{id,index}));
+  if(game.phase==='shop')return [info,...jokers,...game.shop.flatMap((offer,index)=>{const g=shopGeometry(index);return [region('offer',g.x,g.y,g.w,g.h,'Inspect '+offerName(offer)+'. '+offerDetail(offer),{index}),region('buy',g.x,g.buyY,g.w,22,offerLabel(game,offer),{displayLabel:offer.sold?'SOLD':ownedOffer(game,offer)?'OWNED':'BUY $'+offer.price,index,enabled:!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price})];}),region('next',109,412,238,26,'NEXT ROUND')];
+  if(game.phase==='score')return [info,...jokers,region('continue',109,390,238,48,'CONTINUE')];
+  if(game.phase!=='play')return [info];
+  return [info,...jokers,region('deck',305,221,40,61,'Inspect remaining deck'),...handGeometry(game).map(g=>region('card',g.x,g.y,g.w,g.h,cardName(g.id)+', '+(game.selected.includes(g.id)?'selected':'unselected')+(game.cardBoosts[g.id]?'. Bonus '+game.cardBoosts[g.id]+' chips when scoring.':''),g)),region('play',109,390,76,48,'PLAY HAND',{enabled:game.selected.length>0&&game.playsLeft>0}),region('sort',193,390,68,22,'SORT RANK',{mode:'rank'}),region('sort',193,416,68,22,'SORT SUIT',{mode:'suit'}),region('discard',269,390,78,48,'DISCARD',{enabled:game.selected.length>0&&game.discardsLeft>0&&game.deck.length>0})];
+}
+function gambitHitAt(x,y,game,view={}){
+  if(!Number.isFinite(x)||!Number.isFinite(y))return null;
+  return [...gambitActions(game,view)].reverse().find(a=>a.enabled&&x>=a.x&&x<a.x+a.w&&y>=a.y&&y<a.y+a.h)||null;
+}
+function box(ctx,x,y,w,h,fill,stroke=null,r=4){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}}
+function text(ctx,value,x,y,size=11,color=C.ink,align='left',maxWidth=null){ctx.font=`900 ${size}px ui-monospace,Consolas,monospace`;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillStyle=color;if(maxWidth)ctx.fillText(String(value),x,y,maxWidth);else ctx.fillText(String(value),x,y);}
+function wrap(ctx,value,x,y,width,size=10,color=C.ink,maxLines=4,lineHeight=size+4){
+  ctx.font=`800 ${size}px ui-monospace,Consolas,monospace`;
+  const measure=s=>ctx.measureText?ctx.measureText(s).width:s.length*size*.6;
+  const lines=[];let line='';for(const word of String(value).split(/\s+/)){const next=line?line+' '+word:word;if(line&&measure(next)>width){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);
+  lines.slice(0,maxLines).forEach((part,i)=>{if(i===maxLines-1&&lines.length>maxLines){while(part&&measure(part+'...')>width)part=part.slice(0,-1);part+='...';}text(ctx,part,x,y+i*lineHeight,size,color,'left',width);});
+}
+function button(ctx,a,focused=false){
+  const fill=a.kind==='play'||a.kind==='continue'||a.kind==='next'||a.kind==='claim'||a.kind==='buy'?C.blue:a.kind==='discard'||a.kind==='sell'?C.red:'#db8b18';
+  box(ctx,a.x,a.y+3,a.w,a.h,a.enabled?'#132a2c':'#223c37',null,5);
+  box(ctx,a.x,a.y,a.w,a.h-1,a.enabled?fill:'#466057',focused?'#fff4ac':'#ffffff42',5);
+  const label=(a.displayLabel||a.label).replace('SORT ','');
+  if(label==='PLAY HAND') {text(ctx,'Play',a.x+a.w/2,a.y+20,12,a.enabled?C.ink:'#9eb3a7','center');text(ctx,'Hand',a.x+a.w/2,a.y+34,12,a.enabled?C.ink:'#9eb3a7','center');}
+  else text(ctx,label,a.x+a.w/2,a.y+a.h/2+4,a.h<28?9:10,a.enabled?C.ink:'#9eb3a7','center',a.w-8);
+}
+function background(ctx){
+  ctx.fillStyle='#1b5848';ctx.fillRect(0,0,360,452);
+  ctx.save();ctx.strokeStyle='#83b79210';ctx.lineWidth=22;
+  for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(103+i*58,-15);ctx.bezierCurveTo(230-i*13,99,100+i*40,250,375-i*26,465);ctx.stroke();}
+  ctx.restore();box(ctx,5,5,96,442,'#293d42','#0e2628',5);box(ctx,105,5,250,442,'#205d4b00','#90b69735',5);
+}
+function reportFor(game){return game.phase==='score'?game.lastResult:game.phase==='play'?game.preview():null;}
+function rail(ctx,game,best){
+  box(ctx,11,12,84,23,game.phase==='shop'?'#c65f32':'#167cb4','#9bbcab66');text(ctx,game.phase==='shop'?'THE SHOP':'ROUND '+game.round,53,28,11,C.ink,'center',78);
+  box(ctx,11,41,84,79,'#173741','#48666b');text(ctx,'Score at least',53,56,8,C.ink,'center');
+  ctx.beginPath();ctx.arc(53,80,15,0,Math.PI*2);ctx.fillStyle='#166e91';ctx.fill();ctx.strokeStyle='#93cbd1';ctx.lineWidth=2;ctx.stroke();text(ctx,'G',53,86,18,C.ink,'center');
+  text(ctx,number(game.target),53,113,15,'#ff7465','center',78);
+  box(ctx,11,128,84,54,'#1a2b30','#587275');text(ctx,'Round score',53,141,9,C.ink,'center');text(ctx,number(game.roundScore),53,169,22,C.ink,'center',78);
+  const report=reportFor(game),level=report?(game.handLevels[report.id]||0)+1:1;
+  box(ctx,11,190,84,105,'#1c2e31','#52676b');
+  wrap(ctx,report?.name||'Select cards',17,207,73,11,C.ink,2,13);text(ctx,report?'lvl.'+level:'1 to 5 cards',53,235,8,C.muted,'center');
+  box(ctx,14,245,35,33,C.blue);box(ctx,58,245,34,33,C.red);
+  text(ctx,number(report?.chips||0),31.5,268,17,C.ink,'center',31);text(ctx,'X',53,267,11,C.ink,'center');text(ctx,report?Number(report.mult.toFixed(2)):0,75,268,17,C.ink,'center',29);
+  text(ctx,'CHIPS',31,289,6.5,C.muted,'center');text(ctx,'MULT',75,289,6.5,C.muted,'center');
+  box(ctx,11,304,40,47,'#1a2e32','#526a6d');box(ctx,55,304,40,47,'#1a2e32','#526a6d');
+  text(ctx,'Hands',31,317,8,C.ink,'center');text(ctx,'Discards',75,317,7,C.ink,'center');text(ctx,game.playsLeft,31,343,24,C.blue,'center');text(ctx,game.discardsLeft,75,343,24,C.red,'center');
+  box(ctx,11,360,84,33,'#1a2b30','#526a6d');text(ctx,'$'+game.money,53,384,22,'#ffc963','center',76);
+  text(ctx,'RUN '+number(game.score),53,448,6.5,C.muted,'center',88);
+}
+function jokers(ctx,game){
+  for(let i=0;i<3;i++){const x=113+i*78,id=game.jokers[i];if(id)drawGambitJoker(ctx,id,x,27,66,92);else{box(ctx,x,27,66,92,'#0c342f70','#83a18b55',5);text(ctx,'JOKER',x+33,73,9,'#89ac98','center');}}
+  text(ctx,game.jokers.length+'/3',114,134,9,C.ink);text(ctx,'GABU\'S GAMBIT',345,18,8,C.ink,'right',231);
+}
+function optionArt(ctx,option,game,x,y,w,h,selected=false){
+  if(option.kind==='joker')drawGambitJoker(ctx,option.id,x,y,w,h,{selected});
+  else if(option.kind==='card')drawGambitCard(ctx,option.id,x,y,w,h,{selected,boost:Math.min(30,(game.cardBoosts[option.id]||0)+10)});
+  else {box(ctx,x+2,y+4,w,h,'#123c35');box(ctx,x,y,w,h,'#d9ecf2',selected?C.gold:'#7196c8',5);box(ctx,x+5,y+5,w-10,h-10,'#486dae');text(ctx,'LEVEL',x+w/2,y+20,10,C.ink,'center',w-10);ctx.beginPath();ctx.arc(x+w/2,y+h*.52,w*.24,0,Math.PI*2);ctx.fillStyle='#f4cc69';ctx.fill();text(ctx,'+1',x+w/2,y+h*.52+5,14,'#263c65','center');wrap(ctx,handBy(option.id)?.name||option.id,x+6,y+h-26,w-12,9,C.ink,2,11);}
+}
+function playScreen(ctx,game,reduced){
+  jokers(ctx,game);
+  if(game.phase==='score'){
+    const report=game.lastResult,steps=report?.steps||[],elapsed=Math.max(0,Math.min(1.2,game.scoreTime||0));
+    text(ctx,report?.name||'HAND PLAYED',227,156,13,C.gold,'center',231);
+    const played=game.lastPlay?.cards||report?.scoringCards||[],step=Math.min(43,216/Math.max(1,played.length));
+    played.forEach((id,index)=>drawGambitCard(ctx,id,227-(played.length*step+42-step)/2+index*step,169,42,61,{boost:game.cardBoosts[id]||0}));
+    const active=reduced||elapsed>=1.2?-1:Math.min(steps.length-1,Math.floor(elapsed/1.2*steps.length));
+    steps.forEach((s,i)=>{const y=253+i*18,current=i===active,future=active>=0&&i>active;if(current)box(ctx,110,y-12,238,17,'#0d342d',C.gold,3);text(ctx,s.label,115,y,8,future?C.future:current?C.gold:C.ink,'left',157);text(ctx,number(s.chips)+' X '+Number(s.mult.toFixed(2)),343,y,9,future?C.future:C.ink,'right',72);});
+    text(ctx,'+'+number(report?.total||0),227,371,23,C.gold,'center',230);return;
+  }
+  const report=game.preview();
+  text(ctx,report?.name||'BUILD YOUR HAND',115,174,13,report?C.gold:C.ink,'left',226);
+  text(ctx,report?number(report.total)+' projected':'Select up to five cards',115,197,report?17:10,report?'#aee5ff':C.muted,'left',183);
+  if(!report)wrap(ctx,'Match ranks, build a straight, or collect one suit.',115,224,169,10,C.muted,3,15);
+  drawGambitDeck(ctx,307,223,34,47,game.deck.length);
+  const geometry=handGeometry(game);
+  geometry.forEach(g=>drawGambitCard(ctx,g.id,g.x,g.y,g.w,g.h,{selected:game.selected.includes(g.id),boost:game.cardBoosts[g.id]||0,tilt:g.tilt}));
+  geometry.forEach(g=>text(ctx,g.index+1,g.x+8,385,7,C.muted,'center'));
+  text(ctx,game.selected.length+'/'+game.hand.length+' SELECTED',227,279,8,C.ink,'center');
+}
+function shopScreen(ctx,game){
+  jokers(ctx,game);text(ctx,'IMPROVE YOUR RUN',227,150,10,C.gold,'center');
+  game.shop.forEach((offer,index)=>{const g=shopGeometry(index),owned=ownedOffer(game,offer);if(offer.kind==='joker')drawGambitJoker(ctx,offer.id,g.x+25,g.y,58,80);else drawGambitPack(ctx,offer.pack,g.x+28,g.y,52,66);
+    if(index<2)text(ctx,offerName(offer),g.x+g.w/2,g.y+90,8,C.ink,'center',104);
+    if(offer.sold||owned){box(ctx,g.x+15,g.y+20,g.w-30,23,'#1d3433e8','#b3c3a4');text(ctx,offer.sold?'SOLD':'OWNED',g.x+g.w/2,g.y+36,11,C.gold,'center');}
+  });
+}
+function packScreen(ctx,game){
+  text(ctx,game.pack?.kind==='joker'?'JOKER PACK':'UPGRADE PACK',227,36,19,C.ink,'center',232);text(ctx,'CHOOSE 1',227,60,10,C.gold,'center');
+  (game.pack?.options||[]).forEach((option,index)=>optionArt(ctx,option,game,111+index*80,111,72,104,game.pack.selected===index));
+  const chosen=game.pack?.options?.[game.pack.selected],copy=chosen?optionCopy(chosen,game):null;
+  box(ctx,110,242,238,132,'#143f35','#8bbaa2',5);
+  text(ctx,copy?.title||'Pick a card to inspect',119,264,12,C.gold,'left',220);
+  if(copy){text(ctx,copy.tag.toUpperCase(),119,284,8,'#a4d6ee','left',219);wrap(ctx,copy.detail,119,305,219,11,C.ink,4,16);}
+  else wrap(ctx,'Tap a card above to see its boost. Choose Card confirms your choice.',119,290,219,11,C.ink,4,16);
+  text(ctx,'Already paid. Skip discards this pack.',227,384,7,C.muted,'center',233);
+}
+function replaceScreen(ctx,game){
+  text(ctx,'JOKER SLOTS FULL',227,36,16,C.ink,'center',232);text(ctx,'Incoming',227,57,9,C.gold,'center');
+  if(game.pendingJoker)drawGambitJoker(ctx,game.pendingJoker,194,69,66,92,{selected:true});
+  wrap(ctx,jokerBy(game.pendingJoker)?.description||'',115,184,228,10,C.ink,3,14);
+  text(ctx,'CHOOSE ONE TO REPLACE',227,239,10,C.gold,'center');
+  game.jokers.forEach((id,index)=>drawGambitJoker(ctx,id,111+index*80,255,72,102));
+}
+function infoScreen(ctx,game,inspection){
+  if(inspection.info){text(ctx,'RUN INFO',227,37,18,C.gold,'center');wrap(ctx,'Play 1 to 5 cards. Beat each target in four hands; three discards refresh your cards.',116,65,226,11,C.ink,4,15);
+    const rules=['High Card: highest card','Pair: 2 of one rank','Two Pair: two pairs','Three: 3 of one rank','Straight: 5 in order','Flush: 5 of one suit','Full House: trio + pair','Four: 4 of one rank','Straight Flush: both'];rules.forEach((line,i)=>text(ctx,line,116,143+i*22,9,C.ink,'left',225));text(ctx,'Run coins are separate from arcade tickets.',227,365,8,C.muted,'center',230);return;}
+  if(inspection.deck){text(ctx,'YOUR DECK',227,37,18,C.gold,'center');text(ctx,game.deck.length+' cards left to draw',227,65,11,C.ink,'center');
+    for(let suit=0;suit<4;suit++){const ids=game.deck.filter(id=>Math.floor(id/13)===suit).sort((a,b)=>(b%13||13)-(a%13||13));box(ctx,113,90+suit*62,232,54,'#133f35','#7aa88b');text(ctx,['CLUBS','DIAMONDS','SPADES','HEARTS'][suit]+'  '+ids.length,121,108+suit*62,11,['#7ed8bd','#ffb36c','#a8c7ff','#ff8e98'][suit]);wrap(ctx,ids.map(id=>({0:'A',10:'J',11:'Q',12:'K'})[id%13]||id%13+1).join(' '),121,128+suit*62,215,10,C.ink,2,12);}
+    text(ctx,game.hand.length+' in hand / '+game.discard.length+' played or discarded',227,365,9,C.muted,'center',230);return;}
+  const offer=typeof inspection==='object'?game.shop[inspection.offer]:null,id=offer?.kind==='joker'?offer.id:typeof inspection==='string'?inspection:null;
+  const title=offer?offerName(offer):jokerBy(id)?.name||'Joker';text(ctx,title,227,37,17,C.gold,'center',229);
+  if(id)drawGambitJoker(ctx,id,184,59,86,121);else if(offer)drawGambitPack(ctx,offer.pack,188,65,78,109);
+  const detail=offer?offerDetail(offer):jokerBy(id)?.description||'';wrap(ctx,detail,116,213,225,13,C.ink,6,19);
+  if(offer)text(ctx,'COST $'+offer.price,227,355,17,C.gold,'center');else text(ctx,'ACTIVE FOR THIS RUN',227,355,9,C.muted,'center');
+}
+function overlay(ctx,game){box(ctx,105,5,250,442,'#123a32e8');box(ctx,113,130,234,181,'#243d44','#d9e6c5',6);text(ctx,game.status==='dead'?game.won?'HOUSE OUTPLAYED':'THE HOUSE HOLDS':game.status==='paused'?'PAUSED':"GABU'S GAMBIT",230,160,17,C.gold,'center',220);wrap(ctx,game.status==='dead'?'Round '+game.round+' of 6. Run score '+number(game.score)+'.':'Build poker hands. Find Jokers. Turn small advantages into a winning run.',124,192,212,12,C.ink,4,18);text(ctx,game.status==='paused'?'PRESS PLAY TO RESUME':'PRESS PLAY TO START',230,285,10,'#b8dfff','center',217);}
+
+function drawGambit(canvas,game,{best=0,reduced=false,cursor=-1,inspection=null}={}){
+  const ctx=canvas?.getContext?.('2d');if(!ctx)return;
+  ctx.save();ctx.setTransform(canvas.width/360,0,0,canvas.height/452,0,0);ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.globalAlpha=1;ctx.lineCap='round';ctx.lineJoin='round';
+  background(ctx);rail(ctx,game,best);
+  if(inspection)infoScreen(ctx,game,inspection);else if(game.phase==='shop')shopScreen(ctx,game);else if(game.phase==='pack')packScreen(ctx,game);else if(game.phase==='replace')replaceScreen(ctx,game);else playScreen(ctx,game,reduced);
+  const actions=gambitActions(game,{inspection});actions.forEach((a,index)=>{if(['info','play','sort','discard','continue','next','buy','claim','skip','close','sell'].includes(a.kind))button(ctx,a,index===cursor);if(index===cursor){ctx.strokeStyle=C.gold;ctx.lineWidth=2;ctx.strokeRect(a.x-2,a.y-2,a.w+4,a.h+4);}});
+  if(game.status!=='playing')overlay(ctx,game);ctx.restore();
 }
 
 return {gambitActions,gambitHitAt,drawGambit};
@@ -4224,7 +4396,8 @@ export function setup(ctx) {
     if(gambitAnnounce){gambitAnnounce.hidden=activeMode!=='gambit';if(activeMode==='gambit'){
       const preview=gambit.preview(),focused=gambitActions(gambit,{inspection:gambitInspection})[gambitCursor];
       const packChoice=gambit.pack&&Number.isInteger(gambit.pack.selected)?gambitActions(gambit).find(action=>action.kind==='packOption'&&action.index===gambit.pack.selected):null;
-      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${focused?` Focus: ${focused.label}.`:''}`;
+      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide.':null;
+      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
     }}
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
@@ -4340,13 +4513,17 @@ export function setup(ctx) {
   function gambitAction(action){
     if(!action||action.enabled===false||gambit.status!=='playing')return;
     if(action.kind==='joker')gambitInspection=action.id;
+    else if(action.kind==='offer')gambitInspection={offer:action.index};
+    else if(action.kind==='info')gambitInspection={info:true};
+    else if(action.kind==='deck')gambitInspection={deck:true};
     else if(action.kind==='close')gambitInspection=null;
+    else if(action.kind==='sort')gambit.sortHand(action.mode);
     else if(action.kind==='card')gambit.toggleCard(action.id);
     else if(action.kind==='play')gambit.playHand();
     else if(action.kind==='discard')gambit.discardSelected();
     else if(action.kind==='continue')gambit.continueScore();
     else if(action.kind==='next')gambit.nextRound();
-    else if(action.kind==='buy')gambit.buy(action.index);
+    else if(action.kind==='buy'){gambit.buy(action.index);gambitInspection=null;}
     else if(action.kind==='packOption')gambit.selectPack(action.index);
     else if(action.kind==='claim')gambit.claimPack();
     else if(action.kind==='replace')gambit.replaceJoker(action.index);
@@ -4355,7 +4532,7 @@ export function setup(ctx) {
     gambitCursor=-1;flushGambit();save();refresh();
   }
   function gambitKey(e){
-    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','Escape'].includes(e.code);
+    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
     if(!recognized)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
     if(e.code==='KeyP'){play();return;}
     if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
@@ -4371,6 +4548,8 @@ export function setup(ctx) {
       gambitAction(actions[gambitCursor]);return;
     }
     if(gambitInspection)return;
+    if(e.code==='KeyI'){gambitInspection={info:true};refresh();return;}
+    if(e.code==='KeyR'||e.code==='KeyS'){gambit.sortHand(e.code==='KeyR'?'rank':'suit');gambitCursor=-1;flushGambit();save();refresh();return;}
     if(/^(?:Digit|Numpad)[1-8]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[Number(e.code.slice(-1))-1]);
     else if(e.code==='Space'){if(gambit.phase==='score')gambit.continueScore();else if(gambit.phase==='play')gambit.playHand();}
     else if(e.code==='KeyD')gambit.discardSelected();
@@ -4537,7 +4716,7 @@ export function setup(ctx) {
     shopNotice=create('p','bb-shop-notice','');shopNotice.setAttribute('role','status');shopNotice.setAttribute('aria-live','polite');shopEl.append(shopNotice);
     phoneEl.append(shopEl);root.append(phoneEl);
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label',"Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. Arrows focus any action and Enter activates it. Escape closes Joker details. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.");
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label',"Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.");
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     gambitAnnounce=create('p','bb-sr-only');gambitAnnounce.setAttribute('role','status');gambitAnnounce.setAttribute('aria-live','polite');gameStage.append(gambitAnnounce);
     const plinkoHost=create('div','bb-plinko-host');
@@ -4708,7 +4887,7 @@ export function setup(ctx) {
     const gambitInfo=drawerGamePanel('gambit');
     tip(gambitInfo,'A six-round poker roguelike with twelve original Jokers. Select one to five cards from your eight-card hand, then Play or Discard. Only cards contributing to the detected poker hand score. You get four plays and three discards per round. Score preview includes all current boosts; add-chip effects apply before added Mult, then multiplier boosts. Joker position does not change scoring.');
     tip(gambitInfo,'Clear the target to earn run coins and visit the shop. Buy Jokers or reveal three booster choices and keep one. Upgrade Packs improve a hand category or one particular card. You may equip three Jokers; replace one explicitly when full. Sell Jokers for two run coins. Run coins reset on a new run and never spend or award arcade tickets. All pack choices and purchases survive reload.');
-    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or skips score counting, D discards, P pauses, arrows focus any visible action, Enter activates it, and Escape closes Joker details. Tap a Joker for its full effect. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
+    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or continues score counting, D discards, P pauses, R sorts ranks, S sorts suits, I opens Run Info, arrows focus any visible action, Enter activates it, and Escape closes details. Tap a Joker or shop card for its full effect; use the separate Buy button to purchase. Tap the deck to inspect remaining cards. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){

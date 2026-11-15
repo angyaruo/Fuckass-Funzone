@@ -69,8 +69,17 @@ function withHost(initial, run) {
     },
     action(kind, index, view) {
       const game = new GambitGame({ saved: api.save().puzzles.gambit }); game.start();
-      const item = gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index));
-      assert.ok(item?.enabled, `${kind} is an enabled visible control`); api.tap(item.x + item.w / 2, item.y + item.h / 2);
+      const item = gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index));
+      assert.ok(item?.enabled, `${kind} is an enabled visible control`); api.tap(item.hitX ?? item.x + item.w / 2, item.hitY ?? item.y + item.h / 2);
+    },
+    keyboardAction(kind, index, view) {
+      const game = new GambitGame({ saved: api.save().puzzles.gambit }); game.start();
+      const actions = gambitActions(game, view);
+      const focusIndex = actions.findIndex(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index));
+      assert.ok(focusIndex >= 0 && actions[focusIndex].enabled, `${kind} is available to keyboard focus`);
+      api.key('Escape');
+      for (let step = 0; step <= focusIndex; step++) api.key('ArrowRight');
+      api.key('Enter');
     },
     primary: () => findClass('bb-mainbutton'),
     announcements: () => nodes().filter(node => node.attributes.get('aria-live') === 'polite').map(node => node.textContent).join(' '),
@@ -138,11 +147,46 @@ test('bundled booster purchase, keyboard choice, and reload preserve one paid se
     assert.equal(paid.phase, 'pack'); assert.equal(paid.money, money - 4); assert.equal(paid.shop[2].sold, true);
     h.reload(); assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
     assert.deepEqual(h.save().puzzles.gambit, paid, 'reload does not reroll or charge the unopened choice again');
-    h.key('Space'); h.key('ArrowRight'); h.key('Enter');
+    h.key('Space'); h.keyboardAction('packOption', 0);
     assert.equal(h.save().puzzles.gambit.pack.selected, 0, 'keyboard can inspect a pack option');
     h.action('claim'); const saved = h.save().puzzles.gambit;
     assert.equal(saved.phase, 'shop'); assert.ok(saved.jokers.includes(paid.pack.options[0].id));
     assert.equal(saved.money, money - 4); assert.equal(saved.shop[2].sold, true); assert.equal(h.save().tickets, 25);
     h.reload(); assert.deepEqual(h.save().puzzles.gambit, saved, 'claimed Joker and charge survive another reload');
+  });
+});
+
+
+test('bundled fan hit targets and rank/suit sorting preserve the selected cards and run resources', () => {
+  withHost({ tickets: 19, puzzles: { gambit: knownRun().snapshot() } }, h => {
+    h.pick(); h.action('card', 0); h.action('card', 7);
+    const before = h.save().puzzles.gambit;
+    assert.deepEqual(before.selected, [before.hand[0], before.hand[7]], 'exposed fan edges select the intended cards');
+    h.action('sort', 'rank');
+    const ranked = h.save().puzzles.gambit;
+    assert.deepEqual(ranked.selected, before.selected, 'sorting preserves selection by card identity');
+    const rank = id => id % 13 === 0 ? 14 : id % 13 + 1;
+    assert.ok(ranked.hand.every((id, index) => !index || rank(ranked.hand[index - 1]) >= rank(id)));
+    h.action('sort', 'suit');
+    const suited = h.save().puzzles.gambit;
+    assert.ok(suited.hand.every((id, index) => !index || Math.floor(suited.hand[index - 1] / 13) <= Math.floor(id / 13)));
+    for (const field of ['deck', 'discard', 'selected', 'playsLeft', 'discardsLeft', 'score', 'roundScore', 'money', 'rngState'])
+      assert.deepEqual(suited[field], before[field], `${field} is unchanged by hand sorting`);
+    assert.equal(h.save().tickets, 19);
+    h.reload(); assert.deepEqual(h.save().puzzles.gambit.hand, suited.hand, 'sorted order survives reload');
+  });
+});
+
+test('shop offer inspection explains an item before its separate purchase control spends run coins', () => {
+  const game = shopRun();
+  withHost({ tickets: 25, puzzles: { gambit: game.snapshot() } }, h => {
+    h.pick(); const before = h.save().puzzles.gambit;
+    h.action('offer', 0); h.key('Space'); h.key('KeyD'); h.key('Digit1');
+    assert.deepEqual(h.save().puzzles.gambit, before, 'inspecting the card cannot buy it or pass shortcuts through');
+    h.action('buy', 0, { inspection: { offer: 0 } });
+    const after = h.save().puzzles.gambit;
+    assert.equal(after.money, before.money - before.shop[0].price);
+    assert.ok(after.jokers.includes(before.shop[0].id));
+    assert.equal(after.shop[0].sold, true); assert.equal(h.save().tickets, 25);
   });
 });

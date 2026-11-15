@@ -15,6 +15,7 @@ import { drawSimon, drawDuck, drawSlots, simonCell } from './mini-games-render.j
 import { SHOP_CATALOG, SHOP_SLOTS, restoreShop, purchaseReward, equipReward } from './shop.js';
 import { GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand } from './gambit-rules.js';
 import { GambitGame } from './gambit.js';
+import { GAMBIT_SUIT_COLORS, drawGambitCard, drawGambitJoker, drawGambitDeck, drawGambitPack } from './gambit-art.js';
 import { drawGambit, gambitActions, gambitHitAt } from './gambit-render.js';
 
 const ASSETS = /* BUILD_ASSETS */ {};
@@ -560,7 +561,8 @@ export function setup(ctx) {
     if(gambitAnnounce){gambitAnnounce.hidden=activeMode!=='gambit';if(activeMode==='gambit'){
       const preview=gambit.preview(),focused=gambitActions(gambit,{inspection:gambitInspection})[gambitCursor];
       const packChoice=gambit.pack&&Number.isInteger(gambit.pack.selected)?gambitActions(gambit).find(action=>action.kind==='packOption'&&action.index===gambit.pack.selected):null;
-      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${focused?` Focus: ${focused.label}.`:''}`;
+      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide.':null;
+      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
     }}
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
@@ -676,13 +678,17 @@ export function setup(ctx) {
   function gambitAction(action){
     if(!action||action.enabled===false||gambit.status!=='playing')return;
     if(action.kind==='joker')gambitInspection=action.id;
+    else if(action.kind==='offer')gambitInspection={offer:action.index};
+    else if(action.kind==='info')gambitInspection={info:true};
+    else if(action.kind==='deck')gambitInspection={deck:true};
     else if(action.kind==='close')gambitInspection=null;
+    else if(action.kind==='sort')gambit.sortHand(action.mode);
     else if(action.kind==='card')gambit.toggleCard(action.id);
     else if(action.kind==='play')gambit.playHand();
     else if(action.kind==='discard')gambit.discardSelected();
     else if(action.kind==='continue')gambit.continueScore();
     else if(action.kind==='next')gambit.nextRound();
-    else if(action.kind==='buy')gambit.buy(action.index);
+    else if(action.kind==='buy'){gambit.buy(action.index);gambitInspection=null;}
     else if(action.kind==='packOption')gambit.selectPack(action.index);
     else if(action.kind==='claim')gambit.claimPack();
     else if(action.kind==='replace')gambit.replaceJoker(action.index);
@@ -691,7 +697,7 @@ export function setup(ctx) {
     gambitCursor=-1;flushGambit();save();refresh();
   }
   function gambitKey(e){
-    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','Escape'].includes(e.code);
+    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
     if(!recognized)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
     if(e.code==='KeyP'){play();return;}
     if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
@@ -707,6 +713,8 @@ export function setup(ctx) {
       gambitAction(actions[gambitCursor]);return;
     }
     if(gambitInspection)return;
+    if(e.code==='KeyI'){gambitInspection={info:true};refresh();return;}
+    if(e.code==='KeyR'||e.code==='KeyS'){gambit.sortHand(e.code==='KeyR'?'rank':'suit');gambitCursor=-1;flushGambit();save();refresh();return;}
     if(/^(?:Digit|Numpad)[1-8]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[Number(e.code.slice(-1))-1]);
     else if(e.code==='Space'){if(gambit.phase==='score')gambit.continueScore();else if(gambit.phase==='play')gambit.playHand();}
     else if(e.code==='KeyD')gambit.discardSelected();
@@ -873,7 +881,7 @@ export function setup(ctx) {
     shopNotice=create('p','bb-shop-notice','');shopNotice.setAttribute('role','status');shopNotice.setAttribute('aria-live','polite');shopEl.append(shopNotice);
     phoneEl.append(shopEl);root.append(phoneEl);
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label',"Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. Arrows focus any action and Enter activates it. Escape closes Joker details. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.");
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label',"Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.");
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     gambitAnnounce=create('p','bb-sr-only');gambitAnnounce.setAttribute('role','status');gambitAnnounce.setAttribute('aria-live','polite');gameStage.append(gambitAnnounce);
     const plinkoHost=create('div','bb-plinko-host');
@@ -1044,7 +1052,7 @@ export function setup(ctx) {
     const gambitInfo=drawerGamePanel('gambit');
     tip(gambitInfo,'A six-round poker roguelike with twelve original Jokers. Select one to five cards from your eight-card hand, then Play or Discard. Only cards contributing to the detected poker hand score. You get four plays and three discards per round. Score preview includes all current boosts; add-chip effects apply before added Mult, then multiplier boosts. Joker position does not change scoring.');
     tip(gambitInfo,'Clear the target to earn run coins and visit the shop. Buy Jokers or reveal three booster choices and keep one. Upgrade Packs improve a hand category or one particular card. You may equip three Jokers; replace one explicitly when full. Sell Jokers for two run coins. Run coins reset on a new run and never spend or award arcade tickets. All pack choices and purchases survive reload.');
-    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or skips score counting, D discards, P pauses, arrows focus any visible action, Enter activates it, and Escape closes Joker details. Tap a Joker for its full effect. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
+    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or continues score counting, D discards, P pauses, R sorts ranks, S sorts suits, I opens Run Info, arrows focus any visible action, Enter activates it, and Escape closes details. Tap a Joker or shop card for its full effect; use the separate Buy button to purchase. Tap the deck to inspect remaining cards. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){
