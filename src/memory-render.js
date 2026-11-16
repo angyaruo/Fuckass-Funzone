@@ -81,13 +81,17 @@ export function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {})
   const { gap, cw, ch, x0, y0 } = memoryLayout(game.cols, game.rows), r = Math.min(cw, ch) * .4;
   game.cards.forEach((card, i) => {
     const x = x0 + (i % game.cols) * (cw + gap), y = y0 + Math.floor(i / game.cols) * (ch + gap), open = reduced ? (card.up || card.matched || game.preview > 0 ? 1 : 0) : card.turn;
-    rounded(ctx, x, y, cw, ch, 14, '#ffffff55');
+    // Found pairs fade back so the capsules still in play stand out; the ones you just opened glow.
+    if (card.matched) ctx.globalAlpha = .38;
+    rounded(ctx, x, y, cw, ch, 14, card.up && !card.matched ? '#ffffffcc' : '#ffffff55');
+    if (card.up && !card.matched) { ctx.strokeStyle = '#ff7fae'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 14); ctx.stroke(); }
     drawCapsule(ctx, x + cw / 2, y + ch / 2 + r * .15, r, LIDS[i % LIDS.length], open, CHARMS[card.kind], card.matched);
+    ctx.globalAlpha = 1;
     if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
   });
   rounded(ctx, 0, 412, W, 40, 0, '#2c1a33');
   const memorizing = game.status === 'playing' && game.preview > 0;
-  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : memorizing ? `MEMORIZE THE CHARMS · ${Math.ceil(game.preview)}` : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : 'OPEN TWO CAPSULES TO FIND A PAIR', 180, 430, 11, game.status === 'dead' || memorizing ? '#ffe08a' : '#fdf2f7', 'center');
+  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : memorizing ? `MEMORIZE THE CHARMS · ${Math.ceil(game.preview)}` : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : game.faceUp().length === 1 ? 'NOW FIND ITS MATCH' : 'OPEN TWO CAPSULES TO FIND A PAIR', 180, 430, 11, game.status === 'dead' || memorizing ? '#ffe08a' : '#fdf2f7', 'center');
   drawTxt(ctx, memorizing ? 'TAP TO START EARLY' : 'TAP  ·  ARROWS + SPACE', 180, 445, 8, '#bfa9c4', 'center');
   if (game.status === 'dead') overlay(ctx, 'ALL MATCHED!', `${game.moves} turns · ${game.misses} misses · best streak ${game.bestStreak}`, 'PRESS PLAY FOR A NEW TRAY', '#7fcf8a');
   else if (game.status === 'paused') overlay(ctx, 'PAUSED', 'No peeking. Gabu is watching.', 'PRESS PLAY TO RESUME', '#b8a7ff');
