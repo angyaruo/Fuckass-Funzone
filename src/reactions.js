@@ -448,6 +448,491 @@ const SAYINGS=Object.freeze({
    "Zero risk, zero reward, 100% cowardice. Throw a real coin in!",
    "Free play mode. My diagnostic monitor is operating at 2% interest."
   ]
+ },
+ chess:{
+  new_best:[
+   "Your chess score just passed your old record. The kitten union is contesting it.",
+   "Oh, so NOW you know where the pieces go? Logged. Grudgingly.",
+   "That's a new best. Frame it before you hang your queen again.",
+   "Higher than ever?! Who's been feeding you opening theory behind my back?!"
+  ],
+  capture:[
+   "Hey! That kitten had a family. And a tiny hat.",
+   "You took my piece?! I was emotionally invested in that little guy.",
+   "Fine. Take it. My right-eye HUD already filed a grievance.",
+   "Rude. Capturing is so aggressive. Do it again and see what happens.",
+   "That was a sacrifice. Totally planned. Shut up.",
+   "My telemetry says that was a free piece. My pride says it wasn't.",
+   "You're snacking on my kittens like they're appetizers. Disgusting.",
+   "Okay, okay, one piece. The plot armor is still mine.",
+   "Wow. Bullying a plush cat in a party hat. Real protagonist energy.",
+   "I hung that piece on purpose to test you. You passed. Barely."
+  ],
+  gabu_capture:[
+   "Yoink. That kitten works for me now.",
+   "Thank you for the donation. Very generous of you.",
+   "Did you forget pieces can be captured? Because I didn't.",
+   "Nom. My ocular sensor spotted that hanging piece three moves ago.",
+   "Another one for my collection. They look better on my side anyway.",
+   "You left that undefended like an unlocked car with the keys in it.",
+   "Free real estate. Thank you, protagonist.",
+   "Tactics! You've heard of them, right? No? Cool, explains a lot.",
+   "Captured. Put it on my tab, which you are paying.",
+   "That piece is in a better story now. Mine."
+  ],
+  queen_taken:[
+   "MY QUEEN?! SHE HAD A HEART GEM TIARA AND EVERYTHING!",
+   "No no no no. Rewind. I was NOT done with her!",
+   "You took the QUEEN. My diagnostics are flatlining, this is a crime scene.",
+   "Okay, that one actually hurt. Right in the motherboard.",
+   "THE TIARA! You absolute menace, give her back!",
+   "Lost my queen. Cool. Love that. Everything is fine."
+  ],
+  queen_lost:[
+   "YOUR QUEEN IS MINE! Oh, this is the best plot twist all week!",
+   "Tiara secured! Crown me, baby, this game is cooked!",
+   "You left the QUEEN out?! Christmas came early for my diagnostics!",
+   "Queen captured! I'm screenshotting this for the group chat.",
+   "Down goes the queen! Somebody cue the sad violin, I'm framing this one!",
+   "Bye bye, heart gem. That's going on my mantle."
+  ],
+  check:[
+   "Check?! Who gave you permission to look at my king?!",
+   "Okay, okay, my king is FINE. He's just... relocating.",
+   "Warning lights everywhere! Somebody get that king a helmet!",
+   "Personal space! The king has a strict no-touching policy!",
+   "Check. Sure. I saw it coming. I'm totally not sweating.",
+   "That king is my whole storyline! Back off!",
+   "Panic protocol engaged. Don't look at me while I think."
+  ],
+  gabu_check:[
+   "Check! Your king looks nervous. As he should.",
+   "Knock knock. It's me. I'm the problem your king has.",
+   "Check. Better find an exit before I find a mate.",
+   "Your king's hiding spot is terrible, by the way.",
+   "Check! My targeting HUD loves this angle.",
+   "Feeling a little cornered? That's the point.",
+   "Hey, king. Nice crown. Shame about the bodyguards."
+  ],
+  castle:[
+   "Castling? Look at you, tucking the king in for a nap.",
+   "Oh, we're doing safety now? Cute. Responsible. Boring.",
+   "King in the corner, rook in the middle. Textbook. Ugh.",
+   "Castled. Fine. Hide him. I'll find him anyway.",
+   "Fancy king shuffle! Somebody read a beginner's guide."
+  ],
+  promote:[
+   "A PAWN BECAME A QUEEN?! That's the most unhinged glow-up I've ever seen!",
+   "Kitten to queen speedrun! Who let that walk all the way down?!",
+   "Promotion?! I was not tracking that tiny guy at all. Unbelievable.",
+   "Congrats on your new queen. I hate her already.",
+   "That kitten got a tiara AND a promotion. I didn't even get a raise."
+  ],
+  win:[
+   "CHECKMATE?! On ME?! Run the tape back, my frame rate dipped!",
+   "No way. NO WAY. My king has nowhere to nap. I'm going to scream.",
+   "You ACTUALLY beat me?! I'm updating your file to 'Genuinely Dangerous'!",
+   "CATMATE! Okay, that was clean. I hate how clean that was.",
+   "My right eye just BLUE-SCREENED! Fine! You win! THIS TIME!",
+   "MATE?! Somebody unplug me, I can't watch the replay!",
+   "I lost to a kitten in a party hat. This is the worst arc of my life.",
+   "That was a real checkmate. Not a fluke. I'm furious and impressed."
+  ],
+  death:[
+   "CHECKMATE! You walked your king into a box and TAPED IT SHUT!",
+   "MATE! Did you think the king was decorative?! He was the WHOLE GAME!",
+   "CATMATE, BABY! My right eye called this eight moves ago and you just let it happen!",
+   "Your king is boxed in like a cat in a shipping crate. Pathetic. Rematch.",
+   "THAT'S MATE! Every single one of your kittens just watched you choke!",
+   "Checkmate. Logging this under 'protagonist forgot how chess works'.",
+   "GAME OVER! You blundered so hard the board needs a therapist!",
+   "Mate in the books! Write it in your little notebook of losses, dumbass."
+  ],
+  draw:[
+   "A draw? We argued in circles for ten minutes for NOTHING?",
+   "Stalemate. Nobody wins, everybody's tired, the kittens want snacks.",
+   "Draw. My diagnostics refuse to process this anticlimax.",
+   "That ending had zero narrative payoff. Unacceptable.",
+   "Even split. I'm still counting it as a moral victory for me."
+  ],
+  undo:[
+   "Takebacks? In MY arcade? Fine. I'm writing it down.",
+   "Undoing a move? Coward. Commit to your mistakes like I do.",
+   "Rewind accepted. My memory banks still saw that blunder.",
+   "Time travel in chess. Very sporting. Very fair. Wow.",
+   "Undo again? Your king should charge rent for all this time travel.",
+   "Retcon detected. The kittens remember everything."
+  ]
+ },
+ berry:{
+  new_best:[
+   "Your berry score just outgrew your old record. My blueberries want a lawyer.",
+   "Look at that number. Who taught you diagonals, and can I have them deported?",
+   "Best score yet. Enjoy it while it's still juicy.",
+   "A record in a FRUIT game. Weirdly menacing of you, honestly."
+  ],
+  block:[
+   "You saw that?! I was SO close to four!",
+   "Blocked. Fine. I had that column locked in for later anyway.",
+   "Who taught you defense? Unsubscribe from them.",
+   "Rude. That was going to be my big winning moment.",
+   "Okay, so you can count to four. Congratulations.",
+   "Stop plugging my holes, this is a berry basket, not a dam!",
+   "Ugh. My beautiful blueberry line, ruined by one strawberry."
+  ],
+  gabu_block:[
+   "Nice try. I saw that three-in-a-row from orbit.",
+   "Blocked! Your strawberry dream dies here.",
+   "Did you think I'd just let you have that? Cute.",
+   "Denied. My targeting HUD doesn't blink.",
+   "Not today, shortcake. Not today.",
+   "Blocked. Try being less obvious next time."
+  ],
+  gabu_threat:[
+   "Psst. You see it, right? Please tell me you see it.",
+   "One column away from victory. No pressure.",
+   "I've got a line cooking. Better find it fast.",
+   "My blueberries are lining up. Tick tock, protagonist.",
+   "Something smells like a four-in-a-row. And it's mine."
+  ],
+  fork:[
+   "TWO threats?! That's illegal! Probably! Let me check!",
+   "Oh no. Oh no no. I can only block one of those!",
+   "A double threat?! Who are you and what did you do with the amateur?",
+   "My right eye is tracking two lines and both of them hate me.",
+   "That's a fork. I'm about to eat this loss with it."
+  ],
+  win:[
+   "FOUR STRAWBERRIES?! My blueberries are in shambles!",
+   "You connected FOUR?! My sensor lagged! It LAGGED!",
+   "That diagonal came out of NOWHERE. Respect. Hatred. Both.",
+   "Okay! Fine! Strawberries win this round! Next!",
+   "A whole line of strawberries?! My diagnostics are screaming into a pillow!",
+   "Another round to you?! Your streak is getting suspicious."
+  ],
+  death:[
+   "FOUR BLUEBERRIES! You let me line up four like it was a TUTORIAL!",
+   "CONNECTED! I literally built that right in front of your face!",
+   "And that's four! My cyber eye never misses a line, and you never see one!",
+   "Streak DEAD! Put your sad little strawberries back in the fridge!",
+   "You had ONE job. Block the column. You did NOT block the column!",
+   "GAME! That diagonal sat there for three turns! What were you looking at?!"
+  ],
+  draw:[
+   "A full basket and nobody won? This is the dullest fruit salad ever.",
+   "Draw. Forty-two berries and zero winners. Tragic.",
+   "Stalemate in a berry basket. Nobody tell the group chat.",
+   "Even. Boring. Next round, I'm actually trying."
+  ]
+ },
+ tictac:{
+  new_best:[
+   "A record in tic-tac-toe. Put it on your resume right under 'can tie shoes'.",
+   "Somehow your pocky stacked up a new best. The donuts demand an investigation.",
+   "Best score yet, nerd. Nine squares and you're acting like it's the Olympics.",
+   "New record, huh? Enjoy it. Donuts are patient. Donuts are eternal."
+  ],
+  block:[
+   "Hey! That was my winning square!",
+   "Blocked. Ugh. I wanted that donut line so bad.",
+   "Who told you about the diagonal? Snitches.",
+   "Fine. You can see three things in a row. Gold star.",
+   "My donut plan got foiled by a pocky stick. Humiliating."
+  ],
+  gabu_block:[
+   "Nope. That square is mine now.",
+   "Blocked! Hands off my donuts.",
+   "Cute line. Shame about the donut in the way.",
+   "Denied! I've played this since my firmware was in diapers.",
+   "You thought? You thought. Adorable."
+  ],
+  fork:[
+   "Two ways to win?! That's a fork! Rude!",
+   "Wait. Wait. I can only block one of those. Damn it.",
+   "You set a trap in tic-tac-toe?! Who raised you?!",
+   "My diagnostics see two lines and zero solutions. Ugh."
+  ],
+  win:[
+   "THREE POCKY?! In tic-tac-toe?! I'm deleting my settings.",
+   "You beat me at the SIMPLEST GAME EVER MADE?! I need a minute!",
+   "A FORK?! I fell for a FORK?! Don't you dare tell anyone!",
+   "Win for the pocky! I'm recalibrating my donut strategy.",
+   "Pocky line complete?! Clean! Annoying! CLEAN!"
+  ],
+  death:[
+   "THREE DONUTS! You lost TIC-TAC-TOE! The game TODDLERS draw!",
+   "Glazed and defeated! How do you even LOSE this?!",
+   "Lost at tic-tac-toe. To me. Sit with that. For a while.",
+   "Donut line! I didn't even need my right eye for that one!",
+   "Streak over! Outplayed by pastry! PASTRY!"
+  ],
+  draw:[
+   "Cat's game. Nobody ate anything. Tragic.",
+   "Draw. As the ancient scrolls foretold.",
+   "Tic-tac-toe draw. Somewhere a math teacher is nodding.",
+   "Nobody wins. Nobody learned anything. Next round.",
+   "Another draw. My cooling fan just yawned."
+  ]
+ },
+ cake:{
+  land:[
+   "Off-center. The cake noticed.",
+   "Sloppy drop. The tower is already gossiping about it.",
+   "That tier landed crooked. Aim with your eyes open.",
+   "Not perfect. Not even close. Keep stacking."
+  ],
+  new_best:[
+   "Tallest cake you've ever stacked! Keep going, I want it touching the ceiling fan!",
+   "The bakery is printing commemorative napkins. New record height.",
+   "Past your old best. Don't get cocky, butter fingers.",
+   "Record cake! My altimeter is drooling!"
+  ],
+  perfect:[
+   "Perfect stack. Okay, pastry chef, I see you.",
+   "Dead center. My right-eye level tool approves.",
+   "That frosting landed like it had a GPS.",
+   "Clean drop. The cake is impressed. I am mildly impressed.",
+   "Perfect tier. Don't let it go to your sponge."
+  ],
+  combo:[
+   "PERFECT STREAK! This cake is going to space!",
+   "Perfect after perfect?! Who are you, a bakery robot?!",
+   "Combo! My telemetry says this tower is structurally gorgeous!",
+   "Stacking like a professional! Somebody call the bake-off!",
+   "That's a perfect chain! Keep it steady, I'm getting hungry!"
+  ],
+  miss:[
+   "That tier hit the FLOOR. The five second rule does not apply to cake.",
+   "SPLAT. Do you know how long frosting takes?!",
+   "You missed the whole cake! It was RIGHT THERE!",
+   "Cake on the floor. My ocular sensor is grieving.",
+   "That's a waste of perfectly good sponge, you monster.",
+   "Gravity: one. Dessert: zero. You: in trouble."
+  ],
+  wobble:[
+   "IT'S WOBBLING! Nail a perfect drop and calm this jelly down!",
+   "Uh oh. That tower is doing the jelly dance.",
+   "Lean detected. A LOT of lean. Good luck aiming at a moving target, protagonist.",
+   "The top tier won't sit still! That's what sloppy drops buy you!",
+   "This cake is swaying like it had too much rum syrup!"
+  ],
+  milestone:[
+   "That's a wedding cake now. Who's getting married? Not you.",
+   "Look how tall! My telemetry needs to scroll up!",
+   "New altitude! The birds are asking for slices!",
+   "Tier milestone! The cake is touching the clouds, holy shit!",
+   "This tower is taller than my patience. Keep going!"
+  ],
+  death:[
+   "THE CAKE! NOOO! All that frosting, splattered on the floor!",
+   "Three tiers on the floor, protagonist. THREE. Out of hearts and out of cake!",
+   "Out of cake! My diagnostics are crying sprinkles over your aim!",
+   "That's three tiers in the trash! Gravity didn't even have to try!",
+   "SHOP'S CLOSED! That was a disaster, and it smelled AMAZING, which makes it worse!"
+  ]
+ },
+ bubble:{
+  pop:[
+   "Pop. Basic. Keep going.",
+   "A tiny pop. The ceiling barely noticed.",
+   "Popped. Don't expect confetti.",
+   "Cool. Now pop something that actually matters."
+  ],
+  new_best:[
+   "Past your old bubble record! Your aim finally stopped being a crime!",
+   "Look who's popping better than ever. My sensors are fizzing.",
+   "New best on the board. The bubbles are drafting a peace treaty.",
+   "That's a record, so obviously this is where you choke. Prove me wrong."
+  ],
+  big_pop:[
+   "Big pop! Look at all those bubbles go!",
+   "That many at once?! What a satisfying little crunch!",
+   "Pop pop POP! My ocular sensor loves the sparkle.",
+   "Cluster cleared! That's some quality aim, protagonist.",
+   "Big burst! Keep popping, the ceiling is watching."
+  ],
+  avalanche:[
+   "AVALANCHE! You cut the string and everything fell!",
+   "Holy shit, the whole chunk dropped! That was filthy!",
+   "Look at them fall! Gravity is doing your homework!",
+   "You popped the anchor! That's big brain bubble physics!",
+   "Bubble rain! My telemetry can't count that fast!"
+  ],
+  miss:[
+   "That bubble just stuck there. No pop. Sad.",
+   "Missed. The bubbles are laughing at you. Quietly.",
+   "Wrong color, wrong spot, wrong vibe.",
+   "Bank it off the wall next time. Walls are free.",
+   "That shot needed a match. It found a lonely corner."
+  ],
+  ceiling:[
+   "New row incoming! The ceiling is getting clingy!",
+   "Everything just moved down! Pop faster!",
+   "The bubbles are creeping! I do NOT like how close that is.",
+   "Row added! That's what missing gets you!",
+   "Ceiling drop! Personal space is shrinking!"
+  ],
+  clear:[
+   "BOARD CLEARED! Not a single bubble left! Next level!",
+   "Pristine! You popped EVERYTHING! Who's the bubble royalty now?!",
+   "Clean sweep! My diagnostics just did a happy little spin!",
+   "Level cleared! The bubbles have been defeated! For now!",
+   "All popped! That was gorgeous. Do it again!"
+  ],
+  death:[
+   "BUBBLE OVERFLOW! They touched the line! You let them TOUCH THE LINE!",
+   "Game over! The bubbles have taken the arcade and it's YOUR fault!",
+   "They reached the bottom! Too many misses, protagonist! WAY too many!",
+   "Overflow! My ocular sensor is drowning in your bad aim!",
+   "Bubbles win! You lose! I'm going to go pop something to cope!"
+  ]
+ },
+ boop:{
+  boop:[
+   "Boop. Somewhere a bunny felt that.",
+   "Another bun booped. Gold star. A tiny one.",
+   "You booped a bunny. The bar was on the floor.",
+   "Keep booping. That's the whole game, protagonist."
+  ],
+  new_best:[
+   "Your finger is a registered weapon now. That's a new best.",
+   "The bunnies are filing for witness protection. New record, you menace.",
+   "Booping at Mach 2 and breaking records, holy shit!",
+   "Best score yet! Keep booping, don't you dare slow down now!"
+  ],
+  gold:[
+   "GOLDEN BUNNY! You booped the rich one!",
+   "A golden boop! My right eye just registered pure treasure.",
+   "Shiny bun secured! Fifty points of premium fluff.",
+   "Gold bunny booped! Gently! Lovingly! Profitably!",
+   "You booped the VIP. The whole garden is in awe."
+  ],
+  combo:[
+   "Unbroken boops! Your finger is a precision instrument!",
+   "Combo streak! The bunnies are filing a group complaint!",
+   "Boop machine! My telemetry can't keep up with you!",
+   "Unbroken streak! That's elite booping, protagonist.",
+   "Look at that rhythm. Boop, boop, boop. Legend."
+  ],
+  bot:[
+   "HEY! That's MY drone! Hands off the hardware!",
+   "You booped my bot?! That's a twenty point fine, buddy.",
+   "Gotcha. My decoy worked perfectly. Minus twenty.",
+   "Did that look like a bunny to you? It has an ANTENNA.",
+   "My poor little robot. Its LED is crying.",
+   "Booping Gabu tech is a crime in this garden."
+  ],
+  escape:[
+   "That bunny just strolled away. Free as a breeze.",
+   "Missed one! It's back underground, judging you.",
+   "Too slow. That bunny clocked out for the day.",
+   "It escaped! Somewhere a bunny is laughing.",
+   "Bunny got away. Your combo went with it."
+  ],
+  whiff:[
+   "You booped dirt. The dirt is unimpressed.",
+   "Nothing there! Just an empty hole and your shame.",
+   "Air boop. Very aerodynamic, zero bunnies.",
+   "That was a hole. Holes don't count.",
+   "Swing and a miss! The garden saw that."
+  ],
+  death:[
+   "TIME'S UP! That's it?! The bunnies are laughing at your score!",
+   "Round over! Half those bunnies strolled off untouched, you absolute slowpoke!",
+   "Clock's out! My ocular sensor counted every boop and every miss. MOSTLY misses.",
+   "That's time! The garden is closed and your reflexes are under review!",
+   "DONE! Fur everywhere, dignity nowhere!"
+  ]
+ },
+ wafer:{
+  pull:[
+   "Wafer out. Tower still standing. For now.",
+   "Fine. That one didn't kill us.",
+   "A pull. Not clean, not a crime. Next.",
+   "Still up. My right eye is tracking every wobble."
+  ],
+  new_best:[
+   "Steadiest hands in the arcade, apparently. New record.",
+   "The tower respects you. I don't. But the tower does. New best.",
+   "That's a record! Don't celebrate yet, the next pull is mine to ruin.",
+   "Are you secretly a surgeon? Blink twice. That's your best score ever."
+  ],
+  perfect:[
+   "Clean pull. Show-off.",
+   "Smooth as frosting. Not one crumb even twitched.",
+   "Surgical. Are your hands made of gyroscopes?",
+   "Perfect pull. Okay, wafer whisperer, I see you.",
+   "That wafer slid out like it wanted to leave."
+  ],
+  risky:[
+   "OH it's leaning. It's LEANING. Why did you do that?!",
+   "That pull made the whole tower gasp. Me too.",
+   "My telemetry says that tower is held up by vibes now.",
+   "Careful! One more shaky paw and it's crumbs everywhere!",
+   "You made it wobble and now I have to touch it next?!"
+  ],
+  gabu_risky:[
+   "Okay, that was shaky. Don't look at me. Don't look at the tower.",
+   "Totally meant to make it wobble. Raising the stakes. Yep.",
+   "My paws are fine. The tower is being dramatic.",
+   "Uh. Your turn. Good luck. Not my problem anymore."
+  ],
+  win:[
+   "NO! It fell on MY pull?! The table is uneven! I demand a recount!",
+   "CRUMBS! EVERYWHERE! And they're all MY fault?!",
+   "My servos calculated that pull PERFECTLY! The wafers BETRAYED me!",
+   "I toppled it?! Delete this from the timeline immediately.",
+   "That tower was cursed and you KNEW it. Round to you."
+  ],
+  death:[
+   "CRASH! Wafers everywhere and it's ALL on you!",
+   "TOPPLED! You pulled the one wafer holding the whole tower up! Genius!",
+   "Down it goes! My paws stay steady and yours stay a crime!",
+   "That was the wrong wafer! Every part of that was the wrong wafer!",
+   "Streak OVER! The tower has chosen its villain, and it's YOU!"
+  ]
+ },
+ memory:{
+  new_best:[
+   "Who installed extra RAM in you?! That's a Gacha Match record!",
+   "Your memory just beat its own best. Who are you studying for?",
+   "Record set. The charms have nowhere left to hide.",
+   "Best score ever. Don't forget it. Oh wait, you won't. Freak."
+  ],
+  match:[
+   "A pair! Your memory works. Sometimes.",
+   "Match found. Don't let it go to your hippocampus.",
+   "Two of a kind. Cute. Keep going.",
+   "Nice. Those charms are reunited and emotional about it.",
+   "Matched! My right eye recorded that as competent."
+  ],
+  streak:[
+   "ANOTHER PAIR?! Who gave you a photographic memory?!",
+   "Streak! You're cracking capsules like you peeked. Did you peek?",
+   "Combo! My diagnostics suspect you have RAM upgrades.",
+   "Look at that memory go! Okay, I'm actually impressed.",
+   "Match streak! The charms are scared of you now."
+  ],
+  forgot:[
+   "You SAW that charm! Like two capsules ago! I watched you see it!",
+   "Memory lapse detected. Rebooting your brain cell.",
+   "That pair was RIGHT THERE. My ocular sensor is screaming.",
+   "Did you forget already? Bold of you to play a memory game.",
+   "Wrong capsule. You knew this. We both knew this."
+  ],
+  miss:[
+   "Wrong pair. Remember where they live this time.",
+   "Nope. Those two have never even met.",
+   "Miss. The charms shrugged at you.",
+   "Wrong pair. Write it down. Mentally. Please."
+  ],
+  win:[
+   "ALL PAIRS FOUND! Your memory is genuinely terrifying!",
+   "Tray cleared! Every charm reunited! I'm emotional!",
+   "Cleared! My right eye couldn't have done it better. Probably.",
+   "Full tray! Somebody put this in a museum!",
+   "Done! Your brain cells deserve a capsule of their own."
+  ]
  }
 });
 const MOODS=Object.freeze({idle:'gabu_smug',smug:'gabu_smug',annoyed:'gabu_annoyed',hype:'gabu_hype',panic:'gabu_panic',dizzy:'gabu_dizzy',sleepy:'gabu_sleepy',shock:'gabu_shock',magnate:'gabu_magnate'});
@@ -468,7 +953,50 @@ export class ReactionDirector {
   if(event==='match'&&game==='match3'&&count%4!==1)return null;
   if(event==='invalid_swap'&&count%3!==1)return null;
   if(event==='move'&&game==='2048'&&count%20!==0)return null;
-  if(event==='special_created'){mood='hype';priority=3;}
+  if(game==='chess'&&(event==='capture'||event==='gabu_capture')&&count%2!==1)return null;
+  if((game==='berry'||game==='tictac')&&['block','gabu_block','gabu_threat'].includes(event)&&count%2!==1)return null;
+  if(game==='cake'&&event==='perfect'&&count%3!==1)return null;
+  if(game==='cake'&&event==='combo'&&data?.combo!==3&&data?.combo%5!==0)return null;
+  if(game==='bubble'&&event==='miss'&&count%4!==1)return null;
+  if(game==='boop'&&(event==='escape'||event==='whiff')&&count%4!==1)return null;
+  if(game==='wafer'&&event==='perfect'&&count%2!==1)return null;
+  if(game==='memory'&&event==='match'&&count%3!==1)return null;
+  if(game==='memory'&&event==='miss'&&count%4!==1)return null;
+  if(game==='bubble'&&event==='pop'&&count%4!==1)return null;
+  if(game==='boop'&&event==='boop'&&count%8!==0)return null;
+  if(game==='wafer'&&event==='pull'&&count%3!==1)return null;
+  if(game==='cake'&&event==='land'&&count%3!==1)return null;
+  // Where Gabu is the opponent, the result is Gabu's own: a player win is Gabu losing (panic), a player loss is Gabu winning (hype).
+  const rival=game==='chess'||game==='berry'||game==='tictac'||game==='wafer';
+  if(rival&&event==='win'){mood='panic';priority=5;duration=3.8;}
+  else if(rival&&event==='death'){mood='hype';priority=5;duration=3.8;}
+  else if(event==='draw'){mood='dizzy';priority=4;duration=3.4;}
+  else if(event==='queen_taken'||event==='promote'){mood='shock';priority=4;}
+  else if(event==='queen_lost'){mood='hype';priority=4;}
+  else if(event==='check'||event==='fork'){mood='panic';priority=3;}
+  else if(['gabu_check','gabu_capture','gabu_block','gabu_threat','castle'].includes(event)){mood='smug';priority=2;}
+  else if(event==='capture'||event==='block'){mood='annoyed';priority=2;}
+  else if(event==='miss'&&game==='cake'){mood='annoyed';priority=3;}
+  else if(event==='miss'&&game==='bubble'){mood='annoyed';priority=2;}
+  else if(event==='perfect'){mood='smug';priority=1;}
+  else if(event==='combo'||event==='big_pop'){mood='hype';priority=3;}
+  else if(event==='milestone'){mood='hype';priority=4;duration=3.4;}
+  else if(event==='clear'){mood='hype';priority=5;duration=3.8;}
+  else if(event==='wobble'){mood='panic';priority=4;}
+  else if(event==='ceiling'){mood='panic';priority=3;}
+  else if(event==='avalanche'){mood='shock';priority=4;}
+  else if(event==='gold'){mood='hype';priority=3;}
+  else if(event==='bot'){mood='annoyed';priority=3;}
+  else if(event==='escape'){mood='smug';priority=1;}
+  else if(event==='whiff'){mood='annoyed';priority=1;}
+  else if(event==='risky'){mood='panic';priority=4;}
+  else if(event==='gabu_risky'){mood='dizzy';priority=3;}
+  else if(event==='forgot'){mood='annoyed';priority=3;}
+  else if(event==='match'){mood='smug';priority=1;}
+  else if(event==='streak'){mood='hype';priority=3;}
+  else if(event==='miss'&&game==='memory'){mood='annoyed';priority=1;}
+  else if(event==='land'&&game==='cake'){mood='annoyed';priority=1;}
+  else if(event==='special_created'){mood='hype';priority=3;}
   else if(event==='no_moves'){mood='shock';priority=6;duration=4.2;}
   else if(event==='cascade'||event==='win'||event==='new_best'){mood='hype';priority=5;duration=3.8;}
   else if(event==='special_triggered'){mood='shock';priority=4;}
