@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { TicTacTreatsGame, tictacLine, tictacThreats, chooseTictacCell } from '../src/tictac.js';
 import { tictacCellAt, drawTicTacTreats } from '../src/tictac-render.js';
 
-test('Sharp Gabu never loses Tic Tac Treats against any sequence of player moves', () => {
+test('Hard Gabu never loses Tic Tac Treats against any sequence of player moves', () => {
   let games = 0;
   function explore(board, turn) {
     const line = tictacLine(board);
     if (line) { assert.notEqual(board[line[0]], 1, `player won with ${board.join('')}`); games++; return; }
     if (board.every(Boolean)) { games++; return; }
-    if (turn === 2) { const next = [...board]; next[chooseTictacCell(board, 'sharp', () => .5)] = 2; explore(next, 1); return; }
+    if (turn === 2) { const next = [...board]; next[chooseTictacCell(board, 'hard', () => .5)] = 2; explore(next, 1); return; }
     for (let i = 0; i < 9; i++) if (!board[i]) { const next = [...board]; next[i] = 1; explore(next, 2); }
   }
   explore(Array(9).fill(0), 1); explore(Array(9).fill(0), 2);
@@ -17,9 +17,9 @@ test('Sharp Gabu never loses Tic Tac Treats against any sequence of player moves
 });
 
 test('every level takes a win, and Chill sometimes misses a block', () => {
-  for (const level of ['chill', 'normal', 'sharp']) assert.equal(chooseTictacCell([2, 2, 0, 1, 1, 0, 0, 0, 0], level, () => .01), 2);
+  for (const level of ['chill', 'normal', 'hard']) assert.equal(chooseTictacCell([2, 2, 0, 1, 1, 0, 0, 0, 0], level, () => .01), 2);
   const rolls = [.01, .99]; assert.equal(chooseTictacCell([1, 1, 0, 0, 2, 0, 0, 0, 0], 'chill', () => rolls.shift()), 8, 'a low roll lets Chill pick any open square');
-  assert.equal(chooseTictacCell([1, 1, 0, 0, 2, 0, 0, 0, 0], 'sharp', () => .01), 2);
+  assert.equal(chooseTictacCell([1, 1, 0, 0, 2, 0, 0, 0, 0], 'hard', () => .01), 2);
   assert.deepEqual(tictacThreats([1, 1, 0, 0, 0, 0, 0, 0, 0], 1), [2]);
 });
 

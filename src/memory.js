@@ -1,17 +1,17 @@
-/** Sticker Match: flip cards two at a time and find every pair of cute stickers.
- * Pure rules: no DOM or Spindle APIs. Cards run row-major from the top-left.
+/** Gacha Match: open gacha capsules two at a time and find every pair of matching charms.
+ * Pure rules: no DOM or Spindle APIs. Capsules run row-major from the top-left.
  */
-export const STICKERS = Object.freeze(['star', 'moon', 'rainbow', 'cloud', 'mushroom', 'flower', 'planet', 'ghost', 'cherry', 'sun']);
+export const CHARMS = Object.freeze(['star', 'moon', 'rainbow', 'cloud', 'mushroom', 'flower', 'planet', 'ghost', 'cherry', 'sun']);
 export const MEMORY_SIZES = Object.freeze({ cozy: [4, 3], classic: [4, 4], busy: [5, 4] });
 const SIZE_BONUS = Object.freeze({ cozy: 100, classic: 200, busy: 320 });
-// Seconds to memorize the face-up page before it turns over. Bigger pages get more time but less per card, so Busy stays the hardest.
+// Seconds to memorize the open capsules before they close. Bigger trays get more time but less per capsule, so Busy stays the hardest.
 export const MEMORY_PREVIEW = Object.freeze({ cozy: 3, classic: 3.5, busy: 4 });
 const PEEK = .9;
 const size = value => Object.hasOwn(MEMORY_SIZES, value) ? value : 'classic';
 const unit = random => Math.max(0, Math.min(.999999999, Number(random()) || 0));
 const whole = (value, max) => Number.isSafeInteger(value) && value >= 0 && value <= max;
 
-export class StickerMatchGame {
+export class GachaMatchGame {
   constructor({ random = Math.random, onEvent = () => {}, saved, pace: chosen = 'classic' } = {}) {
     this.random = random; this.onEvent = onEvent; this.size = size(chosen); this.reset(); if (saved) this.restore(saved);
   }
@@ -19,7 +19,7 @@ export class StickerMatchGame {
   get pace() { return this.size; }
   reset(chosen = this.size) {
     this.size = size(chosen); const [cols, rows] = MEMORY_SIZES[this.size], pairs = cols * rows / 2;
-    const kinds = STICKERS.slice(0, pairs).flatMap((_, i) => [i, i]);
+    const kinds = CHARMS.slice(0, pairs).flatMap((_, i) => [i, i]);
     for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(unit(this.random) * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
     this.cards = kinds.map(kind => ({ kind, up: false, matched: false, seen: false, turn: 0 }));
     this.status = 'idle'; this.score = 0; this.moves = 0; this.misses = 0; this.matches = 0; this.streak = 0; this.bestStreak = 0;
@@ -78,7 +78,7 @@ export class StickerMatchGame {
     const dt = Math.min(delta, .12);
     for (const c of this.cards) c.turn = Math.max(0, Math.min(1, c.turn + (c.up || c.matched || this.preview > 0 ? dt : -dt) * 7));
     if (this.status !== 'playing') return;
-    // The clock waits while the page is face up for memorizing.
+    // The clock waits while the capsules are open for memorizing.
     if (this.preview > 0) { this.preview = Math.max(0, this.preview - dt); if (this.preview === 0) this.onEvent('preview_end'); return; }
     this.elapsed = Math.min(99999, this.elapsed + dt);
     if (this.hide > 0) { this.hide -= dt; if (this.hide <= 0) this.coverMisses(); }
@@ -96,7 +96,7 @@ export class StickerMatchGame {
       !whole(data.score, 999999999) || !whole(data.moves, 1000000) || !whole(data.misses, 1000000) || !whole(data.streak, 1000) || !whole(data.bestStreak, 1000) ||
       !Number.isFinite(data.elapsed) || data.elapsed < 0 || data.elapsed > 99999 || !whole(data.cursor, count - 1) ||
       !['idle', 'paused', 'playing', 'dead'].includes(data.status)) return false;
-    // Every sticker appears exactly twice, and pairs are matched together.
+    // Every charm appears exactly twice, and pairs are matched together.
     for (let k = 0; k < count / 2; k++) {
       const where = data.kinds.flatMap((v, i) => v === k ? [i] : []);
       if (where.length !== 2 || data.matched[where[0]] !== data.matched[where[1]]) return false;

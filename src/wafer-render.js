@@ -25,7 +25,7 @@ export function drawWafer(ctx, x, y, w, h, flavor, crossed) {
   ctx.restore();
   ctx.strokeStyle = line; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(x + .5, y + .5, w - 1, h - 1, Math.min(5, h / 3)); ctx.stroke();
 }
-const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', sharp: 'SHARP GABU' });
+const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
 export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);

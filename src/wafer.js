@@ -2,7 +2,7 @@
  * A steady-hand meter decides how cleanly each wafer comes out. Whoever topples the tower loses the round.
  * Pure rules: no DOM or Spindle APIs. Layers run bottom to top; each holds a left, middle and right wafer.
  */
-export const WAFER_LEVELS = Object.freeze(['chill', 'normal', 'sharp']);
+export const WAFER_LEVELS = Object.freeze(['chill', 'normal', 'hard']);
 export const WAFER_START_LAYERS = 12;
 // Shared geometry, so falling wafers land on the same saucer and table the renderer draws.
 // One export per line: the bundler lifts each exported name into the shared scope.
@@ -14,8 +14,8 @@ export const SAUCER_RX = 100;
 export const layerHeight = count => Math.min(22, 290 / count);
 export const waferCenterX = slot => 180 + (slot - 1) * (WAFER_W + WAFER_GAP);
 // How steady Gabu's own paws are at each level: the worst pull quality Gabu can roll.
-const GABU_HAND = Object.freeze({ chill: .3, normal: .55, sharp: .8 });
-const LEVEL_BONUS = Object.freeze({ chill: 60, normal: 120, sharp: 220 });
+const GABU_HAND = Object.freeze({ chill: .3, normal: .55, hard: .8 });
+const LEVEL_BONUS = Object.freeze({ chill: 60, normal: 120, hard: 220 });
 // Wobble physics: what a sloppy pull adds, how much each new wafer on top settles it, and how much height alone adds.
 const TOPPLE = 100, SHAKE = 40, SETTLE = 7, HEIGHT = .3;
 const level = value => WAFER_LEVELS.includes(value) ? value : 'normal';
@@ -127,7 +127,7 @@ export class WobblyWafersGame {
       if (!on) return;
       const up = r - this.breakRow;
       this.crumbs.push({ x: waferCenterX(s) + this.lean() * r / n, y: WAFER_BASE - (r + .5) * lh, h: lh - 2, vx: side * (35 + up * 14) + (s - 1) * 12 + (unit(this.random) - .5) * 50, vy: -20 - up * 3,
-        side, spin: 0, spinRate: side * (1.2 + up * .15), flavor: r + s, crossed: r % 2 === 1, rest: false });
+        side, spin: 0, spinRate: side * (.6 + up * .05), flavor: r + s, crossed: r % 2 === 1, rest: false });
     });
     if (who === 2) {
       this.result = 'win'; this.wins++;
@@ -143,7 +143,7 @@ export class WobblyWafersGame {
     }
     const safe = options.filter(o => o.risk !== Infinity), pool = safe.length ? safe : options;
     if (this.level === 'chill' && unit(this.random) < .12) return options[Math.floor(unit(this.random) * options.length)];
-    const noise = this.level === 'sharp' ? 1 : this.level === 'normal' ? 4 : 8;
+    const noise = this.level === 'hard' ? 1 : this.level === 'normal' ? 4 : 8;
     return pool.map(o => ({ ...o, score: o.risk + unit(this.random) * noise })).sort((a, b) => a.score - b.score)[0];
   }
   /** Falling wafers land on the standing stump, the saucer, the table, or a wafer that already landed, then slide to a stop. */
@@ -151,7 +151,8 @@ export class WobblyWafersGame {
     const n = this.layers.length, stumpTop = WAFER_BASE - (this.breakRow + 1) * layerHeight(n), stumpHalf = 1.5 * WAFER_W + WAFER_GAP;
     for (const c of this.crumbs) {
       if (c.rest) continue;
-      c.vy += 900 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.spin += c.spinRate * dt;
+      // A falling wafer tips a little, never more than a gentle tilt, so nothing flips or spins on screen.
+      c.vy += 900 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.spin = Math.max(-.45, Math.min(.45, c.spin + c.spinRate * dt));
       const onStump = Math.abs(c.x - 180) <= stumpHalf;
       let floor = onStump ? stumpTop : Math.abs(c.x - 180) <= SAUCER_RX ? WAFER_BASE : WAFER_TABLE, under = null;
       if (!onStump) for (const r of this.crumbs) if (r !== c && r.rest && Math.abs(r.x - c.x) < WAFER_W * .9 && r.y - r.h / 2 < floor) { floor = r.y - r.h / 2; under = r; }
@@ -163,8 +164,9 @@ export class WobblyWafersGame {
       // Otherwise it tumbles on, away from the tower, and one that tumbles off the table's edge is gone.
       if (under && (under.level >= 1 || Math.abs(c.x - under.x) > WAFER_W * .35)) { c.vy = 0; c.vx = c.side * Math.max(Math.abs(c.vx), 70); continue; }
       if (c.vy > 300) { c.vy = -c.vy * .2; c.vx *= .6; continue; }
-      c.vy = 0; c.vx *= .5; c.spin = Math.round(c.spin / Math.PI) * Math.PI; c.spinRate = 0;
-      if (Math.abs(c.vx) < 10) { c.vx = 0; c.rest = true; c.level = under ? under.level + 1 : 0; }
+      // On the ground it settles flat over a few frames instead of snapping.
+      c.vy = 0; c.vx *= .5; c.spinRate = 0; c.spin *= Math.max(0, 1 - dt * 12);
+      if (Math.abs(c.vx) < 10 && Math.abs(c.spin) < .02) { c.vx = 0; c.spin = 0; c.rest = true; c.level = under ? under.level + 1 : 0; }
     }
     this.crumbs = this.crumbs.filter(c => c.x > -WAFER_W && c.x < 360 + WAFER_W);
   }

@@ -42,7 +42,7 @@ function sparkle(ctx, x, y, size, color) {
   ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(x, y - size); ctx.lineTo(x, y + size); ctx.moveTo(x - size, y); ctx.lineTo(x + size, y); ctx.stroke(); ctx.restore();
 }
-const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', sharp: 'SHARP GABU' });
+const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
 export function drawBerryDrop(canvas, game, { best = 0, images = {}, reduced = false, time = 0 } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);

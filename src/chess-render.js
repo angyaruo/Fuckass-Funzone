@@ -94,7 +94,7 @@ function overlay(ctx, message, sub, accent = '#ffb3cf') {
   drawTxt(ctx, message, 180, 214, 22, '#fff0f5', 'center'); drawTxt(ctx, sub, 180, 238, 11, '#ead5e4', 'center');
   drawTxt(ctx, 'PRESS PLAY FOR A REMATCH', 180, 259, 9, '#ffd98c', 'center');
 }
-const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', sharp: 'SHARP GABU' });
+const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
 const ENDINGS = Object.freeze({
   checkmate: { win: ['CATMATE!', 'Gabu’s king has nowhere left to nap.'], loss: ['GABU WINS', 'Your king got boxed in. Rematch?'] },
   stalemate: ['STALEMATE', 'Nobody can move. Nobody is happy.'],

@@ -2,7 +2,7 @@
  * Squares run 0..63 from the top-left (Gabu's back rank) to the bottom-right (yours).
  * Uppercase pieces are the player's cream kittens; lowercase pieces belong to Gabu.
  */
-export const CHESS_LEVELS = Object.freeze(['chill', 'normal', 'sharp']);
+export const CHESS_LEVELS = Object.freeze(['chill', 'normal', 'hard']);
 export const CHESS_START = Object.freeze([
   'r','n','b','q','k','b','n','r', 'p','p','p','p','p','p','p','p',
   '','','','','','','','', '','','','','','','','', '','','','','','','','', '','','','','','','','',
@@ -15,8 +15,8 @@ const KNIGHT = [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [
 const KING = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
 const ROOK = [[1, 0], [-1, 0], [0, 1], [0, -1]], BISHOP = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
 const MATE = 100000;
-const LEVEL_DEPTH = Object.freeze({ chill: 1, normal: 2, sharp: 3 });
-const LEVEL_BONUS = Object.freeze({ chill: 150, normal: 300, sharp: 600 });
+const LEVEL_DEPTH = Object.freeze({ chill: 1, normal: 2, hard: 3 });
+const LEVEL_BONUS = Object.freeze({ chill: 150, normal: 300, hard: 600 });
 const level = value => CHESS_LEVELS.includes(value) ? value : 'normal';
 const colorOf = piece => piece ? (piece === piece.toUpperCase() ? 'w' : 'b') : '';
 const kindOf = piece => piece.toLowerCase();

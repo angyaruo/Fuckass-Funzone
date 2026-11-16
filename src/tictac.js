@@ -1,11 +1,11 @@
 /** Tic Tac Treats: your pocky crosses against Gabu's donuts, played as a win streak.
  * Pure rules and search: no DOM or Spindle APIs. Cells 0..8 run row-major from the top-left.
  */
-export const TICTAC_LEVELS = Object.freeze(['chill', 'normal', 'sharp']);
+export const TICTAC_LEVELS = Object.freeze(['chill', 'normal', 'hard']);
 export const TICTAC_LINES = Object.freeze([[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]);
-// How often each level ignores the perfect move. Sharp never does, so beating it is impossible by design.
-const SLIP = Object.freeze({ chill: .45, normal: .18, sharp: 0 });
-const LEVEL_BONUS = Object.freeze({ chill: 40, normal: 80, sharp: 0 });
+// How often each level ignores the perfect move. Hard never does, so beating it is impossible by design.
+const SLIP = Object.freeze({ chill: .45, normal: .18, hard: 0 });
+const LEVEL_BONUS = Object.freeze({ chill: 40, normal: 80, hard: 0 });
 const level = value => TICTAC_LEVELS.includes(value) ? value : 'normal';
 const unit = random => Math.max(0, Math.min(.999999999, Number(random()) || 0));
 const whole = (value, max) => Number.isSafeInteger(value) && value >= 0 && value <= max;

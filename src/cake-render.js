@@ -1,5 +1,5 @@
 /** Cake Tower canvas: a bakery sky that climbs into the stars, frosted tiers, and a ribbon crane. */
-import { CAKE_W, CAKE_H, CAKE_GROUND, CAKE_HANG, LAYER_W, LAYER_H, PLATE_W } from './cake.js';
+import { CAKE_W, CAKE_H, CAKE_GROUND, LAYER_W, LAYER_H, PLATE_W, ROPE_PIVOT_Y } from './cake.js';
 
 const FLAVOR_ART = Object.freeze({
   strawberry: { sponge: '#ffb7c9', crumb: '#f593ad', frost: '#fff4f7', drip: '#ff7aa2', sprinkle: ['#ff5d8f', '#ffffff', '#ffd36e'] },
@@ -94,18 +94,20 @@ export function drawCakeTower(canvas, game, { best = 0, images = {}, reduced = f
     if (tierNumber % 10 === 0) candle(ctx, game.tierX(i), bottomY - LAYER_H + 1, time);
     else if (tierNumber % 5 === 0) for (const dx of [-34, 0, 34]) strawberry(ctx, game.tierX(i) + dx, bottomY - LAYER_H - 3);
   }
-  // Fallen tiers spin around their middle, so one that lands upside down still rests on the surface under it.
+  // Missed tiers tip around their middle as they fall away.
   for (const c of game.crumbs) { ctx.save(); ctx.translate(c.x, screen(c.y) - LAYER_H / 2); ctx.rotate(c.spin); drawCakeTier(ctx, c.flavor, 0, LAYER_H / 2, 3); ctx.restore(); }
-  // Crane rail and ribbon: the hanging tier swings from a pink bow.
+  // Crane rail and ribbon. The ribbon hangs from a pivot above the screen and bows a little behind its swing, like a real rope.
   rounded(ctx, 0, 6, CAKE_W, 12, 0, '#ff9fbd'); for (let i = 0; i < 12; i++) rounded(ctx, i * 32 + 4, 9, 18, 6, 3, '#ffd1e1');
-  const swinging = game.status !== 'dead' && game.phase === 'swing', hx = game.hookX(), hangBottom = CAKE_HANG;
-  const ropeTo = swinging ? hx : CAKE_W / 2 + (hx - CAKE_W / 2) * .2;
-  ctx.strokeStyle = '#d9578a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CAKE_W / 2, 16); ctx.quadraticCurveTo((CAKE_W / 2 + ropeTo) / 2, 30, ropeTo, hangBottom - LAYER_H - 10); ctx.stroke();
-  heartShape(ctx, ropeTo, hangBottom - LAYER_H - 12, 6, '#ff6f9f'); rounded(ctx, CAKE_W / 2 - 10, 10, 20, 12, 5, '#ffe08a');
+  const swinging = game.status !== 'dead' && game.phase === 'swing', hx = game.hookX(), hy = game.hookY();
+  const along = (18 - ROPE_PIVOT_Y) / (hy - ROPE_PIVOT_Y), sx = CAKE_W / 2 + (hx - CAKE_W / 2) * along, bow = reduced ? 0 : -game.ropeSpeed() * 9;
+  ctx.strokeStyle = '#d9578a'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(sx, 18); ctx.quadraticCurveTo((sx + hx) / 2 + bow, (18 + hy) / 2, hx, hy); ctx.stroke();
+  heartShape(ctx, hx, hy - 2, 6, '#ff6f9f');
   if (swinging) {
+    const top = hy + 12, bottom = top + LAYER_H; // Matches where the engine releases the tier.
     ctx.strokeStyle = '#ff8fb8'; ctx.lineWidth = 1.6; ctx.beginPath();
-    ctx.moveTo(hx, hangBottom - LAYER_H - 10); ctx.lineTo(hx - LAYER_W / 2 + 10, hangBottom - LAYER_H); ctx.moveTo(hx, hangBottom - LAYER_H - 10); ctx.lineTo(hx + LAYER_W / 2 - 10, hangBottom - LAYER_H); ctx.stroke();
-    drawCakeTier(ctx, game.flavor, hx, hangBottom, game.tiers.length);
+    ctx.moveTo(hx, hy); ctx.lineTo(hx - LAYER_W / 2 + 10, top); ctx.moveTo(hx, hy); ctx.lineTo(hx + LAYER_W / 2 - 10, top); ctx.stroke();
+    drawCakeTier(ctx, game.flavor, hx, bottom, game.tiers.length);
   }
   if (game.drop) drawCakeTier(ctx, game.drop.flavor, game.drop.x, screen(game.drop.y), game.tiers.length);
   if (game.perfectFlash > 0 && shown) {
@@ -130,7 +132,7 @@ export function drawCakeTower(canvas, game, { best = 0, images = {}, reduced = f
   const warn = game.sway >= 24 && game.status === 'playing';
   drawTxt(ctx, warn ? 'IT’S WOBBLING. LAND A PERFECT ONE' : game.combo >= 2 ? `PERFECT STREAK ×${game.combo}` : 'TAP OR SPACE TO DROP THE TIER', 180, 440, 10,
     warn ? '#ff5d8f' : night > .5 ? '#f4e8ff' : '#7a3d5c', 'center');
-  if (game.status === 'dead') overlay(ctx, game.endReason === 'topple' ? 'IT TOPPLED!' : 'OUT OF CAKE', `${game.tiers.length} tiers · best streak ${game.bestCombo}`, 'PRESS PLAY TO BAKE AGAIN', '#ff8fb8');
+  if (game.status === 'dead') overlay(ctx, 'OUT OF CAKE', `${game.tiers.length} tiers · best streak ${game.bestCombo}`, 'PRESS PLAY TO BAKE AGAIN', '#ff8fb8');
   else if (game.status === 'paused') overlay(ctx, 'PAUSED', 'The frosting is setting.', 'PRESS PLAY TO RESUME', '#b8a7ff');
   else if (game.status === 'idle') overlay(ctx, 'CAKE TOWER', 'Drop each tier right on top. Perfect ones steady it.', 'PRESS PLAY OR TAP TO START', '#ffd36e');
   ctx.restore();

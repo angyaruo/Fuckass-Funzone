@@ -22,21 +22,18 @@ test('Cake Tower perfect drops align, build a streak and steady the tower', () =
   assert.deepEqual(g.tiers.map(t => t.flavor), CAKE_FLAVORS.slice(0, 5), 'flavors follow the recipe order');
 });
 
-test('Cake Tower sloppy drops wobble, misses cost hearts, and the run ends by miss or topple', () => {
+test('Cake Tower sloppy drops wobble, misses cost hearts, and only misses end the run', () => {
   const events = [], g = new CakeTowerGame({ random: () => .5, onEvent: e => events.push(e) }); g.start();
   dropAt(g, 180); g.swayPhase = 0;
   dropAt(g, g.topX() + 40); assert.equal(g.combo, 0); assert.ok(g.sway > 5); assert.equal(g.tiers.length, 2);
+  // Landing is judged against the swaying top at that moment, so these tiers are placed directly.
+  const place = dx => { g.drop = { x: g.topX() + dx, y: 0, vx: 0, vy: 0, flavor: g.flavor }; g.land(g.drop.x); };
+  for (let i = 0; i < 6; i++) place(i % 2 ? -45 : 45);
+  assert.equal(g.tiers.length, 8, 'a wobbly cake keeps every tier it caught'); assert.equal(g.hearts, 3);
+  assert.ok(g.sway <= 34, 'sway is capped, so wobble only makes aiming harder'); assert.ok(events.includes('wobble'));
   for (let i = 0; i < 3; i++) dropAt(g, g.topX() + LAYER_W * 2);
   assert.equal(g.hearts, 0); assert.equal(g.status, 'dead'); assert.equal(g.endReason, 'miss');
   assert.equal(events.filter(e => e === 'miss').length, 3); assert.ok(events.includes('death'));
-  const t = new CakeTowerGame({ random: () => .5, onEvent: e => events.push(e) }); t.start();
-  // Landing is judged against the swaying top at that moment, so these tiers are placed directly.
-  const place = (g, dx) => { g.drop = { x: g.topX() + dx, y: 0, vx: 0, vy: 0, flavor: g.flavor }; g.land(g.drop.x); };
-  dropAt(t, 180); t.sway = 0; dropAt(t, 180); t.sway = 39; t.swayPhase = 0; place(t, 45);
-  assert.equal(t.status, 'playing', 'a collapse costs a heart, not the whole run'); assert.equal(t.hearts, 2);
-  assert.equal(t.tiers.length, 2, 'only the tiers above the weakest joint fall'); assert.equal(t.crumbs.length, 1); assert.ok(events.includes('collapse'));
-  t.hearts = 1; t.sway = 39; place(t, 45);
-  assert.equal(t.status, 'dead'); assert.equal(t.endReason, 'topple');
 });
 
 test('Cake Tower pace changes the real swing speed and perfect window', () => {
@@ -59,7 +56,7 @@ test('Cake Tower saves restore paused and reject tampered stacks', () => {
   const { pace, ...older } = saved; assert.equal(new CakeTowerGame().restore(older), true, 'saves without a pace load as Normal');
 });
 
-test('Cake Tower renderer draws idle, swinging, falling and toppled states', () => {
+test('Cake Tower renderer draws idle, swinging, falling and finished states', () => {
   const text = [];
   const ctx = new Proxy({ createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }) }, {
     get(target, name) { return name in target ? target[name] : (...args) => { if (name === 'fillText') text.push(args[0]); }; },
@@ -67,24 +64,21 @@ test('Cake Tower renderer draws idle, swinging, falling and toppled states', () 
   });
   const canvas = { width: 720, height: 904, getContext: () => ctx }, g = new CakeTowerGame({ random: () => .5 });
   drawCakeTower(canvas, g, {}); g.start(); drawCakeTower(canvas, g, {}); g.release(); g.update(.05); drawCakeTower(canvas, g, {});
-  g.finish('topple'); drawCakeTower(canvas, g, {});
-  assert.ok(text.includes('IT TOPPLED!')); assert.ok(text.includes('CAKE TOWER'));
+  g.finish('miss'); drawCakeTower(canvas, g, {});
+  assert.ok(text.includes('OUT OF CAKE')); assert.ok(text.includes('CAKE TOWER')); assert.ok(!text.includes('IT TOPPLED!'));
 });
 
-test('Cake Tower physics: a tier only stays over its support, an unbalanced stack slides off, and fallen tiers land and rest', () => {
-  const events = [], g = new CakeTowerGame({ random: () => .5, onEvent: e => events.push(e) }); g.start();
+test('Cake Tower: a tier stays only over its support, misses tumble off screen gently, and the rope swings on a pendulum', () => {
+  const g = new CakeTowerGame({ random: () => .5 }); g.start();
   dropAt(g, 180 + 80); assert.equal(g.tiers.length, 0, 'a first tier centered past the plate edge falls off'); assert.equal(g.hearts, 2);
   dropAt(g, 180 + 70); assert.equal(g.tiers.length, 1, 'a first tier centered over the plate stays');
-  const place = dx => { g.drop = { x: g.topX() + dx, y: 0, vx: 0, vy: 0, flavor: g.flavor }; g.land(g.drop.x); };
-  g.sway = 0; g.tiers[0].x = 180; place(-40); assert.equal(g.tiers.length, 2, 'forty pixels over is still supported');
-  place(-40);
-  assert.equal(g.tiers.length, 1, 'the two leaning tiers have their center of mass past the bottom tier, so both slide off');
-  assert.ok(events.includes('collapse')); assert.equal(g.hearts, 1);
-  for (let i = 0; i < 60; i++) g.update(.05);
-  assert.ok(g.crumbs.length >= 3 && g.crumbs.every(c => c.rest), 'every fallen tier comes to rest');
-  for (const c of g.crumbs) {
-    const surfaces = [0, -24, ...g.crumbs.filter(o => o !== c).map(o => o.y + 26)];
-    assert.ok(surfaces.some(y => Math.abs(c.y - y) < .01), `a fallen tier rests on a surface, not in the air (y ${c.y.toFixed(2)})`);
-    assert.ok(c.y >= -24, 'nothing sinks through the counter');
-  }
+  g.phase = 'swing'; g.release(); g.drop.x = g.topX() + 80; g.drop.vx = 0;
+  let maxTilt = 0;
+  for (let i = 0; i < 240; i++) { g.update(1 / 60); for (const c of g.crumbs) maxTilt = Math.max(maxTilt, Math.abs(c.spin)); }
+  assert.equal(g.hearts, 1); assert.equal(g.crumbs.length, 0, 'the missed tier has fallen off the bottom of the screen');
+  assert.ok(maxTilt < 1.2, `a missed tier tips gently and never flips over (max ${maxTilt.toFixed(2)} rad)`);
+  const p = new CakeTowerGame({ random: () => .5 }), points = [];
+  for (const swing of [0, Math.PI / 2, Math.PI * 1.5]) { p.swing = swing; points.push([p.hookX(), p.hookY()]); }
+  assert.deepEqual(points.map(([x]) => Math.round(x)), [180, 298, 62], 'the hook swings 118 pixels each way');
+  assert.ok(points[1][1] < points[0][1] && Math.abs(points[1][1] - points[2][1]) < 1e-9, 'the hook rises equally at both ends of its arc');
 });

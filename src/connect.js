@@ -3,9 +3,9 @@
  */
 export const BERRY_COLS = 7;
 export const BERRY_ROWS = 6;
-export const BERRY_LEVELS = Object.freeze(['chill', 'normal', 'sharp']);
-const DEPTH = Object.freeze({ chill: 2, normal: 4, sharp: 6 });
-const LEVEL_BONUS = Object.freeze({ chill: 60, normal: 120, sharp: 220 });
+export const BERRY_LEVELS = Object.freeze(['chill', 'normal', 'hard']);
+const DEPTH = Object.freeze({ chill: 2, normal: 4, hard: 6 });
+const LEVEL_BONUS = Object.freeze({ chill: 60, normal: 120, hard: 220 });
 const ORDER = [3, 2, 4, 1, 5, 0, 6];
 const WIN = 1000000;
 const level = value => BERRY_LEVELS.includes(value) ? value : 'normal';
@@ -84,7 +84,7 @@ export function chooseBerryColumn(board, levelName = 'normal', random = Math.ran
   let best = open[0], bestValue = -Infinity;
   for (const col of open) {
     const cell = dropRow(scratch, col) * BERRY_COLS + col; scratch[cell] = who;
-    const value = -negamax(scratch, DEPTH[name] - 1, -Infinity, Infinity, 3 - who, 1) + unit(random) * (name === 'sharp' ? 1 : 6);
+    const value = -negamax(scratch, DEPTH[name] - 1, -Infinity, Infinity, 3 - who, 1) + unit(random) * (name === 'hard' ? 1 : 6);
     scratch[cell] = 0;
     if (value > bestValue) { bestValue = value; best = col; }
   }

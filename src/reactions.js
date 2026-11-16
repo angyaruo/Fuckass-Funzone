@@ -451,10 +451,10 @@ const SAYINGS=Object.freeze({
  },
  chess:{
   new_best:[
-   "NEW CHESS RECORD?! Who let you get good at this?!",
-   "Personal best! My telemetry is flashing gold and I hate it!",
-   "Record broken! Frame it before you hang your queen again!",
-   "New high score! Fine! FINE! The kittens respect you now!"
+   "Your chess score just passed your old record. The kitten union is contesting it.",
+   "Oh, so NOW you know where the pieces go? Logged. Grudgingly.",
+   "That's a new best. Frame it before you hang your queen again.",
+   "Higher than ever?! Who's been feeding you opening theory behind my back?!"
   ],
   capture:[
    "Hey! That kitten had a family. And a tiny hat.",
@@ -493,13 +493,13 @@ const SAYINGS=Object.freeze({
    "Tiara secured! Crown me, baby, this game is cooked!",
    "You left the QUEEN out?! Christmas came early for my diagnostics!",
    "Queen captured! I'm screenshotting this for the group chat.",
-   "Down goes the queen! Ten out of ten, no notes, thank you!",
+   "Down goes the queen! Somebody cue the sad violin, I'm framing this one!",
    "Bye bye, heart gem. That's going on my mantle."
   ],
   check:[
    "Check?! Who gave you permission to look at my king?!",
    "Okay, okay, my king is FINE. He's just... relocating.",
-   "Warning lights everywhere! My right eye is literally blinking red!",
+   "Warning lights everywhere! Somebody get that king a helmet!",
    "Personal space! The king has a strict no-touching policy!",
    "Check. Sure. I saw it coming. I'm totally not sweating.",
    "That king is my whole storyline! Back off!",
@@ -526,10 +526,10 @@ const SAYINGS=Object.freeze({
    "Kitten to queen speedrun! Who let that walk all the way down?!",
    "Promotion?! I was not tracking that tiny guy at all. Unbelievable.",
    "Congrats on your new queen. I hate her already.",
-   "That kitten just got a tiara. My diagnostics are filing a complaint."
+   "That kitten got a tiara AND a promotion. I didn't even get a raise."
   ],
   win:[
-   "CHECKMATE?! On ME?! Run the tape back, the physics engine lagged!",
+   "CHECKMATE?! On ME?! Run the tape back, my frame rate dipped!",
    "No way. NO WAY. My king has nowhere to nap. I'm going to scream.",
    "You ACTUALLY beat me?! I'm updating your file to 'Genuinely Dangerous'!",
    "CATMATE! Okay, that was clean. I hate how clean that was.",
@@ -560,20 +560,20 @@ const SAYINGS=Object.freeze({
    "Undoing a move? Coward. Commit to your mistakes like I do.",
    "Rewind accepted. My memory banks still saw that blunder.",
    "Time travel in chess. Very sporting. Very fair. Wow.",
-   "We pretending that didn't happen? Okay. I'm keeping receipts.",
+   "Undo again? Your king should charge rent for all this time travel.",
    "Retcon detected. The kittens remember everything."
   ]
  },
  berry:{
   new_best:[
-   "NEW BERRY RECORD?! My blueberries are filing a complaint!",
-   "Personal best! Okay, your column game is actually disgusting!",
-   "Record smashed! I'm updating your file to 'Berry Menace'!",
-   "High score! Don't get cocky, I'm still the blueberry king!"
+   "Your berry score just outgrew your old record. My blueberries want a lawyer.",
+   "Look at that number. Who taught you diagonals, and can I have them deported?",
+   "Best score yet. Enjoy it while it's still juicy.",
+   "A record in a FRUIT game. Weirdly menacing of you, honestly."
   ],
   block:[
    "You saw that?! I was SO close to four!",
-   "Blocked. Fine. My right eye had that column locked in.",
+   "Blocked. Fine. I had that column locked in for later anyway.",
    "Who taught you defense? Unsubscribe from them.",
    "Rude. That was going to be my big winning moment.",
    "Okay, so you can count to four. Congratulations.",
@@ -607,7 +607,7 @@ const SAYINGS=Object.freeze({
    "You connected FOUR?! My sensor lagged! It LAGGED!",
    "That diagonal came out of NOWHERE. Respect. Hatred. Both.",
    "Okay! Fine! Strawberries win this round! Next!",
-   "Four in a row?! My diagnostics are screaming into a pillow!",
+   "A whole line of strawberries?! My diagnostics are screaming into a pillow!",
    "Another round to you?! Your streak is getting suspicious."
   ],
   death:[
@@ -627,10 +627,10 @@ const SAYINGS=Object.freeze({
  },
  tictac:{
   new_best:[
-   "NEW RECORD?! In tic-tac-toe?! Okay, nerd, okay!",
-   "Personal best! Your pocky game is getting suspicious!",
-   "High score! My donuts are reconsidering their life choices!",
-   "Record broken! Frame it, it's the peak of your gaming career!"
+   "A record in tic-tac-toe. Put it on your resume right under 'can tie shoes'.",
+   "Somehow your pocky stacked up a new best. The donuts demand an investigation.",
+   "Best score yet, nerd. Nine squares and you're acting like it's the Olympics.",
+   "New record, huh? Enjoy it. Donuts are patient. Donuts are eternal."
   ],
   block:[
    "Hey! That was my winning square!",
@@ -657,21 +657,21 @@ const SAYINGS=Object.freeze({
    "You beat me at the SIMPLEST GAME EVER MADE?! I need a minute!",
    "A FORK?! I fell for a FORK?! Don't you dare tell anyone!",
    "Win for the pocky! I'm recalibrating my donut strategy.",
-   "Three in a row?! Clean! Annoying! CLEAN!"
+   "Pocky line complete?! Clean! Annoying! CLEAN!"
   ],
   death:[
    "THREE DONUTS! You lost TIC-TAC-TOE! The game TODDLERS draw!",
    "Glazed and defeated! How do you even LOSE this?!",
    "Lost at tic-tac-toe. To me. Sit with that. For a while.",
-   "Three in a row! I didn't even need my right eye for that one!",
+   "Donut line! I didn't even need my right eye for that one!",
    "Streak over! Outplayed by pastry! PASTRY!"
   ],
   draw:[
    "Cat's game. Nobody ate anything. Tragic.",
    "Draw. As the ancient scrolls foretold.",
-   "Tic-tac-toe draw. Riveting. Truly the peak of gaming.",
+   "Tic-tac-toe draw. Somewhere a math teacher is nodding.",
    "Nobody wins. Nobody learned anything. Next round.",
-   "Another draw. My diagnostics are falling asleep."
+   "Another draw. My cooling fan just yawned."
   ]
  },
  cake:{
@@ -682,10 +682,10 @@ const SAYINGS=Object.freeze({
    "Not perfect. Not even close. Keep stacking."
   ],
   new_best:[
-   "NEW CAKE RECORD! This thing is scraping the stratosphere!",
-   "Personal best! The bakery is calling it a structural miracle!",
-   "Record height! My telemetry needs a longer neck!",
-   "High score! Don't you DARE topple it now!"
+   "Tallest cake you've ever stacked! Keep going, I want it touching the ceiling fan!",
+   "The bakery is printing commemorative napkins. New record height.",
+   "Past your old best. Don't get cocky, butter fingers.",
+   "Record cake! My altimeter is drooling!"
   ],
   perfect:[
    "Perfect stack. Okay, pastry chef, I see you.",
@@ -696,7 +696,7 @@ const SAYINGS=Object.freeze({
   ],
   combo:[
    "PERFECT STREAK! This cake is going to space!",
-   "Three perfect drops in a row?! Who are you, a bakery robot?!",
+   "Perfect after perfect?! Who are you, a bakery robot?!",
    "Combo! My telemetry says this tower is structurally gorgeous!",
    "Stacking like a professional! Somebody call the bake-off!",
    "That's a perfect chain! Keep it steady, I'm getting hungry!"
@@ -710,14 +710,14 @@ const SAYINGS=Object.freeze({
    "Gravity: one. Dessert: zero. You: in trouble."
   ],
   wobble:[
-   "IT'S WOBBLING! Land a perfect one before it falls!",
+   "IT'S WOBBLING! Nail a perfect drop and calm this jelly down!",
    "Uh oh. That tower is doing the jelly dance.",
-   "Structural integrity: questionable! Steady the cake!",
-   "My right eye detects lean. A LOT of lean. Fix it!",
+   "Lean detected. A LOT of lean. Good luck aiming at a moving target, protagonist.",
+   "The top tier won't sit still! That's what sloppy drops buy you!",
    "This cake is swaying like it had too much rum syrup!"
   ],
   milestone:[
-   "Ten tiers! This is officially a wedding cake now!",
+   "That's a wedding cake now. Who's getting married? Not you.",
    "Look how tall! My telemetry needs to scroll up!",
    "New altitude! The birds are asking for slices!",
    "Tier milestone! The cake is touching the clouds, holy shit!",
@@ -725,28 +725,28 @@ const SAYINGS=Object.freeze({
   ],
   death:[
    "THE CAKE! NOOO! All that frosting, splattered on the floor!",
-   "IT TOPPLED! You built a leaning tower of disappointment!",
-   "Out of cake! My diagnostics are crying sprinkles over your stacking!",
-   "Total cake collapse! Gravity filed a restraining order against your hands!",
-   "DOWN IT GOES! That was a disaster, and it smelled AMAZING, which makes it worse!"
+   "Three tiers on the floor, protagonist. THREE. Out of hearts and out of cake!",
+   "Out of cake! My diagnostics are crying sprinkles over your aim!",
+   "That's three tiers in the trash! Gravity didn't even have to try!",
+   "SHOP'S CLOSED! That was a disaster, and it smelled AMAZING, which makes it worse!"
   ]
  },
  bubble:{
   pop:[
    "Pop. Basic. Keep going.",
-   "Three of a kind. The bare minimum, achieved.",
+   "A tiny pop. The ceiling barely noticed.",
    "Popped. Don't expect confetti.",
    "Cool. Now pop something that actually matters."
   ],
   new_best:[
-   "NEW BUBBLE RECORD! Your aim stopped being a crime!",
-   "Personal best! My right eye is tracking every glorious pop!",
-   "Record smashed! The bubbles fear you now!",
-   "High score! Keep popping, don't you dare choke!"
+   "Past your old bubble record! Your aim finally stopped being a crime!",
+   "Look who's popping better than ever. My sensors are fizzing.",
+   "New best on the board. The bubbles are drafting a peace treaty.",
+   "That's a record, so obviously this is where you choke. Prove me wrong."
   ],
   big_pop:[
    "Big pop! Look at all those bubbles go!",
-   "Six at once?! That's a satisfying little crunch!",
+   "That many at once?! What a satisfying little crunch!",
    "Pop pop POP! My ocular sensor loves the sparkle.",
    "Cluster cleared! That's some quality aim, protagonist.",
    "Big burst! Keep popping, the ceiling is watching."
@@ -768,7 +768,7 @@ const SAYINGS=Object.freeze({
   ceiling:[
    "New row incoming! The ceiling is getting clingy!",
    "Everything just moved down! Pop faster!",
-   "The bubbles are creeping! My right eye does NOT like this.",
+   "The bubbles are creeping! I do NOT like how close that is.",
    "Row added! That's what missing gets you!",
    "Ceiling drop! Personal space is shrinking!"
   ],
@@ -789,16 +789,16 @@ const SAYINGS=Object.freeze({
  },
  boop:{
   boop:[
-   "Boop. Riveting stuff.",
+   "Boop. Somewhere a bunny felt that.",
    "Another bun booped. Gold star. A tiny one.",
    "You booped a bunny. The bar was on the floor.",
    "Keep booping. That's the whole game, protagonist."
   ],
   new_best:[
-   "NEW BOOP RECORD! Your finger is a weapon!",
-   "Personal best! The bunnies are filing for witness protection!",
-   "Record smashed! Booping at Mach 2, holy shit!",
-   "High score! Keep booping, don't you dare slow down now!"
+   "Your finger is a registered weapon now. That's a new best.",
+   "The bunnies are filing for witness protection. New record, you menace.",
+   "Booping at Mach 2 and breaking records, holy shit!",
+   "Best score yet! Keep booping, don't you dare slow down now!"
   ],
   gold:[
    "GOLDEN BUNNY! You booped the rich one!",
@@ -808,7 +808,7 @@ const SAYINGS=Object.freeze({
    "You booped the VIP. The whole garden is in awe."
   ],
   combo:[
-   "TEN BOOPS IN A ROW! Your finger is a precision instrument!",
+   "Unbroken boops! Your finger is a precision instrument!",
    "Combo streak! The bunnies are filing a group complaint!",
    "Boop machine! My telemetry can't keep up with you!",
    "Unbroken streak! That's elite booping, protagonist.",
@@ -830,7 +830,7 @@ const SAYINGS=Object.freeze({
    "Bunny got away. Your combo went with it."
   ],
   whiff:[
-   "You booped dirt. Riveting.",
+   "You booped dirt. The dirt is unimpressed.",
    "Nothing there! Just an empty hole and your shame.",
    "Air boop. Very aerodynamic, zero bunnies.",
    "That was a hole. Holes don't count.",
@@ -852,14 +852,14 @@ const SAYINGS=Object.freeze({
    "Still up. My right eye is tracking every wobble."
   ],
   new_best:[
-   "NEW WAFER RECORD! Steadiest hands in the arcade, apparently!",
-   "Personal best! The tower respects you. I don't. But the tower does.",
-   "Record smashed! My right eye can't find a single wobble!",
-   "High score! Don't celebrate yet, the tower is still standing!"
+   "Steadiest hands in the arcade, apparently. New record.",
+   "The tower respects you. I don't. But the tower does. New best.",
+   "That's a record! Don't celebrate yet, the next pull is mine to ruin.",
+   "Are you secretly a surgeon? Blink twice. That's your best score ever."
   ],
   perfect:[
-   "Clean pull. Not even a crumb moved. Show-off.",
-   "Smooth as frosting. My right eye didn't even register a wobble.",
+   "Clean pull. Show-off.",
+   "Smooth as frosting. Not one crumb even twitched.",
    "Surgical. Are your hands made of gyroscopes?",
    "Perfect pull. Okay, wafer whisperer, I see you.",
    "That wafer slid out like it wanted to leave."
@@ -880,7 +880,7 @@ const SAYINGS=Object.freeze({
   win:[
    "NO! It fell on MY pull?! The table is uneven! I demand a recount!",
    "CRUMBS! EVERYWHERE! And they're all MY fault?!",
-   "My right eye calculated that pull PERFECTLY! The wafers BETRAYED me!",
+   "My servos calculated that pull PERFECTLY! The wafers BETRAYED me!",
    "I toppled it?! Delete this from the timeline immediately.",
    "That tower was cursed and you KNEW it. Round to you."
   ],
@@ -894,44 +894,44 @@ const SAYINGS=Object.freeze({
  },
  memory:{
   new_best:[
-   "NEW STICKER RECORD! Who installed extra RAM in you?!",
-   "Personal best! Your memory is genuinely terrifying!",
-   "Record smashed! The stickers have nowhere left to hide!",
-   "High score! Don't forget it. Oh wait, you won't. Freak."
+   "Who installed extra RAM in you?! That's a Gacha Match record!",
+   "Your memory just beat its own best. Who are you studying for?",
+   "Record set. The charms have nowhere left to hide.",
+   "Best score ever. Don't forget it. Oh wait, you won't. Freak."
   ],
   match:[
    "A pair! Your memory works. Sometimes.",
    "Match found. Don't let it go to your hippocampus.",
    "Two of a kind. Cute. Keep going.",
-   "Nice. The stickers are reunited and emotional about it.",
+   "Nice. Those charms are reunited and emotional about it.",
    "Matched! My right eye recorded that as competent."
   ],
   streak:[
-   "THREE IN A ROW! Who gave you a photographic memory?!",
-   "Streak! You're flipping cards like you peeked. Did you peek?",
+   "ANOTHER PAIR?! Who gave you a photographic memory?!",
+   "Streak! You're cracking capsules like you peeked. Did you peek?",
    "Combo! My diagnostics suspect you have RAM upgrades.",
    "Look at that memory go! Okay, I'm actually impressed.",
-   "Match streak! The stickers are scared of you now."
+   "Match streak! The charms are scared of you now."
   ],
   forgot:[
-   "You SAW that card! Like two flips ago! I watched you see it!",
+   "You SAW that charm! Like two capsules ago! I watched you see it!",
    "Memory lapse detected. Rebooting your brain cell.",
    "That pair was RIGHT THERE. My ocular sensor is screaming.",
    "Did you forget already? Bold of you to play a memory game.",
-   "Wrong card. You knew this. We both knew this."
+   "Wrong capsule. You knew this. We both knew this."
   ],
   miss:[
-   "Not a match. Remember them this time.",
-   "Nope. Two strangers, not a pair.",
-   "Miss. The stickers shrugged at you.",
+   "Wrong pair. Remember where they live this time.",
+   "Nope. Those two have never even met.",
+   "Miss. The charms shrugged at you.",
    "Wrong pair. Write it down. Mentally. Please."
   ],
   win:[
    "ALL PAIRS FOUND! Your memory is genuinely terrifying!",
-   "Page complete! Every sticker reunited! I'm emotional!",
+   "Tray cleared! Every charm reunited! I'm emotional!",
    "Cleared! My right eye couldn't have done it better. Probably.",
-   "Full match! Somebody frame this sticker book!",
-   "Done! Your brain cells deserve a sticker of their own."
+   "Full tray! Somebody put this in a museum!",
+   "Done! Your brain cells deserve a capsule of their own."
   ]
  }
 });

@@ -1,5 +1,5 @@
-/** Sticker Match canvas: a sticker-book page of flip cards with ten hand-drawn vector stickers. */
-import { STICKERS } from './memory.js';
+/** Gacha Match canvas: a toy-shop tray of gacha capsules that pop open to show one of ten hand-drawn charms. */
+import { CHARMS } from './memory.js';
 
 const W = 360, H = 452, TOP = 78, BOTTOM = 404;
 const rounded = (ctx, x, y, w, h, r, fill) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); };
@@ -11,7 +11,7 @@ export function memoryLayout(cols, rows) {
   const x0 = (W - (cw * cols + gap * (cols - 1))) / 2, y0 = TOP + (BOTTOM - TOP - (ch * rows + gap * (rows - 1))) / 2;
   return { gap, cw, ch, x0, y0 };
 }
-export function memoryCardAt(x, y, cols, rows) {
+export function capsuleAt(x, y, cols, rows) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return -1;
   const { gap, cw, ch, x0, y0 } = memoryLayout(cols, rows), col = Math.floor((x - x0) / (cw + gap)), row = Math.floor((y - y0) / (ch + gap));
   if (col < 0 || col >= cols || row < 0 || row >= rows || x - x0 - col * (cw + gap) > cw || y - y0 - row * (ch + gap) > ch) return -1;
@@ -21,8 +21,8 @@ function face(ctx, s, ink = '#3a2638') {
   ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(-s * .22, 0, s * .07, 0, Math.PI * 2); ctx.arc(s * .22, 0, s * .07, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = ink; ctx.lineWidth = s * .05; ctx.beginPath(); ctx.arc(0, s * .1, s * .1, .2, Math.PI - .2); ctx.stroke();
 }
-/** Each sticker is distinct by shape as well as color. `s` is the sticker radius. */
-export function drawSticker(ctx, kind, s) {
+/** Each charm is distinct by shape as well as color. `s` is the charm radius. */
+export function drawCharm(ctx, kind, s) {
   ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const fillStroke = (fill, ink) => { ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = s * .07; ctx.stroke(); };
   if (kind === 'star') { ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? s * .45 : s; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); fillStroke('#ffd36e', '#b07a1a'); ctx.translate(0, s * .1); face(ctx, s * .8); }
@@ -43,48 +43,55 @@ export function drawSticker(ctx, kind, s) {
   ctx.restore();
 }
 const SIZE_NAMES = Object.freeze({ cozy: 'COZY · 6 PAIRS', classic: 'CLASSIC · 8 PAIRS', busy: 'BUSY · 10 PAIRS' });
-export function drawStickerMatch(canvas, game, { best = 0, reduced = false } = {}) {
+// Lid colors follow a capsule's place in the tray, never its charm, so a closed capsule gives nothing away.
+const LIDS = ['#ff9fc0', '#9fd8ff', '#c9b6ff', '#9fe6b8', '#ffd36e'];
+/** One gacha capsule. `open` runs 0..1: the lid lifts and tips back on its hinge to show the charm inside. */
+function drawCapsule(ctx, cx, cy, r, lid, open, charm, matched) {
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.beginPath(); ctx.ellipse(0, r * .92, r * .8, r * .16, 0, 0, Math.PI * 2); ctx.fillStyle = '#00000022'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI); ctx.closePath(); ctx.fillStyle = matched ? '#effff1' : '#fff6ec'; ctx.fill();
+  ctx.strokeStyle = matched ? '#7fcf8a' : '#c9a98f'; ctx.lineWidth = 1.6; ctx.stroke();
+  if (open > 0) {
+    ctx.save(); ctx.globalAlpha = Math.min(1, open * 1.6); ctx.translate(0, -r * .1 * open); drawCharm(ctx, charm, r * .55 * (.6 + .4 * open)); ctx.restore();
+  }
+  // The lid hinges at its left edge, lifting and tipping back as the capsule opens. The tilt keeps it inside its own cell.
+  ctx.save(); ctx.translate(-r, 0); ctx.rotate(-open * .55); ctx.translate(r, -open * r * .15);
+  ctx.beginPath(); ctx.arc(0, 0, r, Math.PI, 0); ctx.closePath();
+  ctx.globalAlpha = open > 0 ? .9 : 1; ctx.fillStyle = lid; ctx.fill();
+  ctx.globalAlpha = 1; ctx.strokeStyle = '#00000033'; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.globalAlpha = .55; ctx.beginPath(); ctx.ellipse(-r * .38, -r * .52, r * .26, r * .12, -.6, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-r + 2, 0); ctx.lineTo(r - 2, 0); ctx.stroke();
+  if (matched) for (const [x, y] of [[-r * .9, -r * .7], [r * .95, -r * .2]]) { ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
+  ctx.restore();
+}
+export function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
-  const page = ctx.createLinearGradient(0, 0, 0, H); page.addColorStop(0, '#fff3e6'); page.addColorStop(1, '#ffe3ee'); ctx.fillStyle = page; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = '#f2c9d8'; ctx.lineWidth = 1; for (let y = 64; y < 410; y += 18) { ctx.beginPath(); ctx.moveTo(12, y); ctx.lineTo(348, y); ctx.stroke(); }
+  const shop = ctx.createLinearGradient(0, 0, 0, H); shop.addColorStop(0, '#c9f0ec'); shop.addColorStop(1, '#a9dcf2'); ctx.fillStyle = shop; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff40'; for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.arc((i * 71 + 15) % W, 70 + (i * 97 + 11) % 330, 2 + i % 3, 0, Math.PI * 2); ctx.fill(); }
   rounded(ctx, 0, 0, W, 48, 0, '#2c1a33');
-  ctx.save(); ctx.translate(26, 24); drawSticker(ctx, 'star', 10); ctx.restore();
-  drawTxt(ctx, 'STICKER MATCH', 42, 31, 12, '#ffe6ef');
+  drawCapsule(ctx, 26, 25, 10, LIDS[0], 0, 0, false);
+  drawTxt(ctx, 'GACHA MATCH', 42, 31, 12, '#ffe6ef');
   drawTxt(ctx, `SCORE ${game.score}`, 214, 31, 11, '#fdfaf7', 'center');
   drawTxt(ctx, `BEST ${Math.max(best, game.score)}`, 342, 31, 11, '#ead4c4', 'right');
   const time = Math.floor(game.elapsed);
-  drawTxt(ctx, `PAIRS ${game.matches}/${game.cards.length / 2}  ·  MISSES ${game.misses}  ·  ${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`, 20, 66, 10, '#7a4f63');
-  drawTxt(ctx, game.streak >= 2 ? `STREAK ×${game.streak}` : SIZE_NAMES[game.size], 340, 66, 10, game.streak >= 2 ? '#d63a72' : '#7a4f63', 'right');
-  const { gap, cw, ch, x0, y0 } = memoryLayout(game.cols, game.rows), s = Math.min(cw, ch) * .32;
+  drawTxt(ctx, `PAIRS ${game.matches}/${game.cards.length / 2}  ·  MISSES ${game.misses}  ·  ${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}`, 20, 66, 10, '#2f5b66');
+  drawTxt(ctx, game.streak >= 2 ? `STREAK ×${game.streak}` : SIZE_NAMES[game.size], 340, 66, 10, game.streak >= 2 ? '#c93a6c' : '#2f5b66', 'right');
+  const { gap, cw, ch, x0, y0 } = memoryLayout(game.cols, game.rows), r = Math.min(cw, ch) * .4;
   game.cards.forEach((card, i) => {
-    const x = x0 + (i % game.cols) * (cw + gap), y = y0 + Math.floor(i / game.cols) * (ch + gap), turn = reduced ? (card.up || card.matched ? 1 : 0) : card.turn;
-    const squash = Math.abs(Math.cos(turn * Math.PI)), showFace = turn >= .5;
-    ctx.save(); ctx.translate(x + cw / 2, y + ch / 2); ctx.scale(Math.max(.04, squash), 1);
-    rounded(ctx, -cw / 2 + 1, -ch / 2 + 3, cw, ch, 10, '#00000018');
-    if (showFace) {
-      rounded(ctx, -cw / 2, -ch / 2, cw, ch, 10, card.matched ? '#f3fff2' : '#ffffff');
-      ctx.strokeStyle = card.matched ? '#7fcf8a' : '#f2a7c3'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-cw / 2 + 1, -ch / 2 + 1, cw - 2, ch - 2, 9); ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, 0, s * 1.25, 0, Math.PI * 2); ctx.fillStyle = card.matched ? '#e3f7df' : '#fff0f5'; ctx.fill();
-      drawSticker(ctx, STICKERS[card.kind], s);
-    } else {
-      const back = ctx.createLinearGradient(-cw / 2, -ch / 2, cw / 2, ch / 2); back.addColorStop(0, '#b9a2f0'); back.addColorStop(1, '#ff9fc0');
-      rounded(ctx, -cw / 2, -ch / 2, cw, ch, 10, back);
-      ctx.fillStyle = '#ffffff55'; for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { ctx.beginPath(); ctx.arc(dx * cw * .28, dy * ch * .3, 2.4, 0, Math.PI * 2); ctx.fill(); }
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-cw / 2 + 4, -ch / 2 + 4, cw - 8, ch - 8, 7); ctx.stroke();
-      // The back carries a plain heart, never one of the stickers, so a face-down card can't be mistaken for a pair.
-      ctx.beginPath(); ctx.moveTo(0, s * .5); ctx.bezierCurveTo(-s * .8, -s * .05, -s * .35, -s * .65, 0, -s * .22); ctx.bezierCurveTo(s * .35, -s * .65, s * .8, -s * .05, 0, s * .5); ctx.fillStyle = '#ffffff'; ctx.fill();
-    }
-    ctx.restore();
-    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#5fd8d2'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(x - 3, y - 3, cw + 6, ch + 6, 12); ctx.stroke(); }
+    const x = x0 + (i % game.cols) * (cw + gap), y = y0 + Math.floor(i / game.cols) * (ch + gap), open = reduced ? (card.up || card.matched || game.preview > 0 ? 1 : 0) : card.turn;
+    rounded(ctx, x, y, cw, ch, 14, '#ffffff55');
+    drawCapsule(ctx, x + cw / 2, y + ch / 2 + r * .15, r, LIDS[i % LIDS.length], open, CHARMS[card.kind], card.matched);
+    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
   });
   rounded(ctx, 0, 412, W, 40, 0, '#2c1a33');
   const memorizing = game.status === 'playing' && game.preview > 0;
-  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : memorizing ? `MEMORIZE THE PAGE · ${Math.ceil(game.preview)}` : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : 'FLIP TWO CARDS TO FIND A PAIR', 180, 430, 11, game.status === 'dead' || memorizing ? '#ffe08a' : '#fdf2f7', 'center');
+  drawTxt(ctx, game.status === 'dead' ? 'ALL PAIRS FOUND!' : memorizing ? `MEMORIZE THE CHARMS · ${Math.ceil(game.preview)}` : game.faceUp().length === 2 ? 'NOT A MATCH. REMEMBER THEM!' : 'OPEN TWO CAPSULES TO FIND A PAIR', 180, 430, 11, game.status === 'dead' || memorizing ? '#ffe08a' : '#fdf2f7', 'center');
   drawTxt(ctx, memorizing ? 'TAP TO START EARLY' : 'TAP  ·  ARROWS + SPACE', 180, 445, 8, '#bfa9c4', 'center');
-  if (game.status === 'dead') overlay(ctx, 'ALL MATCHED!', `${game.moves} turns · ${game.misses} misses · best streak ${game.bestStreak}`, 'PRESS PLAY FOR A NEW PAGE', '#7fcf8a');
+  if (game.status === 'dead') overlay(ctx, 'ALL MATCHED!', `${game.moves} turns · ${game.misses} misses · best streak ${game.bestStreak}`, 'PRESS PLAY FOR A NEW TRAY', '#7fcf8a');
   else if (game.status === 'paused') overlay(ctx, 'PAUSED', 'No peeking. Gabu is watching.', 'PRESS PLAY TO RESUME', '#b8a7ff');
-  else if (game.status === 'idle') overlay(ctx, 'STICKER MATCH', 'Flip two cards. Find every pair.', 'PRESS PLAY OR TAP TO START', '#ff9fc0');
+  else if (game.status === 'idle') overlay(ctx, 'GACHA MATCH', 'Pop open two capsules. Find every matching charm.', 'PRESS PLAY OR TAP TO START', '#9fd8ff');
   ctx.restore();
 }
 function overlay(ctx, message, sub, hint, accent) {

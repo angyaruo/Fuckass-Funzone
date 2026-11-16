@@ -33,8 +33,8 @@ import { BoopGame, BOOP_PACES } from './boop.js';
 import { drawBoopABun, boopHoleAt } from './boop-render.js';
 import { WobblyWafersGame } from './wafer.js';
 import { drawWobblyWafers, waferAt } from './wafer-render.js';
-import { StickerMatchGame, MEMORY_SIZES } from './memory.js';
-import { drawStickerMatch, memoryCardAt } from './memory-render.js';
+import { GachaMatchGame, MEMORY_SIZES } from './memory.js';
+import { drawGachaMatch, capsuleAt } from './memory-render.js';
 
 const ASSETS = /* BUILD_ASSETS */ {};
 const CSS = /* BUILD_CSS */ '';
@@ -47,15 +47,15 @@ const GAME_ROSTER = Object.freeze([
  ['tetris','Tetris','tetris_app'],['solitaire','Solitaire','solitaire_app'],['froggy','Froggy','froggy_app'],
  ['chess','Catmate Chess','chess_app'],['berry','Berry Drop','berry_app'],['tictac','Tic Tac Treats','treats_app'],
  ['cake','Cake Tower','cake_app'],['bubble','Bubble Bloom','bubble_app'],['boop','Boop-a-Bun','boop_app'],
- ['wafer','Wobbly Wafers','wafer_app'],['memory','Sticker Match','memory_app']
+ ['wafer','Wobbly Wafers','wafer_app'],['memory','Gacha Match','memory_app']
 ]);
 /** Gabu opponents and pace presets share one vocabulary across the newer board and toy games. */
-const GABU_LEVELS = Object.freeze([['chill','Chill · forgiving'],['normal','Normal'],['sharp','Sharp · no mercy']]);
+const GABU_LEVELS = Object.freeze([['chill','Chill'],['normal','Normal'],['hard','Hard · no mercy']]);
 // Each pace label names what actually changes in that game.
 const TOY_PACES = Object.freeze({
- cake:[['chill','Chill · slow swing'],['normal','Normal'],['chaos','Chaos · fast swing']],
+ cake:[['chill','Chill · slow'],['normal','Normal'],['chaos','Chaos · fast']],
  bubble:[['chill','Chill · fewer colors'],['normal','Normal'],['chaos','Chaos · more colors']],
- boop:[['chill','Chill · slow bunnies'],['normal','Normal'],['chaos','Chaos · fast bunnies']],
+ boop:[['chill','Chill · slow'],['normal','Normal'],['chaos','Chaos · fast']],
 });
 const GAME_IDS = GAME_ROSTER.map(([id])=>id);
 
@@ -551,7 +551,7 @@ export function setup(ctx) {
     for(const id of pendingClassicScores)award(id,classicGames[id].score);
     pendingClassicScores.clear();save();
   }
-  for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame],['chess',ChessGame],['berry',BerryDropGame],['tictac',TicTacTreatsGame],['cake',CakeTowerGame],['bubble',BubbleGame],['boop',BoopGame],['wafer',WobblyWafersGame],['memory',StickerMatchGame]]){
+  for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame],['chess',ChessGame],['berry',BerryDropGame],['tictac',TicTacTreatsGame],['cake',CakeTowerGame],['bubble',BubbleGame],['boop',BoopGame],['wafer',WobblyWafersGame],['memory',GachaMatchGame]]){
     classicGames[id]=new Game({saved:persisted?.puzzles?.[id],level:gabuLevels[id],pace:toyPaces[id],onEvent:(event,data)=>classicEvent(id,event,data)});
     if(RECORD_GAMES.has(id)){recordBase[id]=bests[id];recordAnnounced[id]=false;}
   }
@@ -682,7 +682,7 @@ export function setup(ctx) {
       else if(activeMode==='bubble')drawBubbleBloom(canvas,current,toyOpts);
       else if(activeMode==='boop')drawBoopABun(canvas,current,toyOpts);
       else if(activeMode==='wafer')drawWobblyWafers(canvas,current,toyOpts);
-      else if(activeMode==='memory')drawStickerMatch(canvas,current,toyOpts);
+      else if(activeMode==='memory')drawGachaMatch(canvas,current,toyOpts);
       else drawFroggy(canvas,current,opts);
     }
     else if(activeMode==='snake'){snake.update(dt);drawSnake(canvas,snake,images,{ready:lifecycle.ready,best:bests.snake,skin:shopState.equipped.snake});}
@@ -765,7 +765,7 @@ export function setup(ctx) {
     else if(activeMode==='cake')current.release();
     else if(activeMode==='boop'){const hole=boopHoleAt(x,y,current);if(hole>=0)current.boop(hole);}
     else if(activeMode==='wafer'){const hit=waferAt(x,y,current.layers.length,current.lean(settings.reduceMotion));current.choose(hit?hit.row:-1,hit?hit.slot:0);}
-    else if(activeMode==='memory'){const card=memoryCardAt(x,y,current.cols,current.rows);if(card>=0)current.flip(card);}
+    else if(activeMode==='memory'){const card=capsuleAt(x,y,current.cols,current.rows);if(card>=0)current.flip(card);}
     else if(activeMode==='bubble'){current.setAim(x,y);bubbleAiming=true;try{canvas?.setPointerCapture?.(e.pointerId);}catch{}}
     else if(activeMode==='tetris'){
       const control=tetrisControlAt(x,y);
@@ -1037,8 +1037,10 @@ export function setup(ctx) {
     shopScroll.append(prizeGrid,create('p','bb-shop-fineprint','Tickets are earned by playing. Rewards are visual only, with no cash value, purchases, or gameplay advantage.'));shopEl.append(shopScroll);
     shopNotice=create('p','bb-shop-notice','');shopNotice.setAttribute('role','status');shopNotice.setAttribute('aria-live','polite');shopEl.append(shopNotice);
     phoneEl.append(shopEl);root.append(phoneEl);
+    // The host drags the widget from any touch that moves, so claim touches here and let the phone scroll. The header still drags.
+    bind(phoneEl,'pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Sticker Match: tap two cards. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Gacha Match: tap two capsules. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     const plinkoHost=create('div','bb-plinko-host');
     plinkoHost.append(image('gabu_peek','bb-plinko-host-art'));
@@ -1072,7 +1074,7 @@ export function setup(ctx) {
     bind(document,'visibilitychange',()=>{if(document.hidden){keyHeld=false;game.release();active().pause();save();refresh();}});
     bind(canvas,'contextmenu',e=>e.preventDefault());
     drawer=ctx.ui.registerDrawerTab({id:'fuckass_funzone',title:'Fuckass Funzone',shortName:'Funzone',iconSvg:FUNZONE_TAB_SVG,description:'The arcade inside your model wait time',
-      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','tetris','solitaire','froggy','chess','catmate','connect four','berry','tic tac toe','treats','cake','tower','bubble','bubble shooter','boop','bunny','whack a mole','wafer','jenga','memory','match','stickers','phone','funzone','waiting','thinking']});
+      keywords:['arcade','bird','gabi','gabu','jetpack','snake','2048','match3','match-3','plinko','simon','duck','slots','tetris','solitaire','froggy','chess','catmate','connect four','berry','tic tac toe','treats','cake','tower','bubble','bubble shooter','boop','bunny','whack a mole','wafer','jenga','memory','match','gacha','capsules','phone','funzone','waiting','thinking']});
     writeStyle(drawer.root);
     const panel=create('section','bb bb-drawer');
     const banner=image('funzone_logo','bb-drawer-logo');banner.alt='Fuckass Funzone Arcade';panel.append(banner);
@@ -1218,10 +1220,10 @@ export function setup(ctx) {
     tip(berryInfo,'Drop strawberries into the basket and connect four in a row, column or diagonal before Gabu\u2019s blueberries do. Tap a column, use Left/Right then Space or Down, or press 1\u20137. Each won round adds to your streak score and a draw adds a little; one loss ends the streak. Who starts alternates every round. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('berry',makeSelect(berryInfo,'Gabu difficulty','How far ahead Gabu looks. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.berry,'Berry Drop difficulty',v=>{gabuLevels.berry=v;save();refresh();}));
     const treatsInfo=drawerGamePanel('tictac');
-    tip(treatsInfo,'Tic-tac-toe with pocky crosses against Gabu\u2019s donuts. Tap a square, use the arrows and Space, or press 1\u20139 (top-left to bottom-right). Wins and draws build your streak score; one loss ends it. Sharp Gabu never makes a mistake, so a draw is the best result there. Every 100 new personal-best points earns a ticket.');
+    tip(treatsInfo,'Tic-tac-toe with pocky crosses against Gabu\u2019s donuts. Tap a square, use the arrows and Space, or press 1\u20139 (top-left to bottom-right). Wins and draws build your streak score; one loss ends it. Hard Gabu never makes a mistake, so a draw is the best result there. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('tictac',makeSelect(treatsInfo,'Gabu difficulty','How often Gabu slips up. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.tictac,'Tic Tac Treats difficulty',v=>{gabuLevels.tictac=v;save();refresh();}));
     const cakeInfo=drawerGamePanel('cake');
-    tip(cakeInfo,'Tap, Space, Enter or Down drops the swinging tier. Land it dead center for a PERFECT that steadies the tower and builds a streak; sloppy drops make it wobble. A tier only stays if its middle sits over the tier below, and when the stack leans too far or wobbles too hard, the top slides off. Misses and collapses each cost one of three hearts. Every 100 new personal-best points earns a ticket.');
+    tip(cakeInfo,'Tap, Space, Enter or Down drops the swinging tier. Land it dead center for a PERFECT that steadies the tower and builds a streak; sloppy drops make it wobble. A tier only stays if its middle sits over the tier below; a wobbly cake is harder to aim at. Each missed tier costs one of three hearts. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('cake',makeSelect(cakeInfo,'Swing pace','Chill swings slower with a wider perfect window; Chaos swings faster with a tighter one. Changes apply to your next cake.',TOY_PACES.cake,toyPaces.cake,'Cake Tower pace',v=>{toyPaces.cake=v;save();refresh();}));
     const bubbleInfo=drawerGamePanel('bubble');
     tip(bubbleInfo,'Drag to aim and release to shoot, or aim with Left/Right and shoot with Space. C swaps in the next bubble. Three or more of a kind pop, and anything left hanging falls for bonus points. Every few misses a new row pushes down; a bubble past the dashed line ends the run. Clear the board to level up. Every 300 new personal-best points earns a ticket.');
@@ -1233,8 +1235,8 @@ export function setup(ctx) {
     tip(waferInfo,'Take turns with Gabu pulling wafers from the tower and stacking them on top. Tap a wafer to pick it, then tap again while the steady-hand meter is green for a clean pull; sloppy pulls make the tower wobble. You can\u2019t pull from the top two layers, and a layer left with only an edge wafer tips everything above it. The outline turns yellow on risky wafers and red on ones that would topple the tower. Whoever topples the tower loses the round; Gabu toppling it extends your streak. Arrows move, Space picks and pulls, Escape cancels. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('wafer',makeSelect(waferInfo,'Gabu difficulty','How steady Gabu\u2019s paws are and how well Gabu picks wafers. Changes apply to your next new streak.',GABU_LEVELS,gabuLevels.wafer,'Wobbly Wafers difficulty',v=>{gabuLevels.wafer=v;save();refresh();}));
     const memoryInfo=drawerGamePanel('memory');
-    tip(memoryInfo,'Each new page starts face up for a few seconds so you can memorize it (3 on Cozy, 3.5 on Classic, 4 on Busy); tap to start early. Then flip two cards at a time to find matching sticker pairs. Matches in a row build a streak bonus, and finishing the page adds a bonus that shrinks with every miss. Tap a card, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
-    presetSelects.set('memory',makeSelect(memoryInfo,'Board size','Cozy has 6 pairs, Classic 8 and Busy 10. Changes apply to your next new page.',[['cozy','Cozy · 6 pairs'],['classic','Classic · 8 pairs'],['busy','Busy · 10 pairs']],toyPaces.memory,'Sticker Match board size',v=>{toyPaces.memory=v;save();refresh();}));
+    tip(memoryInfo,'Each new tray starts with every capsule open for a few seconds so you can memorize the charms (3 on Cozy, 3.5 on Classic, 4 on Busy); tap to start early. Then open two capsules at a time to find matching pairs. Matches in a row build a streak bonus, and finishing the tray adds a bonus that shrinks with every miss. Tap a capsule, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
+    presetSelects.set('memory',makeSelect(memoryInfo,'Board size','Cozy has 6 pairs, Classic 8 and Busy 10. Changes apply to your next new tray.',[['cozy','Cozy · 6 pairs'],['classic','Classic · 8 pairs'],['busy','Busy · 10 pairs']],toyPaces.memory,'Gacha Match board size',v=>{toyPaces.memory=v;save();refresh();}));
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){

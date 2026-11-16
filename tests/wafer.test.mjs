@@ -30,7 +30,7 @@ test('a shaky pull adds more wobble than a clean one, and Gabu toppling the towe
   const clean = new WobblyWafersGame({ random: () => .5 }), shaky = new WobblyWafersGame({ random: () => .5 });
   for (const [g, meter] of [[clean, .5], [shaky, .02]]) { g.start(); g.choose(5, 1); g.meter = meter; g.pull(); }
   assert.ok(shaky.wobble > clean.wobble + 20);
-  const events = [], g = new WobblyWafersGame({ random: () => .5, level: 'sharp', onEvent: e => events.push(e) }); g.start();
+  const events = [], g = new WobblyWafersGame({ random: () => .5, level: 'hard', onEvent: e => events.push(e) }); g.start();
   g.choose(5, 1); g.meter = .5; g.pull(); g.wobble = 99;
   for (let i = 0; i < 30 && g.phase === 'turn'; i++) g.update(.1);
   assert.equal(g.phase, 'over'); assert.equal(g.result, 'win'); assert.equal(g.wins, 1); assert.ok(events.includes('win'));

@@ -103,7 +103,7 @@ test('bundled Catmate Chess plays by keyboard and touch, lets Gabu reply, pauses
   });
 });
 
-test('bundled Berry Drop, Tic Tac Treats, Cake Tower, Bubble Bloom, Boop-a-Bun, Wobbly Wafers and Sticker Match accept their controls and save', () => {
+test('bundled Berry Drop, Tic Tac Treats, Cake Tower, Bubble Bloom, Boop-a-Bun, Wobbly Wafers and Gacha Match accept their controls and save', () => {
   withHost({}, h => {
     h.pick('berry'); h.key('Digit4'); h.frames(10);
     assert.equal(h.save().puzzles.berry.board.filter(v => v === 1).length, 1, 'key 4 dropped a strawberry');
@@ -166,13 +166,21 @@ test('difficulty and pace choices persist and apply to the next new game, not th
   withHost({}, h => {
     h.pick('chess'); h.key('ArrowUp'); h.key('Enter'); h.key('ArrowUp'); h.key('ArrowUp'); h.key('Enter');
     const select = h.drawerSelect('Catmate Chess difficulty'); assert.equal(select.value, 'normal');
-    select.value = 'sharp'; select.dispatch('change');
-    assert.equal(h.save().gabuLevels.chess, 'sharp'); assert.equal(h.save().puzzles.chess.level, 'normal', 'the running game keeps its level');
-    findRestart(h).dispatch('click'); assert.equal(h.save().puzzles.chess.level, 'sharp', 'restart starts a Sharp game');
+    select.value = 'hard'; select.dispatch('change');
+    assert.equal(h.save().gabuLevels.chess, 'hard'); assert.equal(h.save().puzzles.chess.level, 'normal', 'the running game keeps its level');
+    findRestart(h).dispatch('click'); assert.equal(h.save().puzzles.chess.level, 'hard', 'restart starts a Hard game');
     const pace = h.drawerSelect('Bubble Bloom difficulty'); pace.value = 'chill'; pace.dispatch('change');
     h.pick('bubble'); findRestart(h).dispatch('click'); assert.equal(h.save().puzzles.bubble.pace, 'chill');
-    h.reload(); assert.equal(h.drawerSelect('Catmate Chess difficulty').value, 'sharp'); assert.equal(h.drawerSelect('Bubble Bloom difficulty').value, 'chill');
+    h.reload(); assert.equal(h.drawerSelect('Catmate Chess difficulty').value, 'hard'); assert.equal(h.drawerSelect('Bubble Bloom difficulty').value, 'chill');
   });
 });
 function findControl(h, title) { return flatten(h.findClass('bb-controls')).find(n => n.title === title); }
 function findRestart(h) { return findControl(h, 'Restart game'); }
+
+test('touches on the phone are claimed so scrolling the launcher never drags the widget', () => {
+  withHost({}, h => {
+    const press = pointerType => { let claimed = false; h.findClass('bb-phone').dispatch('pointerdown', { pointerType, preventDefault() { claimed = true; } }); return claimed; };
+    assert.equal(press('touch'), true, 'the host skips drags for prevented pointerdowns, so the list scrolls instead');
+    assert.equal(press('mouse'), false, 'a mouse can still drag the widget from anywhere, as before');
+  });
+});
