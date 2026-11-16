@@ -422,7 +422,7 @@ export function setup(ctx) {
   let shopState=restoreShop(persisted.shop);
   const images=loadImages();let lifecycle={activeIds:[],ready:false};
   let widget=null,drawer=null,action=null,frame=0,lastTs=0,shown=false,disposed=false;
-  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1,solitaireCursor=-1,chessCursor=-1,bubbleAiming=false;
+  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1,solitaireCursor=-1,chessCursor=-1,bubbleAiming=false,toyKeys=false;
   const classicGames={},pendingClassicScores=new Set();let classicSavePending=false;
   const matchBanks=Object.create(null);
   for(const width of MATCH_WIDTHS)if(persisted?.match3Boards?.[width])matchBanks[width]=persisted.match3Boards[width];
@@ -553,7 +553,8 @@ export function setup(ctx) {
   }
   for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame],['chess',ChessGame],['berry',BerryDropGame],['tictac',TicTacTreatsGame],['cake',CakeTowerGame],['bubble',BubbleGame],['boop',BoopGame],['wafer',WobblyWafersGame],['memory',GachaMatchGame]]){
     classicGames[id]=new Game({saved:persisted?.puzzles?.[id],level:gabuLevels[id],pace:toyPaces[id],onEvent:(event,data)=>classicEvent(id,event,data)});
-    if(RECORD_GAMES.has(id)){recordBase[id]=bests[id];recordAnnounced[id]=false;}
+    // A run restored from a save that already holds the record announced it before the reload.
+    if(RECORD_GAMES.has(id)){const g=classicGames[id];recordBase[id]=bests[id];recordAnnounced[id]=(g.status==='paused'||g.status==='playing')&&g.score>0&&g.score===bests[id];}
   }
   const bind=(el,event,fn,options)=>{el.addEventListener(event,fn,options);listeners.push(()=>el.removeEventListener(event,fn,options));};
   const active=()=>classicGames[activeMode]||(activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game);
@@ -672,7 +673,7 @@ export function setup(ctx) {
     if(classicGames[activeMode]){
       const current=classicGames[activeMode];current.update(dt);flushClassic();
       const opts={best:bests[activeMode],reduced:settings.reduceMotion,cursor:solitaireCursor<0?null:classicGames.solitaire.keyboardHits()[solitaireCursor]};
-      const toyOpts={best:bests[activeMode],reduced:settings.reduceMotion,images,time:now/1000};
+      const toyOpts={best:bests[activeMode],reduced:settings.reduceMotion,images,time:now/1000,cursor:toyKeys};
       if(activeMode==='tetris')drawTetris(canvas,current,opts);
       else if(activeMode==='solitaire')drawSolitaire(canvas,current,opts);
       else if(activeMode==='chess')drawChess(canvas,current,{...toyOpts,cursor:chessCursor});
@@ -702,7 +703,7 @@ export function setup(ctx) {
   function switchMode(mode,launch=false){
     if(!GAME_IDS.includes(mode))return;
     if(activeMode!==mode)active().pause();
-    activeMode=mode;selectedCell=-1;keyboardCursor=-1;solitaireCursor=-1;chessCursor=-1;bubbleAiming=false;pointerStart=null;reactions.clear();
+    activeMode=mode;selectedCell=-1;keyboardCursor=-1;solitaireCursor=-1;chessCursor=-1;bubbleAiming=false;toyKeys=false;pointerStart=null;reactions.clear();
     if(mode==='bird'||mode==='gabi'){
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
@@ -759,6 +760,7 @@ export function setup(ctx) {
     if(current.status!=='playing'){play();return;}
     const rect=canvas.getBoundingClientRect();if(!rect?.width||!rect?.height)return;
     const x=(e.clientX-rect.left)*360/rect.width,y=(e.clientY-rect.top)*452/rect.height;
+    toyKeys=false;
     if(activeMode==='chess'){chessCursor=-1;current.select(chessSquareAt(x,y));}
     else if(activeMode==='berry'){const col=berryColumnAt(x,y);if(current.phase==='over')current.nextRound();else if(col>=0)current.drop(col);}
     else if(activeMode==='tictac'){const cell=tictacCellAt(x,y);if(current.phase==='over')current.nextRound();else if(cell>=0)current.place(cell);}
@@ -798,7 +800,7 @@ export function setup(ctx) {
       activeMode==='bubble'?['ArrowLeft','ArrowRight','KeyA','KeyD','ArrowUp','KeyW','Space','Enter','KeyC','KeyX']:
       ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyF','KeyU','KeyZ','Backspace','Escape'];
     if(!keys.includes(e.code))return;
-    e.preventDefault();e.stopPropagation();
+    e.preventDefault();e.stopPropagation();toyKeys=true;
     if((activeMode==='solitaire'&&current.won||activeMode==='chess'&&current.status==='dead')&&['KeyU','KeyZ','Backspace'].includes(e.code)){
       if(!e.repeat){current.undo();solitaireCursor=-1;flushClassic();save();refresh();}return;
     }

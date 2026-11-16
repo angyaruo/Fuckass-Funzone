@@ -42,7 +42,8 @@ export function drawDonutMark(ctx, cx, cy, size, alpha = 1) {
   ctx.restore();
 }
 const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
-export function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+export function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2c1a33'); bg.addColorStop(1, '#1b1322'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -72,9 +73,9 @@ export function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced 
     const cx = BX + (i % 3) * CELL + CELL / 2, cy = BY + Math.floor(i / 3) * CELL + CELL / 2, grow = reduced ? 1 : .55 + .45 * Math.min(1, game.placed[i] || 1);
     if (game.board[i] === 1) drawPockyMark(ctx, cx, cy, 62 * grow);
     else if (game.board[i] === 2) drawDonutMark(ctx, cx, cy, 62 * grow);
-    else if (yourTurn && i === game.cursor) drawPockyMark(ctx, cx, cy, 54, .28);
+    else if (cursor && yourTurn && i === game.cursor) drawPockyMark(ctx, cx, cy, 54, .28);
   }
-  if (game.status === 'playing' && game.phase === 'turn') {
+  if (cursor && game.status === 'playing' && game.phase === 'turn') {
     const x = BX + (game.cursor % 3) * CELL, y = BY + Math.floor(game.cursor / 3) * CELL;
     ctx.strokeStyle = yourTurn ? '#5fd8d2' : '#5fd8d244'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(x + 4, y + 4, CELL - 8, CELL - 8, 16); ctx.stroke();
   }

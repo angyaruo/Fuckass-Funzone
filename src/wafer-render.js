@@ -26,7 +26,8 @@ export function drawWafer(ctx, x, y, w, h, flavor, crossed) {
   ctx.strokeStyle = line; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(x + .5, y + .5, w - 1, h - 1, Math.min(5, h / 3)); ctx.stroke();
 }
 const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
-export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const wall = ctx.createLinearGradient(0, 0, 0, H); wall.addColorStop(0, '#3a2a4d'); wall.addColorStop(1, '#2a1f38'); ctx.fillStyle = wall; ctx.fillRect(0, 0, W, H);
@@ -56,7 +57,7 @@ export function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced 
         const risk = pullRisk(game.layers, row, slot);
         ctx.strokeStyle = risk === Infinity ? '#ff5d8f' : risk >= 16 ? '#ffcf5a' : '#5fd8d2'; ctx.lineWidth = 2.6;
         ctx.beginPath(); ctx.roundRect(x - 2, y - 1, WAFER_W + 4, layerH + 2, 6); ctx.stroke();
-      } else if (game.status === 'playing' && game.turn === 1 && game.phase === 'turn' && !game.selected && game.cursor.row === row && game.cursor.slot === slot) {
+      } else if (cursor && game.status === 'playing' && game.turn === 1 && game.phase === 'turn' && !game.selected && game.cursor.row === row && game.cursor.slot === slot) {
         ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.roundRect(x - 2, y - 1, WAFER_W + 4, layerH + 2, 6); ctx.stroke(); ctx.setLineDash([]);
       }
     }

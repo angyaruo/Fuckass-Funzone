@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setup } from '../dist/frontend.js';
+import { ChessGame } from '../src/chess.js';
 
 class ElementMock {
   constructor(tag = 'div') {
@@ -159,6 +160,13 @@ test('Gabu judges the new games with Kitty\u2019s face art, and Sound off stays 
     result: null, reason: null, lastMove: null, status: 'paused' } } }, h => {
     h.pick('chess'); h.tap(200, 242); h.tap(160, 202); h.frames(1);
     assert.equal(h.reaction().art, 'gabu_hype', 'passing the old best of 5 announces a NEW BEST with the hype face');
+  });
+  // A reload in the middle of the run that set the record must not announce the same record again.
+  const saved = { version: 1, board, turn: 'w', castling: '', ep: -1, halfmove: 0, fullmove: 12, level: 'normal', score: 0, result: null, reason: null, lastMove: null, status: 'paused' };
+  const held = new ChessGame({ saved }).score; assert.ok(held > 0);
+  withHost({ bests: { chess: held }, puzzles: { chess: saved } }, h => {
+    h.pick('chess'); h.tap(200, 242); h.tap(160, 202); h.frames(1);
+    assert.equal(h.reaction().art, 'gabu_shock', 'the run already holds the record, so Gabu reacts to the queen instead');
   });
 });
 

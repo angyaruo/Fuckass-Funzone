@@ -53,7 +53,8 @@ export function drawCritter(ctx, kind, squish = 1) {
   if (gold) for (const [x, y] of [[-30, -48], [28, -40], [-24, -6]]) { ctx.strokeStyle = '#fff6d6'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
   ctx.restore();
 }
-export function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+export function drawBoopABun(canvas, game, { best = 0, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const grass = ctx.createLinearGradient(0, 0, 0, H); grass.addColorStop(0, '#c9efb4'); grass.addColorStop(1, '#93d48b'); ctx.fillStyle = grass; ctx.fillRect(0, 0, W, H);
@@ -73,6 +74,8 @@ export function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
   drawTxt(ctx, game.combo >= 2 ? `COMBO ×${game.combo}` : String(game.pace).toUpperCase(), 340, 74, 11, game.combo >= 2 ? '#c93a6c' : '#2f6b3a', 'right');
   for (let i = 0; i < BOOP_HOLES; i++) {
     const cx = COLS[i % 3], cy = ROWS[Math.floor(i / 3)], h = game.holes[i], rise = game.height(i);
+    // The cursor ring sits on the grass, under the burrow and anything climbing out of it.
+    if (cursor && game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.ellipse(cx, cy, RX + 9, RY + 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
     ctx.beginPath(); ctx.ellipse(cx, cy, RX + 6, RY + 6, 0, 0, Math.PI * 2); ctx.fillStyle = '#7bbf72'; ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx, cy, RX, RY, 0, 0, Math.PI * 2); ctx.fillStyle = '#5a3a2e'; ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx, cy + 3, RX - 6, RY - 5, 0, 0, Math.PI * 2); ctx.fillStyle = '#3b241c'; ctx.fill();
@@ -82,7 +85,6 @@ export function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
       ctx.translate(cx, cy + 6 + (1 - rise) * 78); drawCritter(ctx, h.kind, h.booped ? .78 : 1); ctx.restore();
     }
     ctx.strokeStyle = '#4f9a50'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, cy, RX + 1, RY + 1, 0, 0, Math.PI); ctx.stroke();
-    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.ellipse(cx, cy, RX + 9, RY + 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
   }
   for (const e of game.effects) {
     const cx = COLS[e.index % 3], cy = ROWS[Math.floor(e.index / 3)], lift = reduced ? 0 : e.age * 60;

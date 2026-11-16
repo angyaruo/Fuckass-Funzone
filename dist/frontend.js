@@ -5342,7 +5342,8 @@ function drawDonutMark(ctx, cx, cy, size, alpha = 1) {
   ctx.restore();
 }
 const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
-function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2c1a33'); bg.addColorStop(1, '#1b1322'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -5372,9 +5373,9 @@ function drawTicTacTreats(canvas, game, { best = 0, images = {}, reduced = false
     const cx = BX + (i % 3) * CELL + CELL / 2, cy = BY + Math.floor(i / 3) * CELL + CELL / 2, grow = reduced ? 1 : .55 + .45 * Math.min(1, game.placed[i] || 1);
     if (game.board[i] === 1) drawPockyMark(ctx, cx, cy, 62 * grow);
     else if (game.board[i] === 2) drawDonutMark(ctx, cx, cy, 62 * grow);
-    else if (yourTurn && i === game.cursor) drawPockyMark(ctx, cx, cy, 54, .28);
+    else if (cursor && yourTurn && i === game.cursor) drawPockyMark(ctx, cx, cy, 54, .28);
   }
-  if (game.status === 'playing' && game.phase === 'turn') {
+  if (cursor && game.status === 'playing' && game.phase === 'turn') {
     const x = BX + (game.cursor % 3) * CELL, y = BY + Math.floor(game.cursor / 3) * CELL;
     ctx.strokeStyle = yourTurn ? '#5fd8d2' : '#5fd8d244'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(x + 4, y + 4, CELL - 8, CELL - 8, 16); ctx.stroke();
   }
@@ -6170,7 +6171,8 @@ function drawCritter(ctx, kind, squish = 1) {
   if (gold) for (const [x, y] of [[-30, -48], [28, -40], [-24, -6]]) { ctx.strokeStyle = '#fff6d6'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
   ctx.restore();
 }
-function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+function drawBoopABun(canvas, game, { best = 0, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const grass = ctx.createLinearGradient(0, 0, 0, H); grass.addColorStop(0, '#c9efb4'); grass.addColorStop(1, '#93d48b'); ctx.fillStyle = grass; ctx.fillRect(0, 0, W, H);
@@ -6190,6 +6192,8 @@ function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
   drawTxt(ctx, game.combo >= 2 ? `COMBO ×${game.combo}` : String(game.pace).toUpperCase(), 340, 74, 11, game.combo >= 2 ? '#c93a6c' : '#2f6b3a', 'right');
   for (let i = 0; i < BOOP_HOLES; i++) {
     const cx = COLS[i % 3], cy = ROWS[Math.floor(i / 3)], h = game.holes[i], rise = game.height(i);
+    // The cursor ring sits on the grass, under the burrow and anything climbing out of it.
+    if (cursor && game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.ellipse(cx, cy, RX + 9, RY + 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
     ctx.beginPath(); ctx.ellipse(cx, cy, RX + 6, RY + 6, 0, 0, Math.PI * 2); ctx.fillStyle = '#7bbf72'; ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx, cy, RX, RY, 0, 0, Math.PI * 2); ctx.fillStyle = '#5a3a2e'; ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx, cy + 3, RX - 6, RY - 5, 0, 0, Math.PI * 2); ctx.fillStyle = '#3b241c'; ctx.fill();
@@ -6199,7 +6203,6 @@ function drawBoopABun(canvas, game, { best = 0, reduced = false } = {}) {
       ctx.translate(cx, cy + 6 + (1 - rise) * 78); drawCritter(ctx, h.kind, h.booped ? .78 : 1); ctx.restore();
     }
     ctx.strokeStyle = '#4f9a50'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, cy, RX + 1, RY + 1, 0, 0, Math.PI); ctx.stroke();
-    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.ellipse(cx, cy, RX + 9, RY + 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
   }
   for (const e of game.effects) {
     const cx = COLS[e.index % 3], cy = ROWS[Math.floor(e.index / 3)], lift = reduced ? 0 : e.age * 60;
@@ -6472,7 +6475,8 @@ function drawWafer(ctx, x, y, w, h, flavor, crossed) {
   ctx.strokeStyle = line; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(x + .5, y + .5, w - 1, h - 1, Math.min(5, h / 3)); ctx.stroke();
 }
 const LEVEL_NAMES = Object.freeze({ chill: 'CHILL GABU', normal: 'NORMAL GABU', hard: 'HARD GABU' });
-function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const wall = ctx.createLinearGradient(0, 0, 0, H); wall.addColorStop(0, '#3a2a4d'); wall.addColorStop(1, '#2a1f38'); ctx.fillStyle = wall; ctx.fillRect(0, 0, W, H);
@@ -6502,7 +6506,7 @@ function drawWobblyWafers(canvas, game, { best = 0, images = {}, reduced = false
         const risk = pullRisk(game.layers, row, slot);
         ctx.strokeStyle = risk === Infinity ? '#ff5d8f' : risk >= 16 ? '#ffcf5a' : '#5fd8d2'; ctx.lineWidth = 2.6;
         ctx.beginPath(); ctx.roundRect(x - 2, y - 1, WAFER_W + 4, layerH + 2, 6); ctx.stroke();
-      } else if (game.status === 'playing' && game.turn === 1 && game.phase === 'turn' && !game.selected && game.cursor.row === row && game.cursor.slot === slot) {
+      } else if (cursor && game.status === 'playing' && game.turn === 1 && game.phase === 'turn' && !game.selected && game.cursor.row === row && game.cursor.slot === slot) {
         ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.roundRect(x - 2, y - 1, WAFER_W + 4, layerH + 2, 6); ctx.stroke(); ctx.setLineDash([]);
       }
     }
@@ -6728,7 +6732,8 @@ function drawCapsule(ctx, cx, cy, r, lid, open, charm, matched) {
   if (matched) for (const [x, y] of [[-r * .9, -r * .7], [r * .95, -r * .2]]) { ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
   ctx.restore();
 }
-function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+function drawGachaMatch(canvas, game, { best = 0, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const shop = ctx.createLinearGradient(0, 0, 0, H); shop.addColorStop(0, '#c9f0ec'); shop.addColorStop(1, '#a9dcf2'); ctx.fillStyle = shop; ctx.fillRect(0, 0, W, H);
@@ -6750,7 +6755,7 @@ function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {}) {
     if (card.up && !card.matched) { ctx.strokeStyle = '#ff7fae'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 14); ctx.stroke(); }
     drawCapsule(ctx, x + cw / 2, y + ch / 2 + r * .15, r, LIDS[i % LIDS.length], open, CHARMS[card.kind], card.matched);
     ctx.globalAlpha = 1;
-    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
+    if (cursor && game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
   });
   rounded(ctx, 0, 412, W, 40, 0, '#2c1a33');
   const memorizing = game.status === 'playing' && game.preview > 0;
@@ -7157,7 +7162,7 @@ export function setup(ctx) {
   let shopState=restoreShop(persisted.shop);
   const images=loadImages();let lifecycle={activeIds:[],ready:false};
   let widget=null,drawer=null,action=null,frame=0,lastTs=0,shown=false,disposed=false;
-  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1,solitaireCursor=-1,chessCursor=-1,bubbleAiming=false;
+  let keyHeld=false,pointerStart=null,selectedCell=-1,keyboardCursor=-1,solitaireCursor=-1,chessCursor=-1,bubbleAiming=false,toyKeys=false;
   const classicGames={},pendingClassicScores=new Set();let classicSavePending=false;
   const matchBanks=Object.create(null);
   for(const width of MATCH_WIDTHS)if(persisted?.match3Boards?.[width])matchBanks[width]=persisted.match3Boards[width];
@@ -7288,7 +7293,8 @@ export function setup(ctx) {
   }
   for(const [id,Game] of [['tetris',TetrisGame],['solitaire',SolitaireGame],['froggy',FroggyGame],['chess',ChessGame],['berry',BerryDropGame],['tictac',TicTacTreatsGame],['cake',CakeTowerGame],['bubble',BubbleGame],['boop',BoopGame],['wafer',WobblyWafersGame],['memory',GachaMatchGame]]){
     classicGames[id]=new Game({saved:persisted?.puzzles?.[id],level:gabuLevels[id],pace:toyPaces[id],onEvent:(event,data)=>classicEvent(id,event,data)});
-    if(RECORD_GAMES.has(id)){recordBase[id]=bests[id];recordAnnounced[id]=false;}
+    // A run restored from a save that already holds the record announced it before the reload.
+    if(RECORD_GAMES.has(id)){const g=classicGames[id];recordBase[id]=bests[id];recordAnnounced[id]=(g.status==='paused'||g.status==='playing')&&g.score>0&&g.score===bests[id];}
   }
   const bind=(el,event,fn,options)=>{el.addEventListener(event,fn,options);listeners.push(()=>el.removeEventListener(event,fn,options));};
   const active=()=>classicGames[activeMode]||(activeMode==='snake'?snake:activeMode==='2048'?merge:activeMode==='match3'?match3:activeMode==='plinko'?plinko:activeMode==='simon'?simon:activeMode==='duck'?duck:activeMode==='slots'?slots:game);
@@ -7407,7 +7413,7 @@ export function setup(ctx) {
     if(classicGames[activeMode]){
       const current=classicGames[activeMode];current.update(dt);flushClassic();
       const opts={best:bests[activeMode],reduced:settings.reduceMotion,cursor:solitaireCursor<0?null:classicGames.solitaire.keyboardHits()[solitaireCursor]};
-      const toyOpts={best:bests[activeMode],reduced:settings.reduceMotion,images,time:now/1000};
+      const toyOpts={best:bests[activeMode],reduced:settings.reduceMotion,images,time:now/1000,cursor:toyKeys};
       if(activeMode==='tetris')drawTetris(canvas,current,opts);
       else if(activeMode==='solitaire')drawSolitaire(canvas,current,opts);
       else if(activeMode==='chess')drawChess(canvas,current,{...toyOpts,cursor:chessCursor});
@@ -7437,7 +7443,7 @@ export function setup(ctx) {
   function switchMode(mode,launch=false){
     if(!GAME_IDS.includes(mode))return;
     if(activeMode!==mode)active().pause();
-    activeMode=mode;selectedCell=-1;keyboardCursor=-1;solitaireCursor=-1;chessCursor=-1;bubbleAiming=false;pointerStart=null;reactions.clear();
+    activeMode=mode;selectedCell=-1;keyboardCursor=-1;solitaireCursor=-1;chessCursor=-1;bubbleAiming=false;toyKeys=false;pointerStart=null;reactions.clear();
     if(mode==='bird'||mode==='gabi'){
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
@@ -7494,6 +7500,7 @@ export function setup(ctx) {
     if(current.status!=='playing'){play();return;}
     const rect=canvas.getBoundingClientRect();if(!rect?.width||!rect?.height)return;
     const x=(e.clientX-rect.left)*360/rect.width,y=(e.clientY-rect.top)*452/rect.height;
+    toyKeys=false;
     if(activeMode==='chess'){chessCursor=-1;current.select(chessSquareAt(x,y));}
     else if(activeMode==='berry'){const col=berryColumnAt(x,y);if(current.phase==='over')current.nextRound();else if(col>=0)current.drop(col);}
     else if(activeMode==='tictac'){const cell=tictacCellAt(x,y);if(current.phase==='over')current.nextRound();else if(cell>=0)current.place(cell);}
@@ -7533,7 +7540,7 @@ export function setup(ctx) {
       activeMode==='bubble'?['ArrowLeft','ArrowRight','KeyA','KeyD','ArrowUp','KeyW','Space','Enter','KeyC','KeyX']:
       ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyF','KeyU','KeyZ','Backspace','Escape'];
     if(!keys.includes(e.code))return;
-    e.preventDefault();e.stopPropagation();
+    e.preventDefault();e.stopPropagation();toyKeys=true;
     if((activeMode==='solitaire'&&current.won||activeMode==='chess'&&current.status==='dead')&&['KeyU','KeyZ','Backspace'].includes(e.code)){
       if(!e.repeat){current.undo();solitaireCursor=-1;flushClassic();save();refresh();}return;
     }

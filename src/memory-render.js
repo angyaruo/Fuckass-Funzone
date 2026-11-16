@@ -65,7 +65,8 @@ function drawCapsule(ctx, cx, cy, r, lid, open, charm, matched) {
   if (matched) for (const [x, y] of [[-r * .9, -r * .7], [r * .95, -r * .2]]) { ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
   ctx.restore();
 }
-export function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {}) {
+// `cursor` is false until the player uses the keyboard, so taps never leave a stray highlight.
+export function drawGachaMatch(canvas, game, { best = 0, reduced = false, cursor = true } = {}) {
   if (!canvas?.getContext) return; const ctx = canvas.getContext('2d'); if (!ctx) return;
   ctx.save(); ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   const shop = ctx.createLinearGradient(0, 0, 0, H); shop.addColorStop(0, '#c9f0ec'); shop.addColorStop(1, '#a9dcf2'); ctx.fillStyle = shop; ctx.fillRect(0, 0, W, H);
@@ -87,7 +88,7 @@ export function drawGachaMatch(canvas, game, { best = 0, reduced = false } = {})
     if (card.up && !card.matched) { ctx.strokeStyle = '#ff7fae'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 14); ctx.stroke(); }
     drawCapsule(ctx, x + cw / 2, y + ch / 2 + r * .15, r, LIDS[i % LIDS.length], open, CHARMS[card.kind], card.matched);
     ctx.globalAlpha = 1;
-    if (game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
+    if (cursor && game.status === 'playing' && i === game.cursor) { ctx.strokeStyle = '#2f5b66'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.roundRect(x - 2, y - 2, cw + 4, ch + 4, 15); ctx.stroke(); ctx.setLineDash([]); }
   });
   rounded(ctx, 0, 412, W, 40, 0, '#2c1a33');
   const memorizing = game.status === 'playing' && game.preview > 0;
