@@ -1,4 +1,4 @@
-# Fuckass Funzone 2.7.0 · Eight cute classics
+# Fuckass Funzone 2.7.0 — Eight cute classics
 
 ## What's new
 
@@ -61,6 +61,7 @@ Original versions of every edited source, config, doc and test are retained at `
 - `node --test tests/*.test.mjs`: **182/182 passed** (the 125 existing tests plus 57 new ones, including the mock Lumiverse host integration).
 - Chess move generation matches the published perft counts for the starting position and three standard test positions. Hard Tic Tac Treats was checked against every possible sequence of player moves and never loses.
 - Each game was played in headless Chromium through `demo-classics-qa.html` at 382 px and 292 px cabinet widths with no page errors, and the launcher was checked on an emulated phone with the cabinet taller than the screen. Touch swipes on the launcher were replayed in Chromium against a stand-in for Lumiverse's float-widget drag handler: before the fix every swipe started a drag; after it, swipes scroll the list, header swipes still drag, and taps still open apps.
+- A random-input stress run (700 taps, keys, drags, pauses, blurs and restarts per new game, with a reload every few dozen actions) produced no page errors, and every save restored with valid scores.
 - Live Lumiverse and real device visual QA are not available here, so verify the feel on desktop and mobile after upgrading.
 
 ## Compatibility
