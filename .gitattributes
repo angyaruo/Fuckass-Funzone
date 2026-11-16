@@ -1,2 +1,2 @@
-# Embedded vector artwork must be identical across Windows and Unix checkouts.
+# Embedded SVG data must stay byte-identical across Windows and Unix checkouts.
 *.svg text eol=lf

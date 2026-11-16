@@ -34,6 +34,8 @@ class ElementMock {
   }
 }
 const flatten = node => [node, ...node.children.flatMap(child => child instanceof ElementMock ? flatten(child) : [])];
+const UPSTREAM_MODES = ['bird', 'gabi', 'snake', '2048', 'match3', 'plinko', 'simon', 'duck', 'slots', 'tetris', 'solitaire', 'froggy',
+  'chess', 'berry', 'tictac', 'cake', 'bubble', 'boop', 'wafer', 'memory'];
 function withHost(initial, run) {
   const names = ['window', 'document', 'Image', 'HTMLElement', 'localStorage', 'requestAnimationFrame', 'cancelAnimationFrame'];
   const previous = Object.fromEntries(names.map(name => [name, globalThis[name]]));
@@ -103,8 +105,8 @@ function shopRun() {
 }
 
 test('bundled Gambit routes number/Space/D and touch controls, reports score, pauses, and keeps other games saved', () => {
-  const game = knownRun(), futurePuzzles = { tetris: { board: ['keep this newer save'] }, solitaire: { waste: [51] }, froggy: { pond: 3 } };
-  withHost({ tickets: 73, bests: { gambit: 0, tetris: 2345, solitaire: 110, froggy: 900 }, puzzles: { ...futurePuzzles, gambit: game.snapshot() } }, h => {
+  const game = knownRun(), futurePuzzles = { future_arcade: { version: 2, board: ['keep this newer save'] } };
+  withHost({ tickets: 73, bests: { gambit: 0, tetris: 2345, solitaire: 110, froggy: 900, future_arcade: 808 }, puzzles: { ...futurePuzzles, gambit: game.snapshot() } }, h => {
     h.pick(); h.frames();
     h.key('Digit8', new ElementMock('textarea')); assert.deepEqual(h.save().puzzles.gambit.selected, [], 'chat typing never selects a card');
     h.key('Digit8'); assert.equal(h.save().puzzles.gambit.selected.length, 1);
@@ -126,7 +128,42 @@ test('bundled Gambit routes number/Space/D and touch controls, reports score, pa
     assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
     for (const id of Object.keys(futurePuzzles)) assert.deepEqual(h.save().puzzles[id], futurePuzzles[id]);
     assert.equal(h.save().bests.tetris, 2345); assert.equal(h.save().bests.solitaire, 110); assert.equal(h.save().bests.froggy, 900);
+    assert.equal(h.save().bests.future_arcade, 808, 'a newer game record survives this build');
     assert.equal(h.save().tickets, 73, 'Gambit coins and scoring cannot spend or mint arcade tickets');
+  });
+});
+
+test('adding Gambit to a twenty-game profile preserves every existing save, record, and preset through switching and reload', () => {
+  const bests = Object.fromEntries(UPSTREAM_MODES.map((id, index) => [id, 10000 + index]));
+  const gabuLevels = { chess: 'hard', berry: 'chill', tictac: 'hard', wafer: 'chill' };
+  const toyPaces = { cake: 'chill', bubble: 'chaos', boop: 'chill', memory: 'classic' };
+  let profile;
+  // Capture real engine snapshots, including a held Tetris piece, pending Gabu reply, and played memory turn.
+  withHost({ tickets: 83, bests, gabuLevels, toyPaces }, h => {
+    h.pick('tetris'); h.key('KeyC'); assert.ok(h.save().puzzles.tetris.held);
+    h.pick('chess'); h.key('ArrowUp'); h.key('Enter'); h.key('ArrowUp'); h.key('ArrowUp'); h.key('Enter');
+    assert.equal(h.save().puzzles.chess.turn, 'b');
+    h.pick('memory'); h.key('Space'); h.key('Space'); h.key('ArrowRight'); h.key('Space');
+    assert.equal(h.save().puzzles.memory.moves, 1);
+    h.window.dispatch('blur'); profile = h.save();
+  });
+  delete profile.puzzles.gambit; delete profile.bests.gambit;
+  const previousPuzzles = structuredClone(profile.puzzles);
+  assert.equal(Object.keys(previousPuzzles).length, 18, 'the twenty upstream games have eighteen saved engines; flight runs do not persist');
+  withHost(profile, h => {
+    h.pick(); h.key('Digit1'); h.key('KeyD'); h.key('Digit2');
+    const gambit = h.save().puzzles.gambit;
+    assert.equal(gambit.discardsLeft, 2); assert.equal(gambit.selected.length, 1);
+    for (const id of ['chess', 'memory', 'tetris']) h.pick(id);
+    h.pick(); h.window.dispatch('blur'); h.reload();
+    const after = h.save();
+    assert.deepEqual(after.puzzles.gambit, gambit, 'switching to upstream games preserves the selected Gambit hand and remaining resources');
+    for (const [id, snapshot] of Object.entries(previousPuzzles))
+      assert.deepEqual(after.puzzles[id], snapshot, `${id} progress survives adding, playing, and reloading Gambit`);
+    for (const id of UPSTREAM_MODES) assert.equal(after.bests[id], bests[id], `${id} record remains independent of Gambit`);
+    assert.deepEqual(after.gabuLevels, gabuLevels); assert.deepEqual(after.toyPaces, toyPaces);
+    assert.equal(after.tickets, 83, 'switching games and Gambit actions do not change the arcade wallet');
+    assert.equal(after.arcadeGame, 'gambit'); assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
   });
 });
 
@@ -143,12 +180,20 @@ test('bundled Joker inspection blocks play shortcuts until dismissed', () => {
 test('bundled booster purchase, keyboard choice, and reload preserve one paid set of offers', () => {
   const game = shopRun(), money = game.money;
   withHost({ tickets: 25, puzzles: { gambit: game.snapshot() } }, h => {
-    h.pick(); h.action('buy', 2); const paid = h.save().puzzles.gambit;
+    h.pick(); h.action('buy', 2);
+    h.keyboardAction('packOption', 0);
+    const paid = h.save().puzzles.gambit;
     assert.equal(paid.phase, 'pack'); assert.equal(paid.money, money - 4); assert.equal(paid.shop[2].sold, true);
+    assert.equal(paid.pack.selected, 0, 'keyboard can inspect a pack option');
+    for (const id of UPSTREAM_MODES) {
+      h.pick(id);
+      assert.deepEqual(h.save().puzzles.gambit, paid, `${id} cannot reroll, charge, or claim the paused booster choice`);
+      assert.equal(h.save().tickets, 25, `${id} switching leaves the arcade wallet intact`);
+    }
+    h.pick(); assert.deepEqual(h.save().puzzles.gambit, paid, 'returning to Gambit keeps the pending choice');
     h.reload(); assert.equal(h.primary().attributes.get('aria-label'), 'Resume');
     assert.deepEqual(h.save().puzzles.gambit, paid, 'reload does not reroll or charge the unopened choice again');
-    h.key('Space'); h.keyboardAction('packOption', 0);
-    assert.equal(h.save().puzzles.gambit.pack.selected, 0, 'keyboard can inspect a pack option');
+    h.key('Space');
     h.action('claim'); const saved = h.save().puzzles.gambit;
     assert.equal(saved.phase, 'shop'); assert.ok(saved.jokers.includes(paid.pack.options[0].id));
     assert.equal(saved.money, money - 4); assert.equal(saved.shop[2].sold, true); assert.equal(h.save().tickets, 25);

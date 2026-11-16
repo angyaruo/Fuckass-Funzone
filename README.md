@@ -16,7 +16,7 @@
 
 ## Pick a game
 
-Open **Funzone OS** from the arcade drawer to launch any of the ten games in the floating cabinet.
+Open **Funzone OS** from the arcade drawer to launch any of the twenty-one games in the floating cabinet.
 
 | Game | How to play |
 | --- | --- |
@@ -29,7 +29,22 @@ Open **Funzone OS** from the arcade drawer to launch any of the ten games in the
 | **Simon Says** | Repeat the flashing sequence with the four pads or keys 1–4. |
 | **Duck Hunt** | Tap or click flying ducks. Choose a timer or play an untimed hunt. |
 | **Gabu Slots** | Spin in free practice or choose a fictional-ticket wager. |
+| **Tetris** | Move with Left/Right or A/D, rotate with Up/W/X or Z, soft drop with Down/S, hard drop with Space, and hold with C. Touch buttons are included. |
+| **Solitaire** | Play draw-one Klondike: tap a source card or run, then its destination; tap the stock to draw or recycle. Use Undo to take back a move. |
+| **Froggy** | Hop with the arrows, WASD, or touch pad. Dodge cars, ride logs, and fill five different homes to advance. |
+| **Catmate Chess** | Full-rules chess against Gabu with plush cat pieces. Tap a kitten, then a glowing paw print, or use the arrows and Enter. Z undoes. |
+| **Berry Drop** | Connect four strawberries before Gabu's blueberries do. Tap a column or press 1–7. Keep the win streak alive. |
+| **Tic Tac Treats** | Pocky crosses against Gabu's donuts. Tap a square or press 1–9. Wins and draws build your streak. |
+| **Cake Tower** | Drop each swinging tier with a tap or Space. A tier only stays if its middle lands over the tier below. Perfect drops steady the cake; sloppy ones make it wobble and harder to aim at. Three missed tiers end the run. |
+| **Bubble Bloom** | Drag to aim and release, or aim with the arrows and shoot with Space. Pop three of a kind and drop what hangs. |
+| **Boop-a-Bun** | Boop bunnies as they pop out of their burrows. Golden ones pay extra; skip Gabu's robot decoys. |
+| **Wobbly Wafers** | Take turns with Gabu pulling wafers from the tower. Tap a wafer, then tap again while the meter is green. Don't topple it. |
+| **Gacha Match** | Memorize the open capsules, then open two at a time to find every pair of matching charms. Choose a cozy, classic, or busy tray. |
 | **Gabu's Gambit** | Build poker hands across six rounds, equip three original Jokers, and open Joker or Upgrade booster packs between rounds. |
+
+Tetris, Solitaire, Froggy, Gambit, and the eight games added in upstream 2.7.0 pause with **P** or the cabinet's main button. They also pause when the window loses focus; saved games resume paused. Solitaire supports keyboard play: arrows choose cards/piles, Enter selects, D draws, F moves the selected top card to its foundation, Z/U undoes, and Escape cancels selection. Undo history lasts for the current session; the board itself survives reloads.
+
+Catmate Chess, Berry Drop, Tic Tac Treats, and Wobbly Wafers are played against Gabu, with a Chill, Normal, or Hard opponent in each game's drawer settings. Cake Tower, Bubble Bloom, and Boop-a-Bun have Chill, Normal, and Chaos paces, and Gacha Match has three tray sizes. A new difficulty, pace, or board size applies to your next new game, never to the one in progress. Chess undo also lasts for the current session only.
 
 ### Gabu's Gambit prototype
 
@@ -37,7 +52,7 @@ Select one to five cards from an eight-card hand; your score preview includes yo
 
 Use taps or keys **1–8** to select cards, **Space** to play or continue a scoring breakdown, **D** to discard, and **P** to pause. **R** sorts by rank, **S** by suit, and **I** opens Run Info. Arrow keys focus every visible action; **Enter** activates it and **Escape** closes details. The card-table layout uses four distinct suit colors, illustrated Joker cards, and a persistent Chips/Mult panel. See [the full rules and development notes](docs/GABUS-GAMBIT.md).
 
-This prototype lives on `codex/gabus-gambit`, based directly on upstream `master`. The separate Tetris/Solitaire/Froggy contribution is kept on its own branch.
+This prototype lives on `codex/gabus-gambit` and incorporates the upstream 2.7.0 update, including the merged Tetris, Solitaire, and Froggy contribution and the eight newest games. Gambit development remains on its own branch.
 
 ### Visit the Prize Counter
 
@@ -64,6 +79,10 @@ https://github.com/kittyafterdark/Fuckass-Funzone
 ```
 2. Paste it on the Extensions sidebar tab > Add Extensions
 
-## Local development
+## Development
 
-Run `npm run check` to rebuild the self-contained extension and run the tests; no npm dependencies are required. For the playable mock-host preview, run `python -m http.server 8766 --bind 127.0.0.1` from this repository and open [Gabu's Gambit locally](http://127.0.0.1:8766/demo-gambit-qa.html). The preview also includes isolated shop and booster examples. Live Lumiverse and real touch-device checks remain pending.
+No npm dependencies are needed. Run `npm run check` to rebuild `dist/frontend.js` and execute the rule and mock-host integration tests. The committed bundle is self-contained; edit `src/` and rebuild instead of editing `dist/` directly.
+
+For a playable mock-host preview, run `python -m http.server 8765 --bind 127.0.0.1` from the repository root and open [the local preview](http://127.0.0.1:8765/demo-classics-qa.html). This checks the bundled UI but does not replace testing in live Lumiverse; see [the acceptance checklist](docs/TESTING.md).
+
+For the Gambit mock-host preview, run `python -m http.server 8766 --bind 127.0.0.1` from the repository root and open [Gabu's Gambit locally](http://127.0.0.1:8766/demo-gambit-qa.html). Its selector includes isolated shop and booster examples. This preview also runs the combined twenty-one-game bundle; live Lumiverse and real touch-device checks remain pending.

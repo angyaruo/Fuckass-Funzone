@@ -1,6 +1,6 @@
 # Gabu's Gambit — playable prototype
 
-An original, dependency-free poker roguelike for Funzone's 360 × 452 logical canvas. This branch starts from upstream master and adds Gambit alongside the original nine games; it does not include the Tetris/Solitaire/Froggy PR. The working title, vector artwork, and twelve Joker effects are original to this prototype.
+An original, dependency-free poker roguelike for Funzone's 360 × 452 logical canvas. This branch incorporates upstream 2.7.0's twenty games, including the merged Tetris/Solitaire/Froggy contribution, and adds Gambit as the twenty-first game. The working title, vector artwork, and twelve Joker effects are original to this prototype.
 
 ## The run
 
@@ -50,3 +50,9 @@ Run `npm run check`, then serve the repository with `python -m http.server 8766 
 Automated checks cover all poker categories and Ace-low straights; contributing-card identity; score order and preview equality; levels and enhancements; seeded deck conservation; complete win/loss transitions; pause; every key save phase; atomic purchases; replacement/skip behavior; malformed saves; high-DPI rendering; touch/keyboard routing; production-bundle teardown; and preservation of old and unknown game saves/bests. The redesign also checks topmost-card hits in overlapping fans, selection lift, resource-preserving sorting, inspect-before-buy, four suit colors, distinct Joker artwork, and mirrored/pipped cards. Browser QA covered the prototype and the redesigned hand. Direct Canvas rendering verified all redesigned screens and the narrow cabinet after browser access became unavailable; remaining live browser/device checks are still required.
 
 Before release, check a live Lumiverse install on desktop and a touch device: generation start/end/stop, minimizing/reopening, blur and visibility changes, unload/re-enable, shop/pack reload, and a full natural six-round run. Playtest the late-round curve and modifier usefulness with people. Joker editions, copying/retrigger effects, boss rules, deck additions, meta progression, additional content, and audio polish remain future work; they are not represented as implemented features.
+
+## Upstream 2.7.0 compatibility
+
+The combined branch retains Catmate Chess, Berry Drop, Tic Tac Treats, Cake Tower, Bubble Bloom, Boop-a-Bun, Wobbly Wafers, and Gacha Match, with their saved opponent levels, toy paces, board sizes, reactions, sounds, and ticket milestones. It also retains the screen-height-capped phone launcher and touch scrolling that keeps swipes from dragging the cabinet. Gambit's run currency and pending booster choices remain separate from arcade tickets and the other game snapshots.
+
+The installation identifier, `ui_panels` permission, `fuckass_funzone:v1:<extensionInstallationId>` storage namespace, and upstream 2.7.0 release metadata are preserved. Continue editing source and rebuilding the self-contained `dist/frontend.js`; the upstream changelog and update manifest describe the upstream release and are retained as historical release records.

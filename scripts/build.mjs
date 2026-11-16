@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+// Git may check out CRLF on Windows; import anchors use canonical LF.
 const read=(p)=>{
   const source=fs.readFileSync(path.join(root,p),'utf8');
   return /\.(?:js|css)$/.test(p)?source.replace(/\r\n/g,'\n'):source;
@@ -33,6 +34,27 @@ function bundleGambitModule(name){
   const body=source.replace(/^import\s+\{[^}]*\}\s+from\s+['"]\.\/gambit-(?:rules|art)\.js['"];?\s*$/gm,'').replace(/^export\s+/gm,'');
   return `const {${names.join(',')}}=(()=>{\n${body}\nreturn {${names.join(',')}};\n})();`;
 }
+const classicModules=[
+  ['tetris', 'TetrisGame'],['tetris-render', 'drawTetris, tetrisControlAt'],
+  ['solitaire', 'SolitaireGame'],['solitaire-render', 'drawSolitaire, solitaireHitAt'],
+  ['froggy', 'FroggyGame'],['froggy-render', 'drawFroggy, froggyControlAt'],
+  ['chess', 'ChessGame, CHESS_LEVELS'],['chess-render', 'drawChess, chessSquareAt'],
+  ['connect', 'BerryDropGame, BERRY_COLS'],['connect-render', 'drawBerryDrop, berryColumnAt'],
+  ['tictac', 'TicTacTreatsGame'],['tictac-render', 'drawTicTacTreats, tictacCellAt'],
+  ['cake', 'CakeTowerGame, CAKE_PACES'],['cake-render', 'drawCakeTower'],
+  ['bubble', 'BubbleGame, BUBBLE_PACES'],['bubble-render', 'drawBubbleBloom'],
+  ['boop', 'BoopGame, BOOP_PACES'],['boop-render', 'drawBoopABun, boopHoleAt'],
+  ['wafer', 'WobblyWafersGame'],['wafer-render', 'drawWobblyWafers, waferAt'],
+  ['memory', 'GachaMatchGame, MEMORY_SIZES'],['memory-render', 'drawGachaMatch, capsuleAt'],
+];
+// Isolate each new game's helpers while making its named exports available to its renderer.
+function bundleClassicModule(name){
+  const source=read(`src/${name}.js`);
+  const publicNames=[...source.matchAll(/^export\s+(?:const|let|class|function)\s+(\w+)/gm)].map(match=>match[1]);
+  if(!publicNames.length)throw Error(`No public exports in ${name}`);
+  const body=source.replace(/^import\s+\{[^}]*\}\s+from\s+['"]\.\/(?:tetris|solitaire|froggy|chess|connect|tictac|cake|bubble|boop|wafer|memory)\.js['"];?\s*$/gm,'').replace(/^export\s+/gm,'');
+  return `const {${publicNames.join(',')}}=(()=>{\n${body}\nreturn {${publicNames.join(',')}};\n})();`;
+}
 let ui=read('src/frontend.js');
 const css=read('src/style.css');
 for(const [name,imports] of gambitModules){
@@ -57,6 +79,11 @@ const rewardsAnchor="import { milestonePayout, creditTickets } from './rewards.j
 const miniAnchor="import { SimonGame, DuckGame, SlotGame } from './mini-games.js';";
 const miniRenderAnchor="import { drawSimon, drawDuck, drawSlots, simonCell } from './mini-games-render.js';";
 for(const [needle,label] of [[importAnchor,'engine import'],[puzzleAnchor,'puzzles import'],[renderAnchor,'render import'],[matchAnchor,'match-3 engine import'],[matchRenderAnchor,'match-3 renderer import'],[reactionAnchor,'reaction engine import'],[plinkoAnchor,'plinko engine import'],[plinkoRenderAnchor,'plinko renderer import'],[shopAnchor,'shop import'],[rewardsAnchor,'ticket rewards import'],[miniAnchor,'mini-games import'],[miniRenderAnchor,'mini-games renderer import'],[assetAnchor,'asset marker'],[cssAnchor,'CSS marker'],[tabSvgAnchor,'tab SVG marker']]) requireOnce(ui,needle,label);
+for(const [name,imports] of classicModules){
+  const anchor=`import { ${imports} } from './${name}.js';`;
+  requireOnce(ui,anchor,`${name} import`);
+  ui=ui.replace(anchor,()=>bundleClassicModule(name));
+}
 const spriteNames=[...Array.from({length:6},(_,i)=>`bird_flap_${i}`),...Array.from({length:6},(_,i)=>`gabi_fly_${i}`),'bird_dizzy','bird_dead','gabi_hurt','gabi_crash','gabi_dead','cloud','coin','star','heart','flame_0','flame_1','flame_2','record_flag','best_banner','game_over_banner'];
 const assetPaths=Object.fromEntries([
   ...spriteNames.map(name=>[name,`assets/sprites/${name}.png`]),
@@ -69,7 +96,7 @@ const assetPaths=Object.fromEntries([
   ...['smug','annoyed','hype','panic','dizzy','sleepy','shock'].map(k=>[`gabu_${k}`,`assets/match3/gabu-${k}.png`]),
   ['gabu_magnate','assets/plinko/gabu-monocle.png'],['gabu_peek','assets/plinko/gabu-peek.png'],['plinko_chip','assets/plinko/cat-chip.png'],['plinko_app','assets/plinko/plinko-app.png'],
 ]);
-const svgPaths={...Object.fromEntries(['simon','duck','slots','gambit'].map(k=>[`${k}_app`,`assets/funzone/${k}-app.svg`])),...Object.fromEntries(['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>[`match_vec_${k}`,`assets/match3/vector/${k}.svg`])),match_vec_hint:'assets/match3/vector/hint.svg',plinko_crest:'assets/plinko/cat-crest.svg'};
+const svgPaths={...Object.fromEntries(['simon','duck','slots','tetris','solitaire','froggy','chess','berry','treats','cake','bubble','boop','wafer','memory','gambit'].map(k=>[`${k}_app`,`assets/funzone/${k}-app.svg`])),...Object.fromEntries(['cat','heart','star','fish','cookie','gem','rocket','bomb'].map(k=>[`match_vec_${k}`,`assets/match3/vector/${k}.svg`])),match_vec_hint:'assets/match3/vector/hint.svg',plinko_crest:'assets/plinko/cat-crest.svg'};
 const assets={};
 for(const [key,p] of Object.entries(assetPaths)) {
   const contents=fs.readFileSync(path.join(root,p));
@@ -104,7 +131,7 @@ ui=ui.replace(importAnchor,pureEngine).replace(puzzleAnchor,purePuzzles).replace
   .replace(miniAnchor,pureMini).replace(miniRenderAnchor,pureMiniRender)
   .replace(assetAnchor,'const ASSETS = '+JSON.stringify(assets)+';').replace(cssAnchor,'const CSS = '+JSON.stringify(css)+';')
   .replace(tabSvgAnchor,'const FUNZONE_TAB_SVG = '+JSON.stringify(arcadeSvg)+';');
-const banner=`/* Fuckass Funzone 2.6.3 | self-contained Spindle frontend | ${Object.keys(assets).length} embedded PNG/SVG assets | generated from editable src/ */\n`;
+const banner=`/* Fuckass Funzone 2.7.0 | self-contained Spindle frontend | ${Object.keys(assets).length} embedded PNG/SVG assets | generated from editable src/ */\n`;
 // Artifact is validated in memory before writes.
 const candidate=banner+ui;
 if(/^import\s/m.test(candidate))throw Error('Unresolved runtime import');

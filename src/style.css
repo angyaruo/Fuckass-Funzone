@@ -320,6 +320,12 @@
 .bb-float[data-shop-open="true"]{display:flex;flex-direction:column;min-height:0;height:100%;
  max-height:min(605px,calc(100dvh - 20px));overflow:hidden;touch-action:auto}
 .bb-float[data-shop-open="true"]>.bb-header{flex:0 0 auto}
+/* The launcher gets the same screen-height cap as the shop, so a long game list scrolls inside the visible screen.
+   The 100vh line is the fallback for engines without dvh. */
+.bb-float[data-phone-open="true"]{display:flex;flex-direction:column;min-height:0;height:100%;
+ max-height:min(605px,calc(100vh - 20px));max-height:min(605px,calc(100dvh - 20px));overflow:hidden}
+.bb-float[data-phone-open="true"]>.bb-header{flex:0 0 auto}
+.bb-float[data-phone-open="true"]>.bb-phone{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
 .bb-float[data-shop-open="true"]>.bb-phone{display:flex;flex:1 1 auto;flex-direction:column;
  min-height:0;min-width:0;overflow:hidden}
 .bb-shop{display:block;min-width:0;padding:2px 0 4px}
