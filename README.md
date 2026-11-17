@@ -52,7 +52,7 @@ Choose one of four starting decks, then beat 24 blinds across eight Antes. Combi
 
 Use taps or keys **1–9 and 0** to select cards, **Space** to play or continue a scoring breakdown, **D** to discard, and **P** to pause. **R** sorts by rank, **S** by suit, and **I** opens Run Info, the full Joker Collection, and card-effect help. Arrow keys focus every visible action; **Enter** activates it and **Escape** closes details. The card-table layout uses four distinct suit colors, illustrated Joker cards, and a persistent Chips/Mult panel. See [the full rules and development notes](docs/GABUS-GAMBIT.md).
 
-This prototype lives on `codex/gabus-gambit` and incorporates the upstream 2.7.0 update, including the merged Tetris, Solitaire, and Froggy contribution and the eight newest games. Gambit development remains on its own branch.
+Gambit joins the twenty games in upstream 2.7.0, including the merged Tetris, Solitaire, and Froggy contribution and the eight newest games. Its rules, artwork, and run state live in dedicated modules alongside the existing games.
 
 ### Visit the Prize Counter
 
