@@ -35,8 +35,8 @@ import { WobblyWafersGame } from './wafer.js';
 import { drawWobblyWafers, waferAt } from './wafer-render.js';
 import { GachaMatchGame, MEMORY_SIZES } from './memory.js';
 import { drawGachaMatch, capsuleAt } from './memory-render.js';
-import { GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand } from './gambit-rules.js';
-import { GambitGame } from './gambit.js';
+import { GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand, gambitCardData, GAMBIT_SCORE_LIMIT, GAMBIT_LEVEL_LIMIT, gambitJokerModifiers, gambitJokerPayout } from './gambit-rules.js';
+import { GambitGame, GAMBIT_DECKS, GAMBIT_PACKS, GAMBIT_BOSSES } from './gambit.js';
 import { GAMBIT_SUIT_COLORS, drawGambitCard, drawGambitJoker, drawGambitDeck, drawGambitPack } from './gambit-art.js';
 import { drawGambit, gambitActions, gambitHitAt } from './gambit-render.js';
 
@@ -637,12 +637,12 @@ export function setup(ctx) {
     const current=active();
     if(canvas)canvas.dataset.mode=activeMode;
     if(gameStage)gameStage.dataset.game=activeMode;
-    if(footerEl)footerEl.textContent=activeMode==='gambit'?'1–8 SELECT / SPACE PLAY / D DISCARD':activeMode==='chess'?'PICK, THEN MOVE':activeMode==='berry'?'TAP A COLUMN':activeMode==='tictac'?'TAP A SQUARE':activeMode==='cake'?'TAP TO DROP':activeMode==='bubble'?'DRAG TO AIM':activeMode==='boop'?'BOOP THE BUNS':activeMode==='wafer'?'PULL A WAFER':activeMode==='memory'?'FIND THE PAIRS':activeMode==='tetris'?'ARROWS / TOUCH · SPACE TO DROP':activeMode==='solitaire'?'TAP SOURCE, THEN DESTINATION':activeMode==='froggy'?'ARROWS / WASD / TOUCH PAD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
+    if(footerEl)footerEl.textContent=activeMode==='gambit'?'1–9 / 0 SELECT · SPACE PLAY · D DISCARD':activeMode==='chess'?'PICK, THEN MOVE':activeMode==='berry'?'TAP A COLUMN':activeMode==='tictac'?'TAP A SQUARE':activeMode==='cake'?'TAP TO DROP':activeMode==='bubble'?'DRAG TO AIM':activeMode==='boop'?'BOOP THE BUNS':activeMode==='wafer'?'PULL A WAFER':activeMode==='memory'?'FIND THE PAIRS':activeMode==='tetris'?'ARROWS / TOUCH · SPACE TO DROP':activeMode==='solitaire'?'TAP SOURCE, THEN DESTINATION':activeMode==='froggy'?'ARROWS / WASD / TOUCH PAD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
     if(gambitAnnounce){gambitAnnounce.hidden=activeMode!=='gambit';if(activeMode==='gambit'){
       const preview=gambit.preview(),focused=gambitActions(gambit,{inspection:gambitInspection})[gambitCursor];
       const packChoice=gambit.pack&&Number.isInteger(gambit.pack.selected)?gambitActions(gambit).find(action=>action.kind==='packOption'&&action.index===gambit.pack.selected):null;
-      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide.':null;
-      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
+      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide. Joker Collection is available here.':gambitInspection?.joker?GAMBIT_JOKERS.find(item=>item.id===gambitInspection.joker)?.description:gambitInspection?.cardHelp?'Card effects. Glass doubles Mult per scoring trigger but may break permanently. Steel boosts held cards. Enhancements and seals are explained on screen.':gambitInspection?.collection?`Joker collection. ${gambitInspection.filter||'all'} rarities, page ${(gambitInspection.page||0)+1}.`:gambitInspection?.breakdown?`Full scoring breakdown, page ${(gambitInspection.page||0)+1}.`:null;
+      gambitAnnounce.textContent=`Ante ${gambit.ante}, ${gambit.blindName}. Blind ${gambit.round} of ${gambit.campaignLength}.${gambit.boss?` ${gambit.boss.name}: ${gambit.boss.description}`:''} ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
     }}
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
@@ -728,7 +728,7 @@ export function setup(ctx) {
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
     }
-    phoneOpen=false;shopOpen=false;if(launch){show();if(mode==='duck'&&duck.status==='dead')duck.reset(duckTimerSeconds,duckSpeed);if(presetFresh(classicGames[mode]))resetRun(classicGames[mode]);if(mode!=='plinko'&&mode!=='slots'&&!(mode==='match3'&&match3.status==='dead'))active().start();canvas?.focus?.({preventScroll:true});}save();refresh();refreshReaction();
+    phoneOpen=false;shopOpen=false;if(launch){show();if(mode==='duck'&&duck.status==='dead')duck.reset(duckTimerSeconds,duckSpeed);if(presetFresh(classicGames[mode]))resetRun(classicGames[mode]);if(mode!=='plinko'&&mode!=='slots'&&!(mode==='match3'&&match3.status==='dead')&&!(mode==='gambit'&&['idle','dead'].includes(gambit.status)))active().start();canvas?.focus?.({preventScroll:true});}save();refresh();refreshReaction();
   }
   function openMode(mode){switchMode(mode,true);}
   function openPhone(){active().pause();if(activeMode==='bird'||activeMode==='gabi'){game.release();keyHeld=false;}phoneOpen=true;shopOpen=false;refresh();save();}
@@ -777,11 +777,28 @@ export function setup(ctx) {
     if(adjacent){match3.swap(a,cell);selectedCell=-1;save();}else selectedCell=cell;
   }
   function gambitAction(action){
-    if(!action||action.enabled===false||gambit.status!=='playing')return;
-    if(action.kind==='joker')gambitInspection=action.id;
+    if(!action||action.enabled===false)return;
+    if(action.kind==='start'){gambit.reset();gambit.start();gambitInspection=null;}
+    else if(action.kind==='deckCycle'){
+      const index=GAMBIT_DECKS.findIndex(deck=>deck.id===gambit.deckPreset);
+      gambit.chooseDeck(GAMBIT_DECKS[(index+action.direction+GAMBIT_DECKS.length)%GAMBIT_DECKS.length].id);
+    }
+    else if(action.kind==='endless'){gambit.continueEndless();gambitInspection=null;}
+    else if(gambit.status!=='playing')return;
+    else if(action.kind==='joker')gambitInspection=action.id;
     else if(action.kind==='offer')gambitInspection={offer:action.index};
     else if(action.kind==='info')gambitInspection={info:true};
     else if(action.kind==='deck')gambitInspection={deck:true};
+    else if(action.kind==='cardHelp')gambitInspection={cardHelp:true};
+    else if(action.kind==='collection')gambitInspection={collection:true,page:0,filter:'all'};
+    else if(action.kind==='catalogJoker')gambitInspection={...gambitInspection,joker:action.id};
+    else if(action.kind==='catalogFilter'){
+      const filters=['all','common','uncommon','rare'];
+      gambitInspection={collection:true,page:0,filter:filters[(filters.indexOf(gambitInspection?.filter||'all')+1)%filters.length]};
+    }
+    else if(action.kind==='catalogPage')gambitInspection={...gambitInspection,page:action.page};
+    else if(action.kind==='breakdown')gambitInspection={breakdown:true,page:0};
+    else if(action.kind==='scorePage')gambitInspection={breakdown:true,page:action.page};
     else if(action.kind==='close')gambitInspection=null;
     else if(action.kind==='sort')gambit.sortHand(action.mode);
     else if(action.kind==='card')gambit.toggleCard(action.id);
@@ -789,6 +806,8 @@ export function setup(ctx) {
     else if(action.kind==='discard')gambit.discardSelected();
     else if(action.kind==='continue')gambit.continueScore();
     else if(action.kind==='next')gambit.nextRound();
+    else if(action.kind==='reroll')gambit.rerollShop();
+    else if(action.kind==='finish')gambit.finishRun();
     else if(action.kind==='buy'){gambit.buy(action.index);gambitInspection=null;}
     else if(action.kind==='packOption')gambit.selectPack(action.index);
     else if(action.kind==='claim')gambit.claimPack();
@@ -798,10 +817,9 @@ export function setup(ctx) {
     gambitCursor=-1;flushGambit();save();refresh();
   }
   function gambitKey(e){
-    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
+    const recognized=/^(?:Digit|Numpad)[0-9]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
     if(!recognized)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
     if(e.code==='KeyP'){play();return;}
-    if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
     if(e.code==='Escape'){gambitInspection=null;gambitCursor=-1;refresh();return;}
     const actions=gambitActions(gambit,{inspection:gambitInspection});
     if(/^Arrow/.test(e.code)){
@@ -809,14 +827,15 @@ export function setup(ctx) {
       if(actions.length)gambitCursor=gambitCursor<0?0:(gambitCursor+step+actions.length)%actions.length;
       refresh();return;
     }
-    if(e.code==='Enter'){
+    if(e.code==='Enter'&&actions.length){
       if(gambitCursor<0){gambitCursor=0;refresh();return;}
       gambitAction(actions[gambitCursor]);return;
     }
+    if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
     if(gambitInspection)return;
     if(e.code==='KeyI'){gambitInspection={info:true};refresh();return;}
     if(e.code==='KeyR'||e.code==='KeyS'){gambit.sortHand(e.code==='KeyR'?'rank':'suit');gambitCursor=-1;flushGambit();save();refresh();return;}
-    if(/^(?:Digit|Numpad)[1-8]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[Number(e.code.slice(-1))-1]);
+    if(/^(?:Digit|Numpad)[0-9]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[(Number(e.code.slice(-1))+9)%10]);
     else if(e.code==='Space'){if(gambit.phase==='score')gambit.continueScore();else if(gambit.phase==='play')gambit.playHand();}
     else if(e.code==='KeyD')gambit.discardSelected();
     gambitCursor=-1;flushGambit();save();refresh();
@@ -940,9 +959,9 @@ export function setup(ctx) {
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();canvas?.focus?.({preventScroll:true});
     if(activeMode==='gambit'){
-      if(gambit.status!=='playing'){play();return;}
       const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
-      gambitAction(gambitHitAt((e.clientX-rect.left)*360/rect.width,(e.clientY-rect.top)*452/rect.height,gambit,{inspection:gambitInspection}));return;
+      const action=gambitHitAt((e.clientX-rect.left)*360/rect.width,(e.clientY-rect.top)*452/rect.height,gambit,{inspection:gambitInspection});
+      if(action)gambitAction(action);else if(gambit.status==='paused')play();return;
     }
     if(classicGames[activeMode]){classicPointer(e);return;}
     if(activeMode==='plinko'){const rect=canvas.getBoundingClientRect();plinkoAim=Math.max(26,Math.min(334,((e.clientX??rect.left+rect.width/2)-rect.left)*360/rect.width));doPlinkoDrop(plinkoAim);return;}
@@ -1116,7 +1135,7 @@ export function setup(ctx) {
     // The host drags the widget from any touch that moves, so claim touches here and let the phone scroll. The header still drags.
     bind(phoneEl,'pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Gacha Match: tap two capsules. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Gambit: 1 through 9 and 0 select up to ten cards, Space plays, D discards, P pauses. Use Run Info for the Joker Collection. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Gacha Match: tap two capsules. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     gambitAnnounce=create('p','bb-sr-only');gambitAnnounce.setAttribute('role','status');gambitAnnounce.setAttribute('aria-live','polite');gameStage.append(gambitAnnounce);
     const plinkoHost=create('div','bb-plinko-host');
@@ -1315,9 +1334,10 @@ export function setup(ctx) {
     tip(memoryInfo,'Each new tray starts with every capsule open for a few seconds so you can memorize the charms (3 on Cozy, 3.5 on Classic, 4 on Busy); tap to start early. Then open two capsules at a time to find matching pairs. Matches in a row build a streak bonus, and finishing the tray adds a bonus that shrinks with every miss. Tap a capsule, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('memory',makeSelect(memoryInfo,'Board size','Cozy has 6 pairs, Classic 8 and Busy 10. Changes apply to your next new tray.',[['cozy','Cozy · 6 pairs'],['classic','Classic · 8 pairs'],['busy','Busy · 10 pairs']],toyPaces.memory,'Gacha Match board size',v=>{toyPaces.memory=v;save();refresh();}));
     const gambitInfo=drawerGamePanel('gambit');
-    tip(gambitInfo,'A six-round poker roguelike with twelve original Jokers. Select one to five cards from your eight-card hand, then Play or Discard. Only cards contributing to the detected poker hand score. You get four plays and three discards per round. Score preview includes all current boosts; add-chip effects apply before added Mult, then multiplier boosts. Joker position does not change scoring.');
-    tip(gambitInfo,'Clear the target to earn run coins and visit the shop. Buy Jokers or reveal three booster choices and keep one. Upgrade Packs improve a hand category or one particular card. You may equip three Jokers; replace one explicitly when full. Sell Jokers for two run coins. Run coins reset on a new run and never spend or award arcade tickets. All pack choices and purchases survive reload.');
-    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or continues score counting, D discards, P pauses, R sorts ranks, S sorts suits, I opens Run Info, arrows focus any visible action, Enter activates it, and Escape closes details. Tap a Joker or shop card for its full effect; use the separate Buy button to purchase. Tap the deck to inspect remaining cards. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
+    tip(gambitInfo,'An eight-Ante poker roguelike with 75 original Jokers, five equipped slots, and three blinds per Ante. Beat Ante 8 to bank a win or continue in Endless. Starting decks favor different play styles; choose one before starting a fresh run. Existing classic saves retain their six-round rules until the run ends.');
+    tip(gambitInfo,'Combine immediate chips, added Mult, multiplicative boosts, retriggers, held-card effects, and Jokers that grow with your run history. Permanent hand levels, enhanced cards, and crafted decks let your score scale. Chips apply before added Mult, then XMult; Joker slot order does not change scoring. Open Run Info for all 75 Joker descriptions.');
+    tip(gambitInfo,'Each shop has two Jokers and two packs. Paid rerolls replace only the Joker offers; packs stay spent. Save run coins for interest or spend to build combos. Joker Packs add modifiers; Upgrade Packs raise poker-hand levels; Craft Packs change or remove specific cards; Playing Card Packs add new cards. Mega packs let you choose two. Paid choices survive reload and never affect arcade tickets.');
+    tip(gambitInfo,'Keys 1–9 and 0 select cards, Space plays or continues scoring, D discards, P pauses, R sorts ranks, S sorts suits, and I opens Run Info. Arrows focus every action; Enter activates it; Escape closes details. Inspect Jokers and shop items before buying. Boss rules appear above the hand. All saved games resume paused.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){

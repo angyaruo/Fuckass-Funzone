@@ -170,7 +170,7 @@ test('high-DPI painting keeps finite, bounded text across screens and every Joke
   for (const joker of GAMBIT_JOKERS) {
     const canvas = mockCanvas(); drawGambit(canvas, fixture(), { inspection: joker.id });
     assert.ok(canvas.labels.some(label => label.value === joker.name));
-    assert.ok(canvas.labels.some(label => label.value.includes('ACTIVE FOR THIS RUN')));
+    assert.ok(canvas.labels.some(label => label.value.includes(fixture().jokers.includes(joker.id)?'ACTIVE FOR THIS RUN':'FIND IN SHOPS AND JOKER PACKS')));
     assert.ok(canvas.labels.every(label => label.start >= 0 && label.end <= 360));
   }
 });
@@ -184,4 +184,76 @@ test('selection count stays above the fanned cards and Run Info explains matchin
   const guide = mockCanvas(); drawGambit(guide, game, { inspection: { info: true } });
   assert.ok(guide.labels.some(label => label.value === 'Three: 3 of one rank'));
   assert.ok(guide.labels.some(label => label.value === 'Four: 4 of one rank'));
+});
+
+
+test('expanded table keeps five Jokers, ten hand cards, five booster options and all collection pages reachable', () => {
+  const ids=GAMBIT_JOKERS.slice(0,5).map(joker=>joker.id);
+  const game=fixture({jokerSlots:5,jokers:ids,hand:Array.from({length:10},(_,id)=>id)});
+  for(const phase of ['play','replace','pack']){
+    game.phase=phase;
+    if(phase==='pack')game.pack={kind:'joker',size:'mega',remaining:2,claimed:[1],selected:0,options:GAMBIT_JOKERS.slice(5,10).map(joker=>({kind:'joker',id:joker.id}))};
+    const actions=gambitActions(game);
+    for(const action of actions){
+      assert.ok(action.x>=0&&action.x+action.w<=360&&action.y>=0&&action.y+action.h<=452);
+      if(action.enabled)assert.ok(sameAction(hit(game,action),action),phase+' '+action.kind+' '+action.index);
+    }
+    if(phase==='pack')assert.equal(find(game,'packOption',1).enabled,false,'a Mega choice cannot be claimed twice');
+  }
+  game.phase='play';const seen=[];
+  for(let page=0;page<Math.ceil(GAMBIT_JOKERS.length/9);page++){
+    const view={inspection:{collection:true,page,filter:'all'}},actions=gambitActions(game,view);
+    for(const action of actions.filter(action=>action.kind==='catalogJoker')){seen.push(action.id);assert.ok(sameAction(hit(game,action,view),action));}
+    const canvas=mockCanvas();drawGambit(canvas,game,view);
+    assert.ok(canvas.labels.every(label=>label.start>=0&&label.end<=360&&label.top>=0&&label.bottom<=452));
+  }
+  assert.deepEqual(seen,GAMBIT_JOKERS.map(joker=>joker.id));
+});
+
+test('large scores, expanded reports, bosses, deck choices and the Endless decision fit the cabinet', () => {
+  const phases=['score','victory','play'];
+  for(const phase of phases){
+    const game=fixture({phase,jokerSlots:5,score:1e40,roundScore:1e30,target:1e35,ante:12,round:36,
+      boss:{name:'Echo Chamber',description:'You cannot play the same poker hand twice during this blind.'},
+      lastResult:{id:'pair',name:'Pair',chips:1e25,mult:1.5,total:1.5e25,steps:Array.from({length:26},(_,index)=>({label:'A growing boost '+index,chips:1e20,mult:1.5+index}))}});
+    for(const inspection of [null,{breakdown:true,page:2},{info:true}]){
+      const canvas=mockCanvas();drawGambit(canvas,game,{inspection});
+      assert.ok(canvas.labels.every(label=>label.start>=0&&label.end<=360&&label.top>=0&&label.bottom<=452));
+    }
+    if(phase==='score'){const canvas=mockCanvas();drawGambit(canvas,game);assert.ok(canvas.labels.some(label=>label.value.includes('1.5')),'fractional multipliers stay visible');assert.ok(find(game,'breakdown'));}
+    if(phase==='victory')assert.deepEqual(gambitActions(game).filter(action=>['endless','finish'].includes(action.kind)).map(action=>action.kind),['endless','finish']);
+  }
+  const initial=fixture({status:'idle',chooseDeck(){},deckPreset:'classic'});
+  assert.equal(gambitActions(initial).filter(action=>action.kind==='deckCycle').length,2);
+  assert.ok(find(initial,'start'));
+});
+
+
+test('Glass risk and seal rules are explained before claiming a crafted card and in Run Info', () => {
+  const game=fixture({phase:'pack',pack:{kind:'craft',size:'normal',selected:0,remaining:1,claimed:[],options:[{kind:'modify',id:0,enhancement:'glass'}]}});
+  const choice=find(game,'packOption',0);assert.match(choice.label,/25% chance to break permanently/);
+  const canvas=mockCanvas();drawGambit(canvas,game);assert.ok(canvas.labels.some(label=>label.value.includes('25%')));
+  const help=mockCanvas();drawGambit(help,game,{inspection:{cardHelp:true}});
+  assert.ok(help.labels.some(label=>label.value==='CARD EFFECTS'));
+  assert.ok(help.labels.some(label=>label.value==='BLUE SEAL'));
+  assert.ok(help.labels.every(label=>label.start>=0&&label.end<=360&&label.top>=0&&label.bottom<=452));
+  assert.ok(gambitActions(game,{inspection:{info:true}}).some(action=>action.kind==='cardHelp'));
+});
+
+
+test('new playing-card options show their canonical face rather than an existing crafted card with the same face ID',()=>{
+  const game=fixture({phase:'pack',cardMods:{0:{rank:13,suit:3}},cardBoosts:{0:300},pack:{kind:'standard',selected:0,options:[{kind:'playing',id:0,enhancement:'bonus'}]}});
+  const canvas=mockCanvas();drawGambit(canvas,game);
+  assert.ok(canvas.labels.some(label=>label.value==='A'),'new Ace keeps its canonical rank');
+  assert.equal(canvas.labels.some(label=>label.value==='K'),false,'existing crafted King does not leak into a new physical card');
+  assert.match(find(game,'packOption',0).label,/Ace of Clubs/);
+});
+
+
+test('large rail values use readable mantissa and exponent lines while the full breakdown keeps precise Mult',()=>{
+  const game=fixture({phase:'score',lastResult:{id:'pair',name:'Pair',chips:2400,mult:721731.58,total:1732155792,steps:[{label:'Final boost',chips:2400,mult:721731.58}]}});
+  const canvas=mockCanvas();drawGambit(canvas,game);
+  assert.ok(canvas.labels.some(label=>label.value==='7.22'&&label.x===75));
+  assert.ok(canvas.labels.some(label=>label.value==='e5'&&label.x===75));
+  assert.ok(canvas.labels.some(label=>label.value.includes('721,731.58')),'the larger breakdown retains precise totals');
 });

@@ -6775,7 +6775,7 @@ function overlay(ctx, message, sub, hint, accent) {
 
 return {memoryLayout,capsuleAt,drawCharm,drawGachaMatch};
 })();
-const {GAMBIT_HANDS,GAMBIT_JOKERS,evaluateGambitHand,scoreGambitHand}=(()=>{
+const {GAMBIT_HANDS,GAMBIT_JOKERS,GAMBIT_SCORE_LIMIT,GAMBIT_LEVEL_LIMIT,gambitCardData,evaluateGambitHand,scoreGambitHand,gambitJokerModifiers,gambitJokerPayout}=(()=>{
 /** Original poker scoring and Joker catalog. Pure, deterministic rules without host APIs. */
 const GAMBIT_HANDS = Object.freeze([
   { id: 'high_card', name: 'High Card', chips: 5, mult: 1 },
@@ -6787,6 +6787,9 @@ const GAMBIT_HANDS = Object.freeze([
   { id: 'full_house', name: 'Full House', chips: 45, mult: 4 },
   { id: 'four_kind', name: 'Four of a Kind', chips: 60, mult: 7 },
   { id: 'straight_flush', name: 'Straight Flush', chips: 90, mult: 8 },
+  { id: 'five_kind', name: 'Five of a Kind', chips: 120, mult: 12 },
+  { id: 'flush_house', name: 'Flush House', chips: 140, mult: 14 },
+  { id: 'flush_five', name: 'Flush Five', chips: 160, mult: 16 },
 ].map(hand => Object.freeze(hand)));
 
 const GAMBIT_JOKERS = Object.freeze([
@@ -6802,298 +6805,580 @@ const GAMBIT_JOKERS = Object.freeze([
   { id: 'straight_talker', name: 'Straight Talker', description: 'Mult ×1.6 on a Straight or Straight Flush.', rarity: 'rare' },
   { id: 'velvet_flush', name: 'Velvet Flush', description: 'Mult ×1.5 on a Flush or Straight Flush.', rarity: 'rare' },
   { id: 'lonely_crown', name: 'Lonely Crown', description: '+35 chips on a High Card hand.', rarity: 'common' },
-].map(joker => Object.freeze(joker)));
+  {"id": "diamond_digger", "name": "Diamond Digger", "description": "+16 chips for every scoring Diamond.", "rarity": "common", "family": "suit"},
+  {"id": "spade_scholar", "name": "Spade Scholar", "description": "+2 Mult for every scoring Spade.", "rarity": "common", "family": "suit"},
+  {"id": "scarlet_thread", "name": "Scarlet Thread", "description": "+2 Mult for every scoring Heart.", "rarity": "common", "family": "suit"},
+  {"id": "clover_chain", "name": "Clover Chain", "description": "+1 Mult for every scoring Club.", "rarity": "common", "family": "suit"},
+  {"id": "black_tie", "name": "Black Tie", "description": "+12 chips for every scoring black card.", "rarity": "common", "family": "suit"},
+  {"id": "red_letter", "name": "Red Letter", "description": "+12 chips for every scoring red card.", "rarity": "common", "family": "suit"},
+  {"id": "even_odds", "name": "Even Odds", "description": "+4 Mult for every scoring 2, 4, 6, 8 or 10.", "rarity": "common", "family": "rank"},
+  {"id": "odd_company", "name": "Odd Company", "description": "+18 chips for every scoring Ace, 3, 5, 7 or 9.", "rarity": "common", "family": "rank"},
+  {"id": "prime_suspect", "name": "Prime Suspect", "description": "+3 Mult for every scoring 2, 3, 5 or 7.", "rarity": "common", "family": "rank"},
+  {"id": "low_profile", "name": "Low Profile", "description": "+25 chips for every scoring card ranked 2 through 5.", "rarity": "common", "family": "rank"},
+  {"id": "royal_court", "name": "Royal Court", "description": "+2 Mult for every scoring Jack, Queen or King.", "rarity": "common", "family": "rank"},
+  {"id": "ace_up_sleeve", "name": "Ace Up Sleeve", "description": "+20 chips for every scoring Ace.", "rarity": "common", "family": "rank"},
+  {"id": "ten_to_one", "name": "Ten to One", "description": "+5 Mult for every scoring 10.", "rarity": "uncommon", "family": "rank"},
+  {"id": "lucky_seven", "name": "Lucky Seven", "description": "Mult ×1.3 for every scoring 7.", "rarity": "uncommon", "family": "rank"},
+  {"id": "twin_moons", "name": "Twin Moons", "description": "+20 chips when the played cards contain a pair.", "rarity": "common", "family": "hand"},
+  {"id": "crowded_house", "name": "Crowded House", "description": "+8 Mult on Full House or Flush House.", "rarity": "uncommon", "family": "hand"},
+  {"id": "three_wishes", "name": "Three Wishes", "description": "+10 Mult when the played cards contain three of one rank.", "rarity": "uncommon", "family": "hand"},
+  {"id": "square_deal", "name": "Square Deal", "description": "+100 chips when the played cards contain four of one rank.", "rarity": "uncommon", "family": "hand"},
+  {"id": "double_trouble", "name": "Double Trouble", "description": "Mult ×2 on Two Pair.", "rarity": "rare", "family": "hand"},
+  {"id": "royal_road", "name": "Royal Road", "description": "Mult ×2 on Straight Flush.", "rarity": "rare", "family": "hand"},
+  {"id": "long_weekend", "name": "Long Weekend", "description": "+25 chips when playing five cards.", "rarity": "common", "family": "hand"},
+  {"id": "solitary_star", "name": "Solitary Star", "description": "Mult ×2 when playing exactly one card.", "rarity": "uncommon", "family": "hand"},
+  {"id": "spare_change", "name": "Spare Change", "description": "+1 Mult for each card held after selecting your play.", "rarity": "common", "family": "held"},
+  {"id": "five_alarm", "name": "Five Alarm", "description": "Mult ×2 when five cards contribute to the hand.", "rarity": "rare", "family": "hand"},
+  {"id": "before_dawn", "name": "Before Dawn", "description": "+40 chips on the first play of a round.", "rarity": "common", "family": "hand"},
+  {"id": "final_notice", "name": "Final Notice", "description": "+12 Mult on the final available play of a round.", "rarity": "uncommon", "family": "hand"},
+  {"id": "patience", "name": "Patience", "description": "+7 chips for each unused discard this round.", "rarity": "common", "family": "hand"},
+  {"id": "empty_hands", "name": "Empty Hands", "description": "+4 Mult when three or fewer cards remain held.", "rarity": "common", "family": "held"},
+  {"id": "royal_reserve", "name": "Royal Reserve", "description": "Mult ×1.25 for every King held after selecting your play.", "rarity": "rare", "family": "held"},
+  {"id": "cold_storage", "name": "Cold Storage", "description": "+8 chips for each held card ranked 2 through 5.", "rarity": "common", "family": "held"},
+  {"id": "tea_break", "name": "Tea Break", "description": "+2 Mult for every held Queen.", "rarity": "common", "family": "held"},
+  {"id": "encore", "name": "Encore", "description": "Retrigger the first scoring card once. Repeats its chips, enhancement and per-card Joker effects.", "rarity": "uncommon", "family": "retrigger"},
+  {"id": "curtain_call", "name": "Curtain Call", "description": "Retrigger every scoring Jack, Queen and King once.", "rarity": "rare", "family": "retrigger"},
+  {"id": "tiny_echo", "name": "Tiny Echo", "description": "Retrigger every scoring 2, 3, 4 and 5 once.", "rarity": "uncommon", "family": "retrigger"},
+  {"id": "paper_trail", "name": "Paper Trail", "description": "+3 chips for every card played earlier this run.", "rarity": "common", "family": "growth"},
+  {"id": "practice_makes", "name": "Practice Makes", "description": "+1 Mult for every two hands played earlier this run.", "rarity": "common", "family": "growth"},
+  {"id": "compost_heap", "name": "Compost Heap", "description": "+4 chips for every card discarded earlier this run.", "rarity": "common", "family": "growth"},
+  {"id": "second_thought", "name": "Second Thought", "description": "+1 Mult for every discard used earlier this run.", "rarity": "common", "family": "growth"},
+  {"id": "snowball", "name": "Snowball", "description": "Mult ×(1 + 0.12 per round cleared this run).", "rarity": "rare", "family": "growth"},
+  {"id": "growing_appetite", "name": "Growing Appetite", "description": "Mult ×(1 + 0.15 per booster opened this run).", "rarity": "rare", "family": "growth"},
+  {"id": "skinny_dip", "name": "Skinny Dip", "description": "Mult ×(1 + 0.15 per card permanently removed this run).", "rarity": "rare", "family": "growth"},
+  {"id": "crowd_funding", "name": "Crowd Funding", "description": "+3 Mult for every card added to the deck this run.", "rarity": "uncommon", "family": "growth"},
+  {"id": "coin_cathedral", "name": "Coin Cathedral", "description": "Mult ×(1 + run coins / 30). Saving money keeps this boost.", "rarity": "rare", "family": "economy"},
+  {"id": "frequent_flyer", "name": "Frequent Flyer", "description": "Mult ×(1 + 0.25 per different poker category previously played this run).", "rarity": "rare", "family": "growth"},
+  {"id": "repeat_customer", "name": "Repeat Customer", "description": "+3 Mult for each previous play of the current poker category this run.", "rarity": "uncommon", "family": "growth"},
+  {"id": "night_school", "name": "Night School", "description": "+2 Mult per purchased level of the played poker category.", "rarity": "uncommon", "family": "growth"},
+  {"id": "book_worm", "name": "Book Worm", "description": "+5 chips per purchased hand level across all poker categories.", "rarity": "common", "family": "growth"},
+  {"id": "rust_collector", "name": "Rust Collector", "description": "+20 chips for every enhanced scoring card.", "rarity": "uncommon", "family": "hand"},
+  {"id": "seal_of_approval", "name": "Seal of Approval", "description": "+4 Mult for every scoring card with a seal.", "rarity": "uncommon", "family": "hand"},
+  {"id": "glass_menagerie", "name": "Glass Menagerie", "description": "Mult ×1.5 if a Glass card contributes to this hand.", "rarity": "rare", "family": "hand"},
+  {"id": "steel_magnolia", "name": "Steel Magnolia", "description": "+6 Mult if a Steel card remains held after selecting your play.", "rarity": "uncommon", "family": "held"},
+  {"id": "gold_digger", "name": "Gold Digger", "description": "Earn 1 run coin for each scoring Diamond, including retriggers.", "rarity": "common", "family": "economy"},
+  {"id": "tip_jar", "name": "Tip Jar", "description": "Earn 1 run coin after each played hand.", "rarity": "common", "family": "economy"},
+  {"id": "rainy_day", "name": "Rainy Day", "description": "Earn 1 run coin whenever a discard is used.", "rarity": "common", "family": "economy"},
+  {"id": "dividend_demon", "name": "Dividend Demon", "description": "Earn 3 extra run coins after clearing a round.", "rarity": "uncommon", "family": "economy"},
+  {"id": "pack_rat", "name": "Pack Rat", "description": "Earn 2 run coins after opening any booster.", "rarity": "uncommon", "family": "economy"},
+  {"id": "spare_pocket", "name": "Spare Pocket", "description": "Draw one extra card in hand each round.", "rarity": "uncommon", "family": "utility"},
+  {"id": "second_helping", "name": "Second Helping", "description": "Gain one extra play each round.", "rarity": "rare", "family": "utility"},
+  {"id": "waste_not", "name": "Waste Not", "description": "Gain one extra discard each round.", "rarity": "uncommon", "family": "utility"},
+  {"id": "coupon_ghoul", "name": "Coupon Ghoul", "description": "Shop rerolls cost 2 fewer run coins, to a minimum of 1.", "rarity": "uncommon", "family": "utility"},
+  {"id": "deep_pockets", "name": "Deep Pockets", "description": "Raise the maximum round interest payout by 5 run coins.", "rarity": "uncommon", "family": "utility"},
+  {"id": "cut_corners", "name": "Cut Corners", "description": "Straights and Flushes may be made with four cards. Can recognize four-card runs inside five selected cards.", "rarity": "rare", "family": "rule"},
+  {"id": "wide_awake", "name": "Wide Awake", "description": "Every played card contributes chips and scoring-card effects, including kickers.", "rarity": "rare", "family": "rule"},
+].map(joker => Object.freeze({ ...joker, family: joker.family || {"pair_gremlin": "hand", "heart_hoarder": "suit", "last_laugh": "hand", "growing_suspicion": "growth", "pocket_ace": "rank", "club_regular": "suit", "face_value": "rank", "clean_slate": "hand", "little_scheme": "hand", "straight_talker": "hand", "velvet_flush": "hand", "lonely_crown": "hand"}[joker.id], price: {common:4,uncommon:6,rare:8}[joker.rarity] })));
 
+const GAMBIT_SCORE_LIMIT = 1e100;
+const GAMBIT_LEVEL_LIMIT = 999;
 const handById = Object.fromEntries(GAMBIT_HANDS.map(hand => [hand.id, hand]));
 const jokerById = Object.fromEntries(GAMBIT_JOKERS.map(joker => [joker.id, joker]));
-const isCard = card => Number.isInteger(card) && card >= 0 && card <= 51;
-const rankOf = card => card % 13 + 1;
-const pokerRank = card => rankOf(card) === 1 ? 14 : rankOf(card);
-const suitOf = card => Math.floor(card / 13);
-const cardChips = card => rankOf(card) === 1 ? 11 : Math.min(10, rankOf(card));
 const integer = (value, low, high) => Number.isSafeInteger(value) && value >= low && value <= high;
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-const safeTotal = (chips, mult) => Math.min(1000000000, Math.floor(chips * mult));
+const own = (value, key, fallback) => Object.hasOwn(value, key) ? value[key] : fallback;
+const isCard = value => integer(value, 0, 4095);
+const dense = (values, max, predicate) => Array.isArray(values) && values.length <= max &&
+  Array.from({ length: values.length }, (_, index) => Object.hasOwn(values, index) && predicate(values[index])).every(Boolean);
+const validJokers = values => dense(values, 5, id => Object.hasOwn(jokerById, id)) && new Set(values).size === values.length;
+const canonicalId = key => String(Number(key)) === key && isCard(Number(key));
+const enhancements = ['bonus', 'mult', 'glass', 'steel', 'gold'];
+const seals = ['red', 'blue', 'gold'];
+const validMods = value => record(value) && Object.entries(value).every(([id, mod]) => canonicalId(id) && record(mod) &&
+  (!Object.hasOwn(mod, 'rank') || integer(mod.rank, 1, 13)) && (!Object.hasOwn(mod, 'suit') || integer(mod.suit, 0, 3)) &&
+  (!Object.hasOwn(mod, 'enhancement') || enhancements.includes(mod.enhancement)) && (!Object.hasOwn(mod, 'seal') || seals.includes(mod.seal)));
+const statKeys = ['handsPlayed','cardsPlayed','discardsUsed','cardsDiscarded','roundsCleared','packsOpened','rerolls','cardsAdded','cardsRemoved','sameHandStreak'];
+const validStats = value => record(value) && statKeys.every(key => !Object.hasOwn(value,key) || integer(value[key],0,1e9)) &&
+  (!Object.hasOwn(value,'lastHand') || value.lastHand === null || Object.hasOwn(handById,value.lastHand)) &&
+  (!Object.hasOwn(value,'handCounts') || record(value.handCounts) && Object.entries(value.handCounts).every(([id,count]) => Object.hasOwn(handById,id) && integer(count,0,1e9)));
+const stat = (stats, key) => own(stats, key, 0);
+const clamp = value => Math.min(GAMBIT_SCORE_LIMIT, Math.max(0, value));
+const display = value => value >= 1e7 ? value.toExponential(2) : Number(value.toFixed(4));
 
-/** Identify the highest valid category within the selected one to five cards. */
-function evaluateGambitHand(cards) {
-  if (!Array.isArray(cards) || cards.length < 1 || cards.length > 5 ||
-      Array.from(cards).some(card => !isCard(card)) || new Set(cards).size !== cards.length) return null;
-  const ranks = new Map();
-  for (const card of cards) {
-    const rank = rankOf(card);
-    if (!ranks.has(rank)) ranks.set(rank, []);
-    ranks.get(rank).push(card);
-  }
-  const groups = [...ranks.values()].sort((a, b) => b.length - a.length || pokerRank(b[0]) - pokerRank(a[0]));
-  const ordered = [...new Set(cards.map(pokerRank))].sort((a, b) => a - b);
-  const straight = cards.length === 5 && ordered.length === 5 &&
-    (ordered[4] - ordered[0] === 4 || ordered.join(',') === '2,3,4,5,14');
-  const flush = cards.length === 5 && cards.every(card => suitOf(card) === suitOf(cards[0]));
-  let id = 'high_card', scoringCards;
-  if (straight && flush) id = 'straight_flush';
-  else if (groups[0].length === 4) id = 'four_kind';
-  else if (groups[0].length === 3 && groups[1]?.length === 2) id = 'full_house';
-  else if (flush) id = 'flush';
-  else if (straight) id = 'straight';
-  else if (groups[0].length === 3) id = 'three_kind';
-  else if (groups[0].length === 2 && groups[1]?.length === 2) id = 'two_pair';
-  else if (groups[0].length === 2) id = 'pair';
-  if (['straight_flush', 'full_house', 'flush', 'straight'].includes(id)) scoringCards = [...cards];
-  else if (id === 'two_pair') scoringCards = [...groups[0], ...groups[1]];
-  else if (id === 'high_card') scoringCards = [cards.reduce((best, card) => pokerRank(card) > pokerRank(best) ? card : best)];
-  else scoringCards = [...groups[0]];
-  // Preserve hand order so the scoring display can highlight the actual selected cards.
-  const scoring = new Set(scoringCards);
-  return { ...handById[id], scoringCards: cards.filter(card => scoring.has(card)) };
+/** Physical identity is separate from face: copied cards receive a new ID and optional face overrides. */
+function gambitCardData(id, cardMods = {}) {
+  if (!isCard(id) || !record(cardMods)) return null;
+  const raw = own(cardMods, id, {});
+  if (!record(raw)) return null;
+  const face = id % 52;
+  const rank = own(raw, 'rank', face % 13 + 1), suit = own(raw, 'suit', Math.floor(face / 13));
+  if (!integer(rank,1,13) || !integer(suit,0,3) ||
+      Object.hasOwn(raw,'enhancement') && !enhancements.includes(raw.enhancement) || Object.hasOwn(raw,'seal') && !seals.includes(raw.seal)) return null;
+  return { rank, suit, ...(Object.hasOwn(raw,'enhancement') ? {enhancement:raw.enhancement} : {}), ...(Object.hasOwn(raw,'seal') ? {seal:raw.seal} : {}) };
 }
 
-/**
- * Score in four explicit stages: hand + cards, flat chips, added Mult, multiplied Mult.
- * Joker position never changes the result; steps report cumulative totals for the UI.
- */
-function scoreGambitHand(cards, jokers = [], handLevels = {}, context = {}) {
-  const hand = evaluateGambitHand(cards);
-  if (!hand || !Array.isArray(jokers) || jokers.length > 3 || new Set(jokers).size !== jokers.length ||
-      Array.from(jokers).some(id => !Object.hasOwn(jokerById, id)) || !record(handLevels) ||
-      Object.entries(handLevels).some(([id, level]) => !Object.hasOwn(handById, id) || !integer(level, 0, 5)) || !record(context)) return null;
-  const { round = 1, playsLeft = 4, discardsUsed = 0, cardBoosts = {} } = context;
-  if (!integer(round, 1, 6) || !integer(playsLeft, 1, 4) || !integer(discardsUsed, 0, 3) || !record(cardBoosts) ||
-      Object.entries(cardBoosts).some(([id, bonus]) => !/^(?:[0-9]|[1-4][0-9]|5[01])$/.test(id) || !integer(bonus, 0, 30))) return null;
-  const level = Object.hasOwn(handLevels, hand.id) ? handLevels[hand.id] : 0;
-  let chips = hand.chips + level * 15, mult = hand.mult + level;
-  const steps = [{ label: `${hand.name}${level ? ` · level ${level + 1}` : ''}`, chips, mult }];
-  const scored = hand.scoringCards;
-  const cardPoints = scored.reduce((sum, card) => sum + cardChips(card) + (Object.hasOwn(cardBoosts, card) ? cardBoosts[card] : 0), 0);
-  chips += cardPoints; steps.push({ label: `Scoring cards +${cardPoints} chips`, chips, mult });
-  const effects = [];
-  const add = (id, type, amount) => { if (amount > 0) effects.push({ id, type, amount }); };
-  for (const id of jokers) {
-    if (id === 'pair_gremlin' && new Set(cards.map(rankOf)).size < cards.length) add(id, 'mult', 4);
-    else if (id === 'heart_hoarder') add(id, 'chips', scored.filter(card => suitOf(card) === 3).length * 20);
-    else if (id === 'last_laugh' && playsLeft === 1) add(id, 'times', 1.5);
-    else if (id === 'growing_suspicion') add(id, 'chips', (round - 1) * 5);
-    else if (id === 'pocket_ace' && scored.some(card => rankOf(card) === 1)) add(id, 'mult', 3);
-    else if (id === 'club_regular') add(id, 'chips', scored.filter(card => suitOf(card) === 0).length * 12);
-    else if (id === 'face_value') add(id, 'chips', scored.filter(card => rankOf(card) >= 11).length * 8);
-    else if (id === 'clean_slate' && discardsUsed === 0) add(id, 'mult', 3);
-    else if (id === 'little_scheme' && cards.length <= 3) add(id, 'mult', 3);
-    else if (id === 'straight_talker' && ['straight', 'straight_flush'].includes(hand.id)) add(id, 'times', 1.6);
-    else if (id === 'velvet_flush' && ['flush', 'straight_flush'].includes(hand.id)) add(id, 'times', 1.5);
-    else if (id === 'lonely_crown' && hand.id === 'high_card') add(id, 'chips', 35);
-  }
-  for (const type of ['chips', 'mult', 'times']) {
-    for (const effect of effects.filter(item => item.type === type)) {
-      if (type === 'chips') chips += effect.amount;
-      else if (type === 'mult') mult += effect.amount;
-      else mult *= effect.amount;
-      mult = Math.round(mult * 10000) / 10000;
-      const bonus = type === 'chips' ? `+${effect.amount} chips` : type === 'mult' ? `+${effect.amount} Mult` : `Mult ×${effect.amount}`;
-      steps.push({ label: `${jokerById[effect.id].name}: ${bonus}`, chips, mult });
+function straightSubset(cards, data, count) {
+  const values = [...new Set(cards.map(id => data.get(id).rank === 1 ? 14 : data.get(id).rank))].sort((a,b) => a-b);
+  if (values.includes(14)) values.unshift(1);
+  for (let start = values.length-count; start>=0; start--) {
+    const slice=values.slice(start,start+count);
+    if (slice.at(-1)-slice[0]===count-1) {
+      const wanted=new Set(slice.map(rank=>rank===14?1:rank));
+      const picked=[];
+      for (const id of cards) if(wanted.has(data.get(id).rank)){picked.push(id);wanted.delete(data.get(id).rank);}
+      return picked;
     }
   }
-  return { id: hand.id, name: hand.name, scoringCards: [...scored], chips, mult, total: safeTotal(chips, mult), steps };
+  return null;
 }
 
-return {GAMBIT_HANDS,GAMBIT_JOKERS,evaluateGambitHand,scoreGambitHand};
-})();
-const {GAMBIT_TARGETS,GambitGame}=(()=>{
-/** Gabu's Gambit: a small, original poker roguelike. All money stays in this run. */
+/** Identify the highest category while conserving physical identities for duplicates and crafting. */
+function evaluateGambitHand(cards, options = {}) {
+  if(!record(options))return null;
+  const {cardMods = {}, jokers = []}=options;
+  if (!dense(cards,5,isCard) || !cards.length || new Set(cards).size!==cards.length || !validMods(cardMods) || !validJokers(jokers)) return null;
+  const data=new Map(cards.map(id=>[id,gambitCardData(id,cardMods)]));
+  const rankOf=id=>data.get(id).rank, pokerRank=id=>rankOf(id)===1?14:rankOf(id);
+  const ranks=new Map();
+  for(const id of cards){const rank=rankOf(id);if(!ranks.has(rank))ranks.set(rank,[]);ranks.get(rank).push(id);}
+  const groups=[...ranks.values()].sort((a,b)=>b.length-a.length||pokerRank(b[0])-pokerRank(a[0]));
+  const count=jokers.includes('cut_corners')?4:5;
+  const straight=straightSubset(cards,data,5)||(count===4?straightSubset(cards,data,4):null);
+  const suits=[0,1,2,3].map(suit=>cards.filter(id=>data.get(id).suit===suit));
+  const flush=suits.find(group=>group.length>=count)||null;
+  const straightFlush=flush?(straightSubset(flush,data,5)||(count===4?straightSubset(flush,data,4):null)):null;
+  let id='high_card', scored;
+  if(cards.length===5&&groups[0].length===5&&flush?.length===5)id='flush_five';
+  else if(cards.length===5&&groups[0].length===3&&groups[1]?.length===2&&flush?.length===5)id='flush_house';
+  else if(groups[0].length===5)id='five_kind';
+  else if(straightFlush)id='straight_flush';
+  else if(groups[0].length===4)id='four_kind';
+  else if(groups[0].length===3&&groups[1]?.length===2)id='full_house';
+  else if(flush)id='flush';
+  else if(straight)id='straight';
+  else if(groups[0].length===3)id='three_kind';
+  else if(groups[0].length===2&&groups[1]?.length===2)id='two_pair';
+  else if(groups[0].length===2)id='pair';
+  if(jokers.includes('wide_awake')||['full_house','five_kind','flush_house','flush_five'].includes(id))scored=cards;
+  else if(id==='straight_flush')scored=straightFlush;
+  else if(id==='flush')scored=flush;
+  else if(id==='straight')scored=straight;
+  else if(id==='two_pair')scored=[...groups[0],...groups[1]];
+  else if(id==='high_card')scored=[cards.reduce((best,card)=>pokerRank(card)>pokerRank(best)?card:best)];
+  else scored=groups[0];
+  const selected=new Set(scored);
+  return {...handById[id],scoringCards:cards.filter(card=>selected.has(card))};
+}
 
-const GAMBIT_TARGETS = Object.freeze([180, 350, 600, 1000, 1500, 2200]);
-const jokerIds = GAMBIT_JOKERS.map(item => item.id);
-const handIds = GAMBIT_HANDS.map(item => item.id);
-const phases = ['play', 'score', 'shop', 'pack', 'replace'];
-const integer = (n, low, high) => Number.isSafeInteger(n) && n >= low && n <= high;
-const card = id => integer(id, 0, 51);
-const plain = value => !!value && typeof value === 'object' && !Array.isArray(value);
-const dense = (values, max, check) => Array.isArray(values) && values.length <= max &&
-  Array.from({length: values.length}, (_, i) => Object.hasOwn(values, i) && check(values[i])).every(Boolean);
-const clone = value => JSON.parse(JSON.stringify(value));
-const validLevels = value => plain(value) && Object.entries(value).every(([key, level]) => handIds.includes(key) && integer(level, 0, 5));
-const validBoosts = value => plain(value) && Object.entries(value).every(([key, boost]) => String(Number(key)) === key && card(Number(key)) && integer(boost, 0, 30) && boost % 10 === 0);
-const validOption = option => plain(option) && (option.kind === 'joker' ? jokerIds.includes(option.id) :
-  option.kind === 'hand' ? handIds.includes(option.id) : option.kind === 'card' && card(option.id));
+function triggers(id, scored, data, jokers) {
+  const rank=data.get(id).rank;
+  return 1+(data.get(id).seal==='red'?1:0)+(jokers.includes('encore')&&id===scored[0]?1:0)+
+    (jokers.includes('curtain_call')&&rank>=11?1:0)+(jokers.includes('tiny_echo')&&rank>=2&&rank<=5?1:0);
+}
+
+/** Hand/cards, chip effects, additive Mult, then multiplicative Mult. Reading a preview never changes the run. */
+function scoreGambitHand(cards, jokers = [], handLevels = {}, context = {}) {
+  if(!validJokers(jokers)||!record(handLevels)||Object.entries(handLevels).some(([id,level])=>!Object.hasOwn(handById,id)||!integer(level,0,GAMBIT_LEVEL_LIMIT))||!record(context))return null;
+  const {round=1,playsLeft=4,discardsUsed=0,cardBoosts={},cardMods={},heldCards=[],money=0,stats={},deckSize=52,maxPlays=4,maxDiscards=3}=context;
+  if(!integer(round,1,9999)||!integer(playsLeft,1,10)||!integer(discardsUsed,0,10)||!integer(maxPlays,1,10)||!integer(maxDiscards,0,10)||
+    !integer(money,0,99999)||!integer(deckSize,0,128)||!record(cardBoosts)||Object.entries(cardBoosts).some(([id,bonus])=>!canonicalId(id)||!integer(bonus,0,300))||
+    !validMods(cardMods)||!dense(heldCards,10,isCard)||new Set(heldCards).size!==heldCards.length||!validStats(stats))return null;
+  const hand=evaluateGambitHand(cards,{cardMods,jokers});
+  if(!hand||heldCards.some(id=>cards.includes(id)))return null;
+  const data=new Map([...cards,...heldCards].map(id=>[id,gambitCardData(id,cardMods)]));
+  const rank=id=>data.get(id).rank,suit=id=>data.get(id).suit;
+  const scored=hand.scoringCards,level=own(handLevels,hand.id,0);
+  let chips=hand.chips+level*15,mult=hand.mult+level;
+  const steps=[{label:hand.name+(level?' · level '+(level+1):''),chips,mult}];
+  const effects=[];
+  const add=(id,type,amount)=>{if(amount>0&&(type!=='times'||amount!==1))effects.push({id,type,amount});};
+  const per=(predicate)=>scored.reduce((sum,id)=>sum+(predicate(id)?triggers(id,scored,data,jokers):0),0);
+  let cardPoints=0,cardMult=0,glass=1;
+  for(const id of scored){const value=data.get(id),n=triggers(id,scored,data,jokers);
+    cardPoints+=n*((rank(id)===1?11:Math.min(10,rank(id)))+own(cardBoosts,id,0)+(value.enhancement==='bonus'?30:0));
+    if(value.enhancement==='mult')cardMult+=4*n;
+    if(value.enhancement==='glass')glass*=2**n;
+  }
+  chips+=cardPoints;steps.push({label:'Scoring cards +'+cardPoints+' chips',chips,mult});
+  if(cardMult)add('Enhanced cards','mult',cardMult);
+  if(glass>1)add('Glass cards','times',glass);
+  const steel=heldCards.filter(id=>data.get(id).enhancement==='steel').length;
+  if(steel)add('Held Steel cards','times',1.5**steel);
+  const groups=new Map();for(const id of cards)groups.set(rank(id),(groups.get(rank(id))||0)+1);
+  const maxGroup=Math.max(...groups.values()),known=own(stats,'handCounts',{});
+  const straightHand=['straight','straight_flush'].includes(hand.id),flushHand=['flush','straight_flush','flush_house','flush_five'].includes(hand.id);
+  for(const id of jokers){
+    switch(id){
+      case 'pair_gremlin':if(maxGroup>=2)add(id,'mult',4);break;
+      case 'heart_hoarder':add(id,'chips',per(id=>suit(id)===3)*20);break;
+      case 'last_laugh':if(playsLeft===1)add(id,'times',1.5);break;
+      case 'growing_suspicion':add(id,'chips',(round-1)*5);break;
+      case 'pocket_ace':if(scored.some(id=>rank(id)===1))add(id,'mult',3);break;
+      case 'club_regular':add(id,'chips',per(id=>suit(id)===0)*12);break;
+      case 'face_value':add(id,'chips',per(id=>rank(id)>=11)*8);break;
+      case 'clean_slate':if(discardsUsed===0)add(id,'mult',3);break;
+      case 'little_scheme':if(cards.length<=3)add(id,'mult',3);break;
+      case 'straight_talker':if(straightHand)add(id,'times',1.6);break;
+      case 'velvet_flush':if(flushHand)add(id,'times',1.5);break;
+      case 'lonely_crown':if(hand.id==='high_card')add(id,'chips',35);break;
+      case 'diamond_digger':add(id,'chips',per(id=>suit(id)===1)*16);break;
+      case 'spade_scholar':add(id,'mult',per(id=>suit(id)===2)*2);break;
+      case 'scarlet_thread':add(id,'mult',per(id=>suit(id)===3)*2);break;
+      case 'clover_chain':add(id,'mult',per(id=>suit(id)===0));break;
+      case 'black_tie':add(id,'chips',per(id=>suit(id)===0||suit(id)===2)*12);break;
+      case 'red_letter':add(id,'chips',per(id=>suit(id)===1||suit(id)===3)*12);break;
+      case 'even_odds':add(id,'mult',per(id=>rank(id)<=10&&rank(id)%2===0)*4);break;
+      case 'odd_company':add(id,'chips',per(id=>rank(id)<=9&&rank(id)%2===1)*18);break;
+      case 'prime_suspect':add(id,'mult',per(id=>[2,3,5,7].includes(rank(id)))*3);break;
+      case 'low_profile':add(id,'chips',per(id=>rank(id)>=2&&rank(id)<=5)*25);break;
+      case 'royal_court':add(id,'mult',per(id=>rank(id)>=11)*2);break;
+      case 'ace_up_sleeve':add(id,'chips',per(id=>rank(id)===1)*20);break;
+      case 'ten_to_one':add(id,'mult',per(id=>rank(id)===10)*5);break;
+      case 'lucky_seven':add(id,'times',1.3**per(id=>rank(id)===7));break;
+      case 'twin_moons':if(maxGroup>=2)add(id,'chips',20);break;
+      case 'crowded_house':if(['full_house','flush_house'].includes(hand.id))add(id,'mult',8);break;
+      case 'three_wishes':if(maxGroup>=3)add(id,'mult',10);break;
+      case 'square_deal':if(maxGroup>=4)add(id,'chips',100);break;
+      case 'double_trouble':if(hand.id==='two_pair')add(id,'times',2);break;
+      case 'royal_road':if(hand.id==='straight_flush')add(id,'times',2);break;
+      case 'long_weekend':if(cards.length===5)add(id,'chips',25);break;
+      case 'solitary_star':if(cards.length===1)add(id,'times',2);break;
+      case 'spare_change':add(id,'mult',heldCards.length);break;
+      case 'five_alarm':if(scored.length===5)add(id,'times',2);break;
+      case 'before_dawn':if(playsLeft===maxPlays)add(id,'chips',40);break;
+      case 'final_notice':if(playsLeft===1)add(id,'mult',12);break;
+      case 'patience':add(id,'chips',Math.max(0,maxDiscards-discardsUsed)*7);break;
+      case 'empty_hands':if(heldCards.length<=3)add(id,'mult',4);break;
+      case 'royal_reserve':add(id,'times',1.25**heldCards.filter(id=>rank(id)===13).length);break;
+      case 'cold_storage':add(id,'chips',heldCards.filter(id=>rank(id)>=2&&rank(id)<=5).length*8);break;
+      case 'tea_break':add(id,'mult',heldCards.filter(id=>rank(id)===12).length*2);break;
+      case 'paper_trail':add(id,'chips',stat(stats,'cardsPlayed')*3);break;
+      case 'practice_makes':add(id,'mult',Math.floor(stat(stats,'handsPlayed')/2));break;
+      case 'compost_heap':add(id,'chips',stat(stats,'cardsDiscarded')*4);break;
+      case 'second_thought':add(id,'mult',stat(stats,'discardsUsed'));break;
+      case 'snowball':add(id,'times',1+.12*stat(stats,'roundsCleared'));break;
+      case 'growing_appetite':add(id,'times',1+.15*stat(stats,'packsOpened'));break;
+      case 'skinny_dip':add(id,'times',1+.15*stat(stats,'cardsRemoved'));break;
+      case 'crowd_funding':add(id,'mult',3*stat(stats,'cardsAdded'));break;
+      case 'coin_cathedral':add(id,'times',1+money/30);break;
+      case 'frequent_flyer':add(id,'times',1+.25*Object.keys(known).filter(id=>known[id]>0).length);break;
+      case 'repeat_customer':add(id,'mult',3*own(known,hand.id,0));break;
+      case 'night_school':add(id,'mult',level*2);break;
+      case 'book_worm':add(id,'chips',Object.values(handLevels).reduce((sum,n)=>sum+n,0)*5);break;
+      case 'rust_collector':add(id,'chips',per(id=>!!data.get(id).enhancement)*20);break;
+      case 'seal_of_approval':add(id,'mult',per(id=>!!data.get(id).seal)*4);break;
+      case 'glass_menagerie':if(scored.some(id=>data.get(id).enhancement==='glass'))add(id,'times',1.5);break;
+      case 'steel_magnolia':if(steel)add(id,'mult',6);break;
+    }
+  }
+  for(const type of ['chips','mult','times'])for(const effect of effects.filter(item=>item.type===type)){
+    if(type==='chips')chips=clamp(chips+effect.amount);
+    else if(type==='mult')mult=clamp(mult+effect.amount);
+    else mult=clamp(mult*effect.amount);
+    if(mult<1e12)mult=Math.round(mult*1e8)/1e8;
+    const bonus=type==='chips'?'+'+display(effect.amount)+' chips':type==='mult'?'+'+display(effect.amount)+' Mult':'Mult ×'+display(effect.amount);
+    steps.push({label:(jokerById[effect.id]?.name||effect.id)+': '+bonus,chips,mult});
+  }
+  return {id:hand.id,name:hand.name,scoringCards:[...scored],chips,mult,total:Math.floor(clamp(chips*mult)),steps};
+}
+
+/** Resource effects are returned as additions, never applied while reading a preview. */
+function gambitJokerModifiers(jokers = []) {
+  const result={handSize:0,plays:0,discards:0,rerollDiscount:0,interestCap:0};
+  if(!validJokers(jokers))return result;
+  if(jokers.includes('spare_pocket'))result.handSize=1;
+  if(jokers.includes('second_helping'))result.plays=1;
+  if(jokers.includes('waste_not'))result.discards=1;
+  if(jokers.includes('coupon_ghoul'))result.rerollDiscount=2;
+  if(jokers.includes('deep_pockets'))result.interestCap=5;
+  return result;
+}
+
+/** Deterministic event income; the engine commits it exactly once at the corresponding event. */
+function gambitJokerPayout(jokers = [], stats = {}, event, context = {}) {
+  if(!validJokers(jokers)||!validStats(stats)||!record(context))return 0;
+  const {cardMods={},cards=[],scoringCards=[],heldCards=[]}=context;
+  if(!validMods(cardMods)||!dense(cards,5,isCard)||!dense(scoringCards,5,isCard)||!dense(heldCards,10,isCard))return 0;
+  const data=new Map([...cards,...scoringCards,...heldCards].map(id=>[id,gambitCardData(id,cardMods)]));
+  let amount=0;
+  if(event==='hand'){
+    if(jokers.includes('tip_jar'))amount++;
+    for(const id of scoringCards){const n=triggers(id,scoringCards,data,jokers);if(jokers.includes('gold_digger')&&data.get(id).suit===1)amount+=n;if(data.get(id).seal==='gold')amount+=n*2;}
+  }
+  else if(event==='discard'&&jokers.includes('rainy_day'))amount++;
+  else if(event==='round'){
+    if(jokers.includes('dividend_demon'))amount+=3;
+    amount+=heldCards.filter(id=>data.get(id).enhancement==='gold').length*3;
+  }
+  else if(event==='pack'&&jokers.includes('pack_rat'))amount+=2;
+  return amount;
+}
+
+return {GAMBIT_HANDS,GAMBIT_JOKERS,GAMBIT_SCORE_LIMIT,GAMBIT_LEVEL_LIMIT,gambitCardData,evaluateGambitHand,scoreGambitHand,gambitJokerModifiers,gambitJokerPayout};
+})();
+const {GAMBIT_TARGETS,GAMBIT_DECKS,GAMBIT_PACKS,GAMBIT_BOSSES,GambitGame}=(()=>{
+/** Original poker roguelike engine: persistent decks, seeded choices and longer runs. */
+
+const LEGACY_TARGETS = [180,350,600,1000,1500,2200];
+const ANTE_BASES = [180,450,1100,2500,5500,11000,20000,35000];
+const GAMBIT_TARGETS = Object.freeze(ANTE_BASES.flatMap(base=>[base,Math.round(base*1.5),base*2]));
+const GAMBIT_DECKS = Object.freeze([
+  {id:'classic',name:'Gremlin Deck',description:'Start with Pair Gremlin and $8. A balanced beginning.'},
+  {id:'velvet',name:'Velvet Deck',description:'Start with Velvet Flush, $6 and a deck with only Hearts and Clubs.'},
+  {id:'scholar',name:'Scholar Deck',description:'Start with Pair Gremlin, Pair and High Card level 3, and $4.'},
+  {id:'merchant',name:'Merchant Deck',description:'Start with no Joker and $20. Invest in your own build.'},
+].map(Object.freeze));
+const GAMBIT_PACKS = Object.freeze(['joker','upgrade','craft','standard'].flatMap(kind=>['normal','mega'].map(size=>Object.freeze({
+  id:kind+'_'+size,kind,size,name:(size==='mega'?'Mega ':'')+({joker:'Joker',upgrade:'Upgrade',craft:'Craft',standard:'Playing Card'})[kind]+' Pack',
+  price:size==='mega'?7:kind==='upgrade'?3:4,options:size==='mega'?5:3,choose:size==='mega'?2:1,
+}))));
+const GAMBIT_BOSSES = Object.freeze([
+  {id:'short_fuse',name:'Short Fuse',description:'One fewer hand this blind.'},
+  {id:'dry_well',name:'Dry Well',description:'Two fewer discards this blind.'},
+  {id:'narrow_gate',name:'Narrow Gate',description:'Play at most three cards at once.'},
+  {id:'full_table',name:'Full Table',description:'Every played hand must contain five cards.'},
+  {id:'echo_chamber',name:'Echo Chamber',description:'A poker category can score only once this blind.'},
+  {id:'heavy_blind',name:'Heavy Blind',description:'The target is fifty percent higher.'},
+  {id:'toll',name:'The Toll',description:'Pay one run coin for each hand played.'},
+  {id:'locked_purse',name:'Locked Purse',description:'No interest is paid for clearing this blind.'},
+].map(Object.freeze));
+const jokerIds=GAMBIT_JOKERS.map(j=>j.id), legacyJokers=jokerIds.slice(0,12), handIds=GAMBIT_HANDS.map(h=>h.id);
+const phases=['play','score','shop','pack','replace','victory'];
+const integer=(n,low,high)=>Number.isSafeInteger(n)&&n>=low&&n<=high;
+const amount=(n,max=GAMBIT_SCORE_LIMIT)=>Number.isFinite(n)&&n>=0&&n<=max&&Math.floor(n)===n;
+const card=id=>integer(id,0,4095);
+const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
+const dense=(values,max,check)=>Array.isArray(values)&&values.length<=max&&Array.from({length:values.length},(_,i)=>Object.hasOwn(values,i)&&check(values[i])).every(Boolean);
+const unique=values=>new Set(values).size===values.length;
+const clone=value=>JSON.parse(JSON.stringify(value));
+const enhancements=['bonus','mult','glass','steel','gold'],seals=['red','blue','gold'];
+const validLevels=(value,max=GAMBIT_LEVEL_LIMIT)=>plain(value)&&Object.entries(value).every(([id,n])=>handIds.includes(id)&&integer(n,0,max));
+const validBoosts=(value,max=300)=>plain(value)&&Object.entries(value).every(([id,n])=>String(Number(id))===id&&card(Number(id))&&integer(n,0,max)&&n%10===0);
+const validMod=value=>plain(value)&&Object.keys(value).every(key=>['rank','suit','enhancement','seal'].includes(key))&&
+  (value.rank===undefined||integer(value.rank,1,13))&&(value.suit===undefined||integer(value.suit,0,3))&&
+  (value.enhancement===undefined||enhancements.includes(value.enhancement))&&(value.seal===undefined||seals.includes(value.seal));
+const freshStats=()=>({handsPlayed:0,cardsPlayed:0,discardsUsed:0,cardsDiscarded:0,roundsCleared:0,packsOpened:0,rerolls:0,cardsAdded:0,cardsRemoved:0,handCounts:{},lastHand:null,sameHandStreak:0});
+const countKeys=['handsPlayed','cardsPlayed','discardsUsed','cardsDiscarded','roundsCleared','packsOpened','rerolls','cardsAdded','cardsRemoved','sameHandStreak'];
+const validStats=s=>plain(s)&&countKeys.every(key=>integer(s[key],0,1e9))&&plain(s.handCounts)&&Object.entries(s.handCounts).every(([id,n])=>handIds.includes(id)&&integer(n,0,1e9))&&(s.lastHand===null||handIds.includes(s.lastHand));
+const jokerPrice=id=>({common:4,uncommon:6,rare:8})[GAMBIT_JOKERS.find(j=>j.id===id)?.rarity]||8;
+const packBy=(kind,size='normal')=>GAMBIT_PACKS.find(p=>p.kind===kind&&p.size===size);
+const optionKey=o=>JSON.stringify(o);
+const validOption=o=>plain(o)&&(o.kind==='joker'?jokerIds.includes(o.id):o.kind==='hand'?handIds.includes(o.id):
+  o.kind==='card'||o.kind==='remove'?card(o.id):o.kind==='playing'?integer(o.id,0,51)&&validMod(Object.fromEntries(Object.entries(o).filter(([k])=>!['kind','id'].includes(k)))):
+  o.kind==='modify'&&card(o.id)&&Object.keys(o).some(k=>['rank','suit','enhancement','seal'].includes(k))&&validMod(Object.fromEntries(Object.entries(o).filter(([k])=>!['kind','id'].includes(k)))));
 
 class GambitGame {
-  constructor({ seed = Math.floor(Math.random() * 0xffffffff), onEvent = () => {}, saved } = {}) {
-    this.onEvent = onEvent; this.rngState = 1; this.reset(seed); if (saved) this.restore(saved);
+  constructor({seed=Math.floor(Math.random()*0xffffffff),onEvent=()=>{},saved}={}) {
+    this.onEvent=onEvent;this.rngState=1;this.deckPreset='classic';this.reset(seed);if(saved)this.restore(saved);
   }
-  nextRandom() {
-    let n = this.rngState; n ^= n << 13; n ^= n >>> 17; n ^= n << 5;
-    this.rngState = n >>> 0 || 1; return this.rngState / 0x100000000;
+  nextRandom(){let n=this.rngState;n^=n<<13;n^=n>>>17;n^=n<<5;this.rngState=n>>>0||1;return this.rngState/0x100000000;}
+  shuffled(values){const items=[...values];for(let i=items.length-1;i>0;i--){const j=Math.floor(this.nextRandom()*(i+1));[items[i],items[j]]=[items[j],items[i]];}return items;}
+  reset(seed){
+    this.rngState=integer(seed,0,0xffffffff)?seed||1:Math.floor(this.nextRandom()*0xffffffff)||1;
+    this.legacy=false;this.endless=false;this.status='idle';this.phase='play';this.won=false;this.round=1;
+    this.score=0;this.money=8;this.jokers=['pair_gremlin'];this.handLevels={};this.cardBoosts={};this.cardMods={};
+    this.deckCards=Array.from({length:52},(_,i)=>i);this.nextCardId=52;this.stats=freshStats();this.rerollsInShop=0;
+    if(this.deckPreset==='velvet'){this.money=6;this.jokers=['velvet_flush'];for(const id of this.deckCards)if(Math.floor(id/13)===1||Math.floor(id/13)===2)this.cardMods[id]={suit:id%2?0:3};}
+    else if(this.deckPreset==='scholar'){this.money=4;this.handLevels={pair:2,high_card:2};}
+    else if(this.deckPreset==='merchant'){this.money=20;this.jokers=[];}
+    this.shop=[];this.pack=null;this.pendingJoker=null;this.lastResult=null;this.lastPlay=null;this.scoreTime=0;
+    this.bossOrder=this.shuffled(GAMBIT_BOSSES.map(b=>b.id));this.dealRound();this.onEvent('reset');
   }
-  shuffled(values) {
-    const items = [...values];
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(this.nextRandom() * (i + 1)); [items[i], items[j]] = [items[j], items[i]];
-    }
-    return items;
+  chooseDeck(id){if(!['idle','dead'].includes(this.status)||!GAMBIT_DECKS.some(d=>d.id===id))return false;this.deckPreset=id;this.reset();return true;}
+  get ante(){return this.legacy?Math.ceil(this.round/3):Math.ceil(this.round/3);}
+  get blindName(){return this.legacy?'Classic Round':['Small Blind','Big Blind','Boss Blind'][(this.round-1)%3];}
+  get campaignLength(){return this.legacy?6:24;}
+  get jokerSlots(){return this.legacy?3:5;}
+  get boss(){return !this.legacy&&this.round%3===0?GAMBIT_BOSSES.find(b=>b.id===this.bossOrder[(this.ante-1)%8]):null;}
+  get target(){
+    if(this.legacy)return LEGACY_TARGETS[this.round-1];
+    const base=this.ante<=8?ANTE_BASES[this.ante-1]:Math.min(GAMBIT_SCORE_LIMIT,ANTE_BASES[7]*Math.pow(2.2,this.ante-8));
+    return Math.min(GAMBIT_SCORE_LIMIT,Math.round(base*[1,1.5,2][(this.round-1)%3]*(this.boss?.id==='heavy_blind'?1.5:1)));
   }
-  reset(seed) {
-    this.rngState = integer(seed, 0, 0xffffffff) ? seed || 1 : (Math.floor(this.nextRandom() * 0xffffffff) || 1);
-    this.status = 'idle'; this.phase = 'play'; this.won = false; this.round = 1;
-    this.score = 0; this.money = 8; this.jokers = ['pair_gremlin']; this.handLevels = {}; this.cardBoosts = {};
-    this.shop = []; this.pack = null; this.pendingJoker = null; this.lastResult = null; this.lastPlay = null; this.scoreTime = 0;
-    this.dealRound(); this.onEvent('reset');
+  get handSize(){return this.limits?.handSize||8;}
+  get maxPlays(){return this.limits?.plays||4;}
+  get maxDiscards(){return this.limits?.discards??3;}
+  get rerollPrice(){return Math.max(1,3+this.rerollsInShop-(this.legacy?0:gambitJokerModifiers(this.jokers).rerollDiscount||0));}
+  get canContinueEndless(){return this.won&&(this.phase==='victory'||this.status==='dead')&&(!this.endless);}
+  dealRound(){
+    const m=this.legacy?{}:gambitJokerModifiers(this.jokers);
+    this.limits={handSize:Math.max(1,Math.min(10,8+(m.handSize||0))),plays:Math.max(1,Math.min(10,4+(m.plays||0)-(this.boss?.id==='short_fuse'?1:0))),discards:Math.max(0,Math.min(10,3+(m.discards||0)-(this.boss?.id==='dry_well'?2:0)))};
+    this.deck=this.shuffled(this.deckCards);this.hand=[];this.discard=[];this.selected=[];
+    this.playsLeft=this.maxPlays;this.discardsLeft=this.maxDiscards;this.roundScore=0;this.roundStats={hands:0,discards:0,handCounts:{}};
+    this.refill();this.phase='play';this.lastResult=null;this.lastPlay=null;this.scoreTime=0;
   }
-  get target() { return GAMBIT_TARGETS[this.round - 1]; }
-  dealRound() {
-    this.deck = this.shuffled(Array.from({ length: 52 }, (_, i) => i)); this.hand = []; this.discard = [];
-    this.selected = []; this.playsLeft = 4; this.discardsLeft = 3; this.roundScore = 0;
-    this.refill(); this.phase = 'play'; this.lastResult = null; this.lastPlay = null; this.scoreTime = 0;
+  refill(){while(this.hand.length<this.handSize&&this.deck.length)this.hand.push(this.deck.pop());}
+  start(){if(this.status==='dead')this.reset();if(this.status==='playing')return;const resumed=this.status==='paused';this.status='playing';this.onEvent(resumed?'resume':'start');}
+  pause(){if(this.status==='playing'){this.status='paused';this.onEvent('pause');}}
+  togglePause(){if(this.status==='playing')this.pause();else if(this.status==='paused')this.start();}
+  update(dt){if(this.status==='playing'&&this.phase==='score'&&Number.isFinite(dt)&&dt>0)this.scoreTime=Math.min(1.2,this.scoreTime+Math.min(dt,.12));}
+  toggleCard(id){if(this.status!=='playing'||this.phase!=='play'||!this.hand.includes(id))return false;const i=this.selected.indexOf(id);if(i>=0)this.selected.splice(i,1);else if(this.selected.length<5)this.selected.push(id);else return false;this.onEvent('select');return true;}
+  sortHand(mode){if(this.status!=='playing'||this.phase!=='play'||!['rank','suit'].includes(mode))return false;
+    const rank=id=>{const r=gambitCardData(id,this.cardMods).rank;return r===1?14:r;},suit=id=>gambitCardData(id,this.cardMods).suit;
+    this.hand=[...this.hand].sort((a,b)=>mode==='rank'?rank(b)-rank(a)||suit(a)-suit(b):suit(a)-suit(b)||rank(b)-rank(a));this.onEvent('sort',{mode});return true;}
+  selectionError(){
+    if(!this.selected.length)return null;
+    if(this.boss?.id==='narrow_gate'&&this.selected.length>3)return 'Play at most three cards for Narrow Gate.';
+    if(this.boss?.id==='full_table'&&this.selected.length!==5)return 'Full Table requires five played cards.';
+    const hand=evaluateGambitHand(this.selected,{cardMods:this.cardMods,jokers:this.jokers});
+    if(this.boss?.id==='echo_chamber'&&hand&&this.roundStats.handCounts[hand.id])return 'Echo Chamber: use a different poker category.';
+    return null;
   }
-  refill() { while (this.hand.length < 8 && this.deck.length) this.hand.push(this.deck.pop()); }
-  start() {
-    if (this.status === 'dead') this.reset();
-    if (this.status === 'playing') return;
-    const resumed = this.status === 'paused'; this.status = 'playing'; this.onEvent(resumed ? 'resume' : 'start');
+  scoreContext(){return {round:this.round,playsLeft:this.playsLeft,maxPlays:this.maxPlays,maxDiscards:this.maxDiscards,discardsUsed:this.maxDiscards-this.discardsLeft,cardBoosts:this.cardBoosts,cardMods:this.cardMods,heldCards:this.hand.filter(id=>!this.selected.includes(id)),money:this.money,stats:this.stats,deckSize:this.deckCards.length};}
+  preview(){return this.selected.length&&!this.selectionError()?scoreGambitHand(this.selected,this.jokers,this.handLevels,this.scoreContext()):null;}
+  consumeSelection(){const ids=new Set(this.selected);this.discard.push(...this.hand.filter(id=>ids.has(id)));this.hand=this.hand.filter(id=>!ids.has(id));this.selected=[];this.refill();}
+  pay(event,extra={}){const gain=gambitJokerPayout(this.jokers,this.stats,event,{...this.scoreContext(),...extra});this.money=Math.max(0,Math.min(99999,this.money+gain));return gain;}
+  playHand(){
+    if(this.status!=='playing'||this.phase!=='play'||this.playsLeft<1)return false;
+    const report=this.preview();if(!report)return false;
+    const cards=[...this.selected],context=clone(this.scoreContext());
+    const breaks=this.legacy?[]:report.scoringCards.filter(id=>gambitCardData(id,this.cardMods).enhancement==='glass'&&this.deckCards.length>8&&this.nextRandom()<.25);
+    this.lastPlay={cards,playsLeft:this.playsLeft,discardsUsed:this.maxDiscards-this.discardsLeft,context,breaks};
+    this.consumeSelection();this.playsLeft--;this.roundStats.hands++;this.roundStats.handCounts[report.id]=(this.roundStats.handCounts[report.id]||0)+1;
+    this.roundScore=Math.min(GAMBIT_SCORE_LIMIT,this.roundScore+report.total);this.score=Math.min(GAMBIT_SCORE_LIMIT,this.score+report.total);
+    if(!this.legacy)this.pay('hand',{cards,scoringCards:report.scoringCards,handId:report.id,heldCards:context.heldCards});
+    this.stats.handsPlayed++;this.stats.cardsPlayed+=cards.length;this.stats.handCounts[report.id]=(this.stats.handCounts[report.id]||0)+1;
+    this.stats.sameHandStreak=this.stats.lastHand===report.id?this.stats.sameHandStreak+1:1;this.stats.lastHand=report.id;
+    if(this.boss?.id==='toll')this.money=Math.max(0,this.money-1);
+    this.lastResult=report;this.scoreTime=0;this.phase='score';this.onEvent('score',{score:this.score,total:report.total});return true;
   }
-  pause() { if (this.status === 'playing') { this.status = 'paused'; this.onEvent('pause'); } }
-  togglePause() { if (this.status === 'playing') this.pause(); else if (this.status === 'paused') this.start(); }
-  update(delta) {
-    if (this.status !== 'playing' || this.phase !== 'score' || !Number.isFinite(delta) || delta <= 0) return;
-    this.scoreTime = Math.min(1.2, this.scoreTime + Math.min(delta, .12));
-  }
-  toggleCard(id) {
-    if (this.status !== 'playing' || this.phase !== 'play' || !this.hand.includes(id)) return false;
-    const index = this.selected.indexOf(id);
-    if (index >= 0) this.selected.splice(index, 1);
-    else if (this.selected.length < 5) this.selected.push(id); else return false;
-    this.onEvent('select'); return true;
-  }
-  sortHand(mode) {
-    if (this.status !== 'playing' || this.phase !== 'play' || !['rank', 'suit'].includes(mode)) return false;
-    const rank = id => id % 13 === 0 ? 14 : id % 13 + 1;
-    const suit = id => Math.floor(id / 13);
-    this.hand = [...this.hand].sort((a, b) => mode === 'rank' ?
-      rank(b) - rank(a) || suit(a) - suit(b) : suit(a) - suit(b) || rank(b) - rank(a));
-    this.onEvent('sort', { mode }); return true;
-  }
-  preview() {
-    return this.selected.length ? scoreGambitHand(this.selected, this.jokers, this.handLevels, {
-      round: this.round, playsLeft: this.playsLeft, discardsUsed: 3 - this.discardsLeft, cardBoosts: this.cardBoosts,
-    }) : null;
-  }
-  consumeSelection() {
-    const ids = new Set(this.selected); this.discard.push(...this.hand.filter(id => ids.has(id)));
-    this.hand = this.hand.filter(id => !ids.has(id)); this.selected = []; this.refill();
-  }
-  playHand() {
-    if (this.status !== 'playing' || this.phase !== 'play' || this.playsLeft < 1) return false;
-    const report = this.preview(); if (!report) return false;
-    this.lastPlay = { cards: [...this.selected], playsLeft: this.playsLeft, discardsUsed: 3 - this.discardsLeft };
-    this.consumeSelection(); this.playsLeft--;
-    this.roundScore = Math.min(1e9, this.roundScore + report.total); this.score = Math.min(1e9, this.score + report.total);
-    this.lastResult = report; this.scoreTime = 0; this.phase = 'score';
-    this.onEvent('score', { score: this.score, total: report.total }); return true;
-  }
-  discardSelected() {
-    if (this.status !== 'playing' || this.phase !== 'play' || !this.discardsLeft || !this.selected.length || !this.deck.length) return false;
-    this.consumeSelection(); this.discardsLeft--; this.onEvent('discard'); return true;
-  }
-  continueScore() {
-    if (this.status !== 'playing' || this.phase !== 'score') return false;
-    this.scoreTime = 0; this.lastPlay = null; this.lastResult = null;
-    if (this.roundScore >= this.target) {
-      if (this.round === GAMBIT_TARGETS.length) {
-        this.phase = 'play'; this.status = 'dead'; this.won = true; this.onEvent('win', { score: this.score });
-      } else {
-        this.money = Math.min(9999, this.money + 6 + this.playsLeft);
-        this.phase = 'shop'; this.makeShop(); this.onEvent('round_clear', { round: this.round, money: this.money });
+  discardSelected(){if(this.status!=='playing'||this.phase!=='play'||!this.discardsLeft||!this.selected.length||!this.deck.length)return false;
+    const cards=[...this.selected];this.consumeSelection();this.discardsLeft--;this.roundStats.discards++;
+    this.stats.discardsUsed++;this.stats.cardsDiscarded+=cards.length;if(!this.legacy)this.pay('discard',{cards});this.onEvent('discard');return true;}
+  removeCard(id){this.deckCards=this.deckCards.filter(n=>n!==id);this.deck=this.deck.filter(n=>n!==id);this.hand=this.hand.filter(n=>n!==id);this.discard=this.discard.filter(n=>n!==id);this.selected=this.selected.filter(n=>n!==id);delete this.cardMods[id];delete this.cardBoosts[id];this.stats.cardsRemoved++;this.refill();}
+  continueScore(){
+    if(this.status!=='playing'||this.phase!=='score')return false;
+    const report=this.lastResult,winningHeld=[...(this.lastPlay.context?.heldCards||this.hand)];
+    for(const id of this.lastPlay.breaks||[])if(this.deckCards.length>8)this.removeCard(id);
+    this.scoreTime=0;this.lastPlay=null;this.lastResult=null;
+    if(this.roundScore>=this.target){
+      this.stats.roundsCleared++;
+      if(!this.legacy){for(const id of winningHeld)if(gambitCardData(id,this.cardMods).seal==='blue')this.handLevels[report.id]=Math.min(GAMBIT_LEVEL_LIMIT,(this.handLevels[report.id]||0)+1);}
+      if(this.round===this.campaignLength&&!this.endless){this.won=true;this.phase=this.legacy?'play':'victory';if(this.legacy)this.status='dead';this.onEvent('win',{score:this.score});}
+      else{
+        const cap=5+(this.legacy?0:gambitJokerModifiers(this.jokers).interestCap||0),interest=this.legacy||this.boss?.id==='locked_purse'?0:Math.min(cap,Math.floor(this.money/5));
+        this.money=Math.min(99999,this.money+6+this.playsLeft+interest);if(!this.legacy)this.pay('round',{handId:report.id,heldCards:winningHeld});
+        this.phase='shop';this.makeShop();this.onEvent('round_clear',{round:this.round,money:this.money,interest});
       }
-    } else if (this.playsLeft === 0 || !this.hand.length) {
-      this.phase = 'play'; this.status = 'dead'; this.onEvent('death', { score: this.score });
-    } else { this.phase = 'play'; this.onEvent('continue'); }
-    return true;
+    }else if(this.playsLeft===0||!this.hand.length){this.phase='play';this.status='dead';this.onEvent('death',{score:this.score});}
+    else{this.phase='play';this.onEvent('continue');}return true;
   }
-  availableJokers() { return jokerIds.filter(id => !this.jokers.includes(id)); }
-  makeShop() {
-    const choices = this.shuffled(this.availableJokers());
-    this.shop = choices.slice(0, 2).map(id => ({ kind: 'joker', id, price: 4, sold: false }));
-    this.shop.push({ kind: 'pack', pack: 'joker', price: 4, sold: false }, { kind: 'pack', pack: 'upgrade', price: 3, sold: false });
-  }
-  upgradeOptions() {
-    return [...handIds.filter(id => (this.handLevels[id] || 0) < 5).map(id => ({ kind: 'hand', id })),
-      ...Array.from({ length: 52 }, (_, id) => id).filter(id => (this.cardBoosts[id] || 0) < 30).map(id => ({ kind: 'card', id }))];
-  }
-  buy(index) {
-    if (this.status !== 'playing' || this.phase !== 'shop' || !integer(index, 0, this.shop.length - 1)) return false;
-    const offer = this.shop[index]; if (offer.sold || offer.price > this.money) return false;
-    if (offer.kind === 'joker' && this.jokers.includes(offer.id)) return false;
-    this.money -= offer.price; offer.sold = true;
-    if (offer.kind === 'joker') this.receiveJoker(offer.id);
-    else {
-      let options;
-      if (offer.pack === 'joker') options = this.shuffled(this.availableJokers()).slice(0, 3).map(id => ({ kind: 'joker', id }));
-      else {
-        // Always offer two hand upgrades and one specific card enhancement.
-        const all = this.upgradeOptions();
-        options = [...this.shuffled(all.filter(item => item.kind === 'hand')).slice(0, 2), ...this.shuffled(all.filter(item => item.kind === 'card')).slice(0, 1)];
+  availableJokers(){return (this.legacy?legacyJokers:jokerIds).filter(id=>!this.jokers.includes(id));}
+  drawJokers(count){const pool=this.availableJokers(),chosen=[];while(chosen.length<count&&pool.length){const roll=this.nextRandom(),rarity=roll<.68?'common':roll<.94?'uncommon':'rare';let candidates=pool.filter(id=>GAMBIT_JOKERS.find(j=>j.id===id)?.rarity===rarity);if(!candidates.length)candidates=pool;const id=candidates[Math.floor(this.nextRandom()*candidates.length)];chosen.push(id);pool.splice(pool.indexOf(id),1);}return chosen;}
+  jokerOffers(){const choices=this.legacy?this.shuffled(this.availableJokers()).slice(0,2):this.drawJokers(2);return choices.map(id=>({kind:'joker',id,price:this.legacy?4:jokerPrice(id),sold:false}));}
+  makeShop(){this.rerollsInShop=0;this.shop=this.jokerOffers();
+    const packs=this.legacy?[packBy('joker'),packBy('upgrade')]:this.round===1?[packBy('joker'),packBy('upgrade')]:Array.from({length:2},()=>{const family=['joker','upgrade','craft','standard'][Math.floor(this.nextRandom()*4)];return packBy(family,this.nextRandom()<.25?'mega':'normal');});
+    this.shop.push(...packs.map(p=>({kind:'pack',pack:p.kind,size:p.size,price:p.price,sold:false})));}
+  rerollShop(){if(this.status!=='playing'||this.phase!=='shop'||this.money<this.rerollPrice)return false;this.money-=this.rerollPrice;this.rerollsInShop++;this.stats.rerolls++;this.shop.splice(0,2,...this.jokerOffers());if(!this.legacy)this.pay('reroll');this.onEvent('purchase');return true;}
+  upgradeOptions(){return [...handIds.filter(id=>(this.handLevels[id]||0)<(this.legacy?5:GAMBIT_LEVEL_LIMIT)).map(id=>({kind:'hand',id})),...this.deckCards.filter(id=>(this.cardBoosts[id]||0)<(this.legacy?30:300)).map(id=>({kind:'card',id}))];}
+  craftOptions(){const choices=[];for(const id of this.shuffled(this.deckCards).slice(0,8)){const data=gambitCardData(id,this.cardMods),type=Math.floor(this.nextRandom()*5);
+    if(type===0)choices.push({kind:'modify',id,suit:(data.suit+1+Math.floor(this.nextRandom()*3))%4});
+    else if(type===1)choices.push({kind:'modify',id,rank:data.rank%13+1});
+    else if(type===2)choices.push({kind:'modify',id,enhancement:enhancements.filter(e=>e!==data.enhancement)[Math.floor(this.nextRandom()*enhancements.filter(e=>e!==data.enhancement).length)]});
+    else if(type===3)choices.push({kind:'modify',id,seal:seals.filter(e=>e!==data.seal)[Math.floor(this.nextRandom()*seals.filter(e=>e!==data.seal).length)]});
+    else if(this.deckCards.length>8)choices.push({kind:'remove',id});
+    else choices.push({kind:'modify',id,rank:data.rank%13+1});
+  }return choices;}
+  packOptions(offer){const config=packBy(offer.pack,offer.size);
+    if(offer.pack==='joker')return this.drawJokers(config.options).map(id=>({kind:'joker',id}));
+    if(offer.pack==='upgrade'){const all=this.upgradeOptions();return this.legacy?[...this.shuffled(all.filter(o=>o.kind==='hand')).slice(0,2),...this.shuffled(all.filter(o=>o.kind==='card')).slice(0,1)]:this.shuffled(all.filter(o=>o.kind==='hand')).slice(0,config.options);}
+    if(offer.pack==='craft')return this.craftOptions().slice(0,config.options);
+    return Array.from({length:config.options},()=>{const id=Math.floor(this.nextRandom()*52),enhancement=enhancements[Math.floor(this.nextRandom()*enhancements.length)],option={kind:'playing',id,enhancement};if(this.nextRandom()<.35)option.seal=seals[Math.floor(this.nextRandom()*seals.length)];return option;});}
+  buy(index){if(this.status!=='playing'||this.phase!=='shop'||!integer(index,0,this.shop.length-1))return false;const offer=this.shop[index];if(offer.sold||offer.price>this.money||offer.kind==='joker'&&this.jokers.includes(offer.id))return false;
+    if(offer.kind==='pack'&&offer.pack==='standard'&&(this.deckCards.length>=128||this.nextCardId>4095))return false;
+    const options=offer.kind==='pack'?this.packOptions(offer):null;if(options&&!options.length)return false;
+    this.money-=offer.price;offer.sold=true;
+    if(offer.kind==='joker')this.receiveJoker(offer.id);
+    else{this.pack={kind:offer.pack,size:offer.size||'normal',options,selected:null,remaining:Math.min(packBy(offer.pack,offer.size).choose,options.length),claimed:[],offer:index};this.phase='pack';this.stats.packsOpened++;if(!this.legacy)this.pay('pack');}
+    this.onEvent('purchase');return true;}
+  receiveJoker(id){if(this.jokers.length<this.jokerSlots){this.jokers.push(id);this.pendingJoker=null;this.resumePack();}else{this.pendingJoker=id;this.phase='replace';}}
+  resumePack(){if(this.pack&&this.pack.remaining>0){this.pack.selected=null;this.phase='pack';}else{this.pack=null;this.phase='shop';}}
+  selectPack(index){if(this.status!=='playing'||this.phase!=='pack'||!integer(index,0,this.pack.options.length-1)||this.pack.claimed.includes(index))return false;this.pack.selected=index;this.onEvent('select');return true;}
+  optionAvailable(option){if(option.kind==='joker')return !this.jokers.includes(option.id);if(option.kind==='hand')return (this.handLevels[option.id]||0)<(this.legacy?5:GAMBIT_LEVEL_LIMIT);if(option.kind==='playing')return this.deckCards.length<128&&this.nextCardId<=4095;if(option.kind==='remove')return this.deckCards.includes(option.id)&&this.deckCards.length>8;return this.deckCards.includes(option.id);}
+  claimPack(){if(this.status!=='playing'||this.phase!=='pack'||!integer(this.pack.selected,0,this.pack.options.length-1)||this.pack.claimed.includes(this.pack.selected))return false;
+    const choice=this.pack.options[this.pack.selected];if(!this.optionAvailable(choice))return false;
+    this.pack.claimed.push(this.pack.selected);this.pack.remaining--;this.pack.selected=null;
+    if(choice.kind==='joker')this.receiveJoker(choice.id);
+    else{
+      if(choice.kind==='hand')this.handLevels[choice.id]=Math.min(this.legacy?5:GAMBIT_LEVEL_LIMIT,(this.handLevels[choice.id]||0)+1);
+      else if(choice.kind==='card')this.cardBoosts[choice.id]=Math.min(this.legacy?30:300,(this.cardBoosts[choice.id]||0)+10);
+      else if(choice.kind==='playing'){const id=this.nextCardId++;this.deckCards.push(id);this.deck.push(id);this.cardMods[id]={rank:choice.id%13+1,suit:Math.floor(choice.id/13),...(choice.enhancement?{enhancement:choice.enhancement}:{}),...(choice.seal?{seal:choice.seal}:{})};this.stats.cardsAdded++;}
+      else if(choice.kind==='remove')this.removeCard(choice.id);
+      else{const mod={...this.cardMods[choice.id]};for(const key of ['rank','suit','enhancement','seal'])if(choice[key]!==undefined)mod[key]=choice[key];this.cardMods[choice.id]=mod;}
+      this.resumePack();
+    }this.onEvent('upgrade');return true;}
+  replaceJoker(index){if(this.status!=='playing'||this.phase!=='replace'||!integer(index,0,this.jokers.length-1))return false;this.jokers[index]=this.pendingJoker;this.pendingJoker=null;this.resumePack();this.onEvent('upgrade');return true;}
+  skipPack(){if(this.status!=='playing'||!['pack','replace'].includes(this.phase))return false;if(this.phase==='replace'){this.pendingJoker=null;this.resumePack();}else{this.pack=null;this.phase='shop';}this.onEvent('skip');return true;}
+  sellJoker(index){if(this.status!=='playing'||this.phase!=='shop'||!integer(index,0,this.jokers.length-1))return false;this.jokers.splice(index,1);this.money=Math.min(99999,this.money+2);this.onEvent('sell');return true;}
+  nextRound(){if(this.status!=='playing'||this.phase!=='shop'||this.round>=9999||this.legacy&&this.round>=6)return false;this.round++;this.shop=[];this.pack=null;this.pendingJoker=null;this.dealRound();this.onEvent('round');return true;}
+  continueEndless(){if(!this.canContinueEndless)return false;const wasLegacy=this.legacy;this.legacy=false;this.endless=true;this.won=false;this.status='playing';if(wasLegacy)this.round=6;this.phase='shop';this.makeShop();this.onEvent('round_clear',{round:this.round,money:this.money});return true;}
+  finishRun(){if(this.status!=='playing'||this.phase!=='victory')return false;this.status='dead';this.phase='play';this.onEvent('win',{score:this.score});return true;}
+  snapshot(){return clone({version:2,...Object.fromEntries(['rngState','phase','won','round','score','roundScore','money','jokers','handLevels','cardBoosts','deck','hand','discard','selected','playsLeft','discardsLeft','shop','pack','pendingJoker','lastPlay','scoreTime','legacy','endless','deckPreset','deckCards','cardMods','nextCardId','stats','roundStats','limits','bossOrder','rerollsInShop'].map(key=>[key,this[key]])),status:this.status==='playing'?'paused':this.status});}
+  restore(data){
+    if(data?.version===1)return this.restoreLegacy(data);
+    if(!plain(data)||data.version!==2||!integer(data.rngState,1,0xffffffff)||!phases.includes(data.phase)||!['idle','paused','playing','dead'].includes(data.status)||typeof data.won!=='boolean'||typeof data.legacy!=='boolean'||typeof data.endless!=='boolean'||!GAMBIT_DECKS.some(d=>d.id===data.deckPreset)||!integer(data.round,1,data.legacy?6:9999)||data.legacy&&data.endless||!data.legacy&&data.round>24&&!data.endless||!amount(data.score)||!amount(data.roundScore,data.score)||!integer(data.money,0,99999))return false;
+    if(!dense(data.jokers,data.legacy?3:5,id=>jokerIds.includes(id))||!unique(data.jokers)||!validLevels(data.handLevels,data.legacy?5:GAMBIT_LEVEL_LIMIT)||!validBoosts(data.cardBoosts,data.legacy?30:300)||!validStats(data.stats)||!integer(data.rerollsInShop,0,99999)||!dense(data.bossOrder,8,id=>GAMBIT_BOSSES.some(b=>b.id===id))||data.bossOrder.length!==8||!unique(data.bossOrder))return false;
+    if(!plain(data.limits)||!integer(data.limits.handSize,1,10)||!integer(data.limits.plays,1,10)||!integer(data.limits.discards,0,10)||!integer(data.playsLeft,0,data.limits.plays)||!integer(data.discardsLeft,0,data.limits.discards)||!plain(data.roundStats)||!integer(data.roundStats.hands,0,10)||!integer(data.roundStats.discards,0,10)||!plain(data.roundStats.handCounts)||Object.entries(data.roundStats.handCounts).some(([id,n])=>!handIds.includes(id)||!integer(n,0,10)))return false;
+    if(data.roundStats.hands!==data.limits.plays-data.playsLeft||data.roundStats.discards!==data.limits.discards-data.discardsLeft)return false;
+    if(!dense(data.deckCards,128,card)||data.deckCards.length<8||!unique(data.deckCards)||!integer(data.nextCardId,52,4096)||data.deckCards.some(id=>id>=data.nextCardId)||!plain(data.cardMods)||Object.entries(data.cardMods).some(([id,m])=>String(Number(id))!==id||!data.deckCards.includes(Number(id))||!validMod(m))||Object.keys(data.cardBoosts).some(id=>!data.deckCards.includes(Number(id))))return false;
+    if(!dense(data.deck,128,card)||!dense(data.hand,10,card)||!dense(data.discard,128,card)||!dense(data.selected,5,id=>data.hand.includes(id))||!unique(data.selected))return false;
+    const cards=[...data.deck,...data.hand,...data.discard];if(cards.length!==data.deckCards.length||!unique(cards)||cards.some(id=>!data.deckCards.includes(id))||data.hand.length>data.limits.handSize)return false;
+    if(!Number.isFinite(data.scoreTime)||data.scoreTime<0||data.scoreTime>1.2)return false;
+    if(!dense(data.shop,4,o=>plain(o)&&typeof o.sold==='boolean'&&(o.kind==='joker'?jokerIds.includes(o.id)&&o.price===(data.legacy?4:jokerPrice(o.id)):o.kind==='pack'&&packBy(o.pack,o.size)&&o.price===packBy(o.pack,o.size).price)))return false;
+    const shopping=['shop','pack','replace'].includes(data.phase);
+    if(shopping!==!!data.shop.length||data.shop.length&&data.shop.length!==4)return false;
+    if(shopping&&(data.shop[0].kind!=='joker'||data.shop[1].kind!=='joker'||data.shop[0].id===data.shop[1].id||data.shop[2].kind!=='pack'||data.shop[3].kind!=='pack'))return false;
+    const receiver=Object.create(GambitGame.prototype);Object.assign(receiver,clone({round:data.round,legacy:data.legacy,bossOrder:data.bossOrder}));
+    if(shopping&&(data.roundScore<receiver.target||data.legacy&&data.round===6))return false;
+    if(data.pack!==null){
+      const p=data.pack,config=packBy(p.kind,p.size);
+      if(!shopping||!config||!integer(p.offer,2,3)||data.shop[p.offer].kind!=='pack'||!data.shop[p.offer].sold||data.shop[p.offer].pack!==p.kind||(data.shop[p.offer].size||'normal')!==p.size||!dense(p.options,5,validOption)||!p.options.length||!dense(p.claimed,2,i=>integer(i,0,p.options.length-1))||!unique(p.claimed)||!integer(p.remaining,0,config.choose)||p.remaining!==Math.min(config.choose,p.options.length)-p.claimed.length||!(p.selected===null||integer(p.selected,0,p.options.length-1)&&!p.claimed.includes(p.selected)))return false;
+      if(p.options.some(o=>p.kind==='joker'?o.kind!=='joker':p.kind==='upgrade'?!['hand',...(data.legacy?['card']:[])].includes(o.kind):p.kind==='craft'?!['modify','remove'].includes(o.kind):o.kind!=='playing'))return false;
+      if(p.kind!=='standard'&&!unique(p.options.map(optionKey)))return false;
+      if(p.options.some((o,i)=>!p.claimed.includes(i)&&(o.kind==='joker'&&data.jokers.includes(o.id)||o.kind==='hand'&&(data.handLevels[o.id]||0)>=(data.legacy?5:GAMBIT_LEVEL_LIMIT)||['card','modify','remove'].includes(o.kind)&&!data.deckCards.includes(o.id))))return false;
+      if(data.phase==='pack'&&p.remaining===0)return false;
+    }else if(data.phase==='pack')return false;
+    if(data.phase==='replace'){
+      if(!jokerIds.includes(data.pendingJoker)||data.jokers.includes(data.pendingJoker)||data.jokers.length!==(data.legacy?3:5))return false;
+      if(data.pack){if(!data.pack.claimed.some(i=>data.pack.options[i].kind==='joker'&&data.pack.options[i].id===data.pendingJoker))return false;}
+      else if(!data.shop.some(o=>o.kind==='joker'&&o.sold&&o.id===data.pendingJoker))return false;
+    }else if(data.pendingJoker!==null)return false;
+    if(data.phase==='shop'&&data.pack!==null)return false;
+    let lastResult=null;
+    if(data.phase==='score'){
+      const p=data.lastPlay;if(!plain(p)||!dense(p.cards,5,id=>data.discard.includes(id))||!p.cards.length||!unique(p.cards)||p.playsLeft!==data.playsLeft+1||p.discardsUsed!==data.limits.discards-data.discardsLeft||!plain(p.context)||p.context.round!==data.round||p.context.playsLeft!==p.playsLeft||p.context.discardsUsed!==p.discardsUsed||!dense(p.breaks,5,id=>p.cards.includes(id))||!unique(p.breaks))return false;
+      lastResult=scoreGambitHand(p.cards,data.jokers,data.handLevels,p.context);if(!lastResult||lastResult.total>data.roundScore||data.selected.length)return false;
+      if(p.breaks.some(id=>gambitCardData(id,data.cardMods).enhancement!=='glass'))return false;
+      if(!data.legacy){
+        const c=p.context,expectedStats=clone(data.stats);
+        expectedStats.handsPlayed--;expectedStats.cardsPlayed-=p.cards.length;
+        expectedStats.handCounts[lastResult.id]=(expectedStats.handCounts[lastResult.id]||0)-1;
+        if(expectedStats.handCounts[lastResult.id]===0&&!Object.hasOwn(c.stats?.handCounts||{},lastResult.id))delete expectedStats.handCounts[lastResult.id];
+        expectedStats.lastHand=c.stats?.lastHand;expectedStats.sameHandStreak=c.stats?.sameHandStreak;
+        if(!validStats(c.stats)||JSON.stringify(expectedStats)!==JSON.stringify(c.stats)||data.stats.lastHand!==lastResult.id||data.stats.sameHandStreak!==(c.stats.lastHand===lastResult.id?c.stats.sameHandStreak+1:1)||
+          JSON.stringify(c.cardMods)!==JSON.stringify(data.cardMods)||JSON.stringify(c.cardBoosts)!==JSON.stringify(data.cardBoosts)||c.deckSize!==data.deckCards.length||c.maxPlays!==data.limits.plays||c.maxDiscards!==data.limits.discards||
+          !dense(c.heldCards,10,id=>data.hand.includes(id))||!unique(c.heldCards)||c.heldCards.length+p.cards.length>data.limits.handSize||!integer(c.money,0,99999))return false;
+        const earned=gambitJokerPayout(data.jokers,c.stats,'hand',{...c,playsLeft:data.playsLeft,cards:p.cards,scoringCards:lastResult.scoringCards,handId:lastResult.id});
+        const expectedMoney=Math.max(0,Math.min(99999,c.money+earned)-(receiver.boss?.id==='toll'?1:0));
+        if(data.money!==expectedMoney)return false;
       }
-      this.pack = { kind: offer.pack, options, selected: null }; this.phase = 'pack';
-    }
-    this.onEvent('purchase'); return true;
+    }else if(data.lastPlay!==null||data.scoreTime!==0)return false;
+    if(data.phase==='victory'&&(!data.won||data.round!==24||data.endless||data.roundScore<receiver.target||data.status==='dead'))return false;
+    if(data.won&&!(data.phase==='victory'||data.status==='dead'&&data.phase==='play'&&data.round===(data.legacy?6:24)&&data.roundScore>=receiver.target))return false;
+    if(data.status==='dead'&&(data.phase!=='play'||!data.won&&(data.playsLeft>0&&data.hand.length||data.roundScore>=receiver.target)))return false;
+    if(data.status!=='dead'&&data.phase==='play'&&(!data.playsLeft||!data.hand.length||data.roundScore>=receiver.target))return false;
+    if(shopping&&data.selected.length)return false;
+    if(data.status==='idle'&&(data.phase!=='play'||data.round!==1||data.score!==0||data.playsLeft!==data.limits.plays||data.discardsLeft!==data.limits.discards||data.selected.length))return false;
+    const keys=Object.keys(this.snapshot()).filter(key=>!['version','status'].includes(key));
+    Object.assign(this,clone(Object.fromEntries(keys.map(key=>[key,data[key]]))),{status:data.status==='playing'?'paused':data.status,lastResult});return true;
   }
-  receiveJoker(id) {
-    if (this.jokers.length < 3) { this.jokers.push(id); this.pendingJoker = null; this.phase = 'shop'; }
-    else { this.pendingJoker = id; this.phase = 'replace'; }
-  }
-  selectPack(index) {
-    if (this.status !== 'playing' || this.phase !== 'pack' || !integer(index, 0, this.pack.options.length - 1)) return false;
-    this.pack.selected = index; this.onEvent('select'); return true;
-  }
-  claimPack() {
-    if (this.status !== 'playing' || this.phase !== 'pack' || !integer(this.pack.selected, 0, this.pack.options.length - 1)) return false;
-    const choice = this.pack.options[this.pack.selected]; this.pack = null;
-    if (choice.kind === 'joker') this.receiveJoker(choice.id);
-    else {
-      if (choice.kind === 'hand') this.handLevels[choice.id] = Math.min(5, (this.handLevels[choice.id] || 0) + 1);
-      else this.cardBoosts[choice.id] = Math.min(30, (this.cardBoosts[choice.id] || 0) + 10);
-      this.phase = 'shop';
-    }
-    this.onEvent('upgrade'); return true;
-  }
-  replaceJoker(index) {
-    if (this.status !== 'playing' || this.phase !== 'replace' || !integer(index, 0, this.jokers.length - 1)) return false;
-    this.jokers[index] = this.pendingJoker; this.pendingJoker = null; this.phase = 'shop'; this.onEvent('upgrade'); return true;
-  }
-  skipPack() {
-    if (this.status !== 'playing' || !['pack', 'replace'].includes(this.phase)) return false;
-    this.pack = null; this.pendingJoker = null; this.phase = 'shop'; this.onEvent('skip'); return true;
-  }
-  sellJoker(index) {
-    if (this.status !== 'playing' || this.phase !== 'shop' || !integer(index, 0, this.jokers.length - 1)) return false;
-    this.jokers.splice(index, 1); this.money = Math.min(9999, this.money + 2); this.onEvent('sell'); return true;
-  }
-  nextRound() {
-    if (this.status !== 'playing' || this.phase !== 'shop' || this.round >= GAMBIT_TARGETS.length) return false;
-    this.round++; this.shop = []; this.pack = null; this.pendingJoker = null; this.dealRound(); this.onEvent('round'); return true;
-  }
-  snapshot() {
-    return clone({ version: 1, rngState: this.rngState, status: this.status === 'playing' ? 'paused' : this.status,
-      phase: this.phase, won: this.won, round: this.round, score: this.score, roundScore: this.roundScore, money: this.money,
-      jokers: this.jokers, handLevels: this.handLevels, cardBoosts: this.cardBoosts,
-      deck: this.deck, hand: this.hand, discard: this.discard, selected: this.selected,
-      playsLeft: this.playsLeft, discardsLeft: this.discardsLeft, shop: this.shop, pack: this.pack,
-      pendingJoker: this.pendingJoker, lastPlay: this.lastPlay, scoreTime: this.scoreTime });
-  }
-  restore(data) {
-    if (!plain(data) || data.version !== 1 || !integer(data.rngState, 1, 0xffffffff) || !phases.includes(data.phase) ||
+  restoreLegacy(data) {
+    const card=id=>integer(id,0,51);
+    if (!plain(data) || data.version !== 1 || !integer(data.rngState, 1, 0xffffffff) || !['play','score','shop','pack','replace'].includes(data.phase) ||
       !['idle', 'paused', 'playing', 'dead'].includes(data.status) || typeof data.won !== 'boolean' ||
       !integer(data.round, 1, 6) || !integer(data.score, 0, 1e9) || !integer(data.roundScore, 0, data.score) || !integer(data.money, 0, 9999) ||
-      !dense(data.jokers, 3, id => jokerIds.includes(id)) || new Set(data.jokers).size !== data.jokers.length ||
-      !validLevels(data.handLevels) || !validBoosts(data.cardBoosts) || !integer(data.playsLeft, 0, 4) || !integer(data.discardsLeft, 0, 3) ||
+      !dense(data.jokers, 3, id => legacyJokers.includes(id)) || new Set(data.jokers).size !== data.jokers.length ||
+      !validLevels(data.handLevels, 5) || Object.keys(data.handLevels).some(id=>!handIds.slice(0,9).includes(id)) || !validBoosts(data.cardBoosts, 30) || Object.keys(data.cardBoosts).some(id=>Number(id)>51) || !integer(data.playsLeft, 0, 4) || !integer(data.discardsLeft, 0, 3) ||
       !dense(data.deck, 52, card) || !dense(data.hand, 8, card) || !dense(data.discard, 52, card) ||
       !dense(data.selected, 5, id => data.hand.includes(id)) || new Set(data.selected).size !== data.selected.length ||
       !Number.isFinite(data.scoreTime) || data.scoreTime < 0 || data.scoreTime > 1.2) return false;
     const cards = [...data.deck, ...data.hand, ...data.discard];
     if (cards.length !== 52 || new Set(cards).size !== 52 || data.hand.length < Math.min(8, 52 - data.discard.length)) return false;
     if (!dense(data.shop, 4, item => plain(item) && typeof item.sold === 'boolean' &&
-      (item.kind === 'joker' ? jokerIds.includes(item.id) && item.price === 4 : item.kind === 'pack' &&
+      (item.kind === 'joker' ? legacyJokers.includes(item.id) && item.price === 4 : item.kind === 'pack' &&
         ['joker', 'upgrade'].includes(item.pack) && item.price === (item.pack === 'joker' ? 4 : 3)))) return false;
     const shopping = ['shop', 'pack', 'replace'].includes(data.phase);
-    if (shopping !== (data.shop.length === 4) || (shopping && (data.roundScore < GAMBIT_TARGETS[data.round - 1] || data.round === 6))) return false;
+    if (shopping !== (data.shop.length === 4) || (shopping && (data.roundScore < LEGACY_TARGETS[data.round - 1] || data.round === 6))) return false;
     if (shopping && (data.shop[0].kind !== 'joker' || data.shop[1].kind !== 'joker' || data.shop[0].id === data.shop[1].id ||
       data.shop[2].kind !== 'pack' || data.shop[2].pack !== 'joker' || data.shop[3].kind !== 'pack' || data.shop[3].pack !== 'upgrade')) return false;
     if (data.phase === 'pack') {
@@ -7105,7 +7390,7 @@ class GambitGame {
       if (!data.shop.some(offer => offer.kind === 'pack' && offer.pack === data.pack.kind && offer.sold)) return false;
     } else if (data.pack !== null) return false;
     if (data.phase === 'replace') {
-      if (!jokerIds.includes(data.pendingJoker) || data.jokers.includes(data.pendingJoker) || data.jokers.length !== 3) return false;
+      if (!legacyJokers.includes(data.pendingJoker) || data.jokers.includes(data.pendingJoker) || data.jokers.length !== 3) return false;
       if (!data.shop.some(offer => offer.sold && (offer.kind === 'joker' && offer.id === data.pendingJoker || offer.kind === 'pack' && offer.pack === 'joker'))) return false;
     } else if (data.pendingJoker !== null) return false;
     let lastResult = null;
@@ -7117,23 +7402,28 @@ class GambitGame {
         playsLeft: data.lastPlay.playsLeft, discardsUsed: data.lastPlay.discardsUsed, cardBoosts: data.cardBoosts });
       if (!lastResult || lastResult.total > data.roundScore || data.selected.length) return false;
     } else if (data.lastPlay !== null || data.scoreTime !== 0) return false;
-    if (data.won && (data.status !== 'dead' || data.round !== 6 || data.roundScore < GAMBIT_TARGETS[5])) return false;
+    if (data.won && (data.status !== 'dead' || data.round !== 6 || data.roundScore < LEGACY_TARGETS[5])) return false;
     if (data.status === 'dead' && (data.phase !== 'play' || (!data.won && data.playsLeft > 0 && data.hand.length))) return false;
-    if (data.status === 'dead' && !data.won && data.roundScore >= GAMBIT_TARGETS[data.round - 1]) return false;
+    if (data.status === 'dead' && !data.won && data.roundScore >= LEGACY_TARGETS[data.round - 1]) return false;
     if (data.status !== 'dead' && data.phase === 'play' && (data.playsLeft === 0 || !data.hand.length)) return false;
     if (shopping && data.selected.length) return false;
     if (data.status === 'idle' && (data.phase !== 'play' || data.round !== 1 || data.score !== 0 || data.playsLeft !== 4 || data.discardsLeft !== 3 || data.selected.length)) return false;
-    if (data.status !== 'dead' && data.phase === 'play' && data.roundScore >= GAMBIT_TARGETS[data.round - 1]) return false;
+    if (data.status !== 'dead' && data.phase === 'play' && data.roundScore >= LEGACY_TARGETS[data.round - 1]) return false;
     const keys = ['rngState','phase','won','round','score','roundScore','money','jokers','handLevels','cardBoosts','deck','hand','discard','selected','playsLeft','discardsLeft','shop','pack','pendingJoker','lastPlay','scoreTime'];
     const state = clone(Object.fromEntries(keys.map(key => [key, data[key]])));
-    Object.assign(this, state, { status: data.status === 'playing' ? 'paused' : data.status, lastResult }); return true;
+    Object.assign(this, state, {status:data.status==='playing'?'paused':data.status,lastResult,legacy:true,endless:false,deckPreset:'classic',deckCards:Array.from({length:52},(_,i)=>i),cardMods:{},nextCardId:52,stats:freshStats(),roundStats:{hands:4-data.playsLeft,discards:3-data.discardsLeft,handCounts:{}},limits:{handSize:8,plays:4,discards:3},bossOrder:GAMBIT_BOSSES.map(b=>b.id),rerollsInShop:0});
+    this.shop=this.shop.map(o=>o.kind==='pack'?{...o,size:'normal'}:o);
+    if(this.pack)this.pack={...this.pack,size:'normal',remaining:1,claimed:[],offer:this.pack.kind==='joker'?2:3};
+    if(this.lastPlay)this.lastPlay={...this.lastPlay,context:{round:this.round,playsLeft:this.lastPlay.playsLeft,discardsUsed:this.lastPlay.discardsUsed,cardBoosts:clone(this.cardBoosts)},breaks:[]};
+    return true;
   }
 }
 
-return {GAMBIT_TARGETS,GambitGame};
+return {GAMBIT_TARGETS,GAMBIT_DECKS,GAMBIT_PACKS,GAMBIT_BOSSES,GambitGame};
 })();
 const {GAMBIT_SUIT_COLORS,drawGambitCard,drawGambitJoker,drawGambitDeck,drawGambitPack}=(()=>{
 /** Original vector card artwork. Suit order matches the rules: C, D, S, H. */
+
 const GAMBIT_SUIT_COLORS = Object.freeze(['#17765b', '#c05a11', '#244d93', '#c8324a']);
 
 const ivory = '#fff9e9', ink = '#253748', gold = '#e7b84d';
@@ -7228,13 +7518,26 @@ function courtHalf(ctx, rank, kind, color) {
 }
 
 /** Draw a full playing card; positions and hit testing remain the renderer's responsibility. */
-function drawGambitCard(ctx, id, x, y, w, h, { selected = false, boost = 0, tilt = 0 } = {}) {
-  if (!validRect(ctx, x, y, w, h) || !Number.isInteger(id) || id < 0 || id > 51 || !Number.isFinite(tilt)) return;
-  const rank = id % 13 + 1, kind = Math.floor(id / 13), color = GAMBIT_SUIT_COLORS[kind];
+function drawGambitCard(ctx, id, x, y, w, h, { selected = false, boost = 0, tilt = 0, rank: changedRank, suit: changedSuit, enhancement = null, seal = null } = {}) {
+  if (!validRect(ctx, x, y, w, h) || !Number.isInteger(id) || id < 0 || id > 4095 || !Number.isFinite(tilt)) return;
+  // Physical card identity is independent of its face: copies and crafted cards keep their own ID.
+  const face = id % 52, rank = Number.isInteger(changedRank) && changedRank >= 1 && changedRank <= 13 ? changedRank : face % 13 + 1;
+  const kind = Number.isInteger(changedSuit) && changedSuit >= 0 && changedSuit <= 3 ? changedSuit : Math.floor(face / 13), color = GAMBIT_SUIT_COLORS[kind];
+  const modifiers = { bonus: ['#307aad', 'CHIPS'], mult: ['#b33d58', '+MULT'], glass: ['#429ca4', 'GLASS'], steel: ['#526b83', 'HELD X'], gold: ['#a97922', 'GOLD'] };
+  const modifier = Object.hasOwn(modifiers, enhancement) ? modifiers[enhancement] : null;
   ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(tilt); ctx.scale(w / 100, h / 140); ctx.translate(-50, -70);
   frame(ctx, 2, 4, 98, 136, '#10232d66', null, 6);
   frame(ctx, 0, 0, 98, 136, ivory, selected ? '#ffce5c' : '#aaaea3', 6, selected ? 3 : 1.5);
-  frame(ctx, 3, 3, 92, 130, '#ffffff00', selected ? '#e4aa2f' : '#e3dcc8', 4, .6);
+  frame(ctx, 3, 3, 92, 130, '#ffffff00', selected ? '#e4aa2f' : modifier ? modifier[0] : '#e3dcc8', 4, modifier ? 2 : .6);
+  if (enhancement === 'glass') {
+    polygon(ctx, [[25, 28], [71, 34], [65, 105], [30, 96]], '#d3f5f43d', '#9bd0d2', .8);
+    line(ctx, [[28, 32], [61, 83], [38, 103]], '#abd7db', 1);
+    line(ctx, [[61, 83], [70, 55]], '#abd7db', 1);
+  } else if (enhancement === 'steel') {
+    for (let i = 0; i < 4; i++) line(ctx, [[25, 35 + i * 19], [72, 26 + i * 19]], '#9bb3c332', 4);
+  } else if (enhancement === 'gold') {
+    for (const [px, py] of [[27, 38], [73, 96], [72, 41]]) star(ctx, px, py, 3.5, '#c3973b');
+  }
   if (rank === 1) {
     suit(ctx, kind, 49, 73, 47, color);
     line(ctx, [[34, 109], [64, 109]], color, 1);
@@ -7252,9 +7555,19 @@ function drawGambitCard(ctx, id, x, y, w, h, { selected = false, boost = 0, tilt
   }
   corner(ctx, rank, kind, color);
   ctx.save(); ctx.translate(98, 136); ctx.rotate(Math.PI); corner(ctx, rank, kind, color); ctx.restore();
-  if (Number.isFinite(boost) && boost > 0) {
-    frame(ctx, 30, 115, 39, 14, '#225f64', '#b4ebda', 3, .6);
-    label(ctx, '+' + Math.floor(boost), 49.5, 125, 10, '#edffe4', 36);
+  if (modifier || Number.isFinite(boost) && boost > 0) {
+    const bonus = Number.isFinite(boost) && boost > 0 ? '+' + Math.floor(boost) : '';
+    frame(ctx, modifier ? 24 : 30, 115, modifier ? 51 : 39, 14, modifier ? modifier[0] : '#225f64', '#e6f0db', 3, .6);
+    label(ctx, [bonus, modifier?.[1]].filter(Boolean).join(' '), 49.5, 125, modifier && bonus ? 7 : 9, '#fff9e9', modifier ? 47 : 36);
+  }
+  if (['red', 'blue', 'gold'].includes(seal)) {
+    const sealColor = { red: '#b63e50', blue: '#3472a3', gold: '#b88826' }[seal];
+    oval(ctx, 83, 18, 8, 8, sealColor, '#fff0bd');
+    if (seal === 'red') {
+      line(ctx, [[79, 16], [84, 13], [87, 17]], ivory, 1.2);
+      line(ctx, [[87, 20], [82, 23], [79, 19]], ivory, 1.2);
+    } else if (seal === 'blue') star(ctx, 83, 18, 5, ivory);
+    else label(ctx, '$', 83, 22, 11, ivory, 11);
   }
   ctx.restore();
 }
@@ -7273,6 +7586,26 @@ const jokerStyles = Object.freeze({
   velvet_flush: ['#5d2b56', '#efa4d3', ['VELVET', 'FLUSH']],
   lonely_crown: ['#323760', '#edc46c', ['LONELY', 'CROWN']],
 });
+
+const familyStyles = Object.freeze({
+  suit: ['#245d56', '#abe3a3', 'SUIT'], rank: ['#564079', '#d7b1ef', 'RANK'],
+  hand: ['#235d7e', '#a8d9f1', 'HAND'], held: ['#3f546a', '#b9dfec', 'HOLD'],
+  retrigger: ['#675335', '#f5d68b', 'ECHO'], growth: ['#355938', '#c8e49d', 'GROW'],
+  economy: ['#735330', '#f3db83', 'COINS'], utility: ['#4b4f69', '#bfc8ed', 'TOOLS'],
+  rule: ['#673c58', '#f0b6cd', 'RULE'],
+});
+const rarityColors = Object.freeze({ common: '#bedfc1', uncommon: '#89c7ee', rare: '#ecb384', legendary: '#e5b0f4' });
+const catalogJoker = id => GAMBIT_JOKERS.find(joker => joker.id === id);
+function jokerTitle(name) {
+  const words = String(name).toUpperCase().split(/\s+/);
+  if (words.length === 1) return [words[0], ''];
+  let cut = 1, balance = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const score = Math.max(words.slice(0, i).join(' ').length, words.slice(i).join(' ').length);
+    if (score < balance) { balance = score; cut = i; }
+  }
+  return [words.slice(0, cut).join(' '), words.slice(cut).join(' ')];
+}
 
 function crown(ctx, x, y, size, fill = gold) {
   polygon(ctx, [[x - size, y + size * .5], [x - size * 1.1, y - size * .6], [x - size * .45, y - size * .1],
@@ -7346,27 +7679,347 @@ function jokerSymbol(ctx, id, accent) {
       frame(ctx, -16, -62, 32, 59, ivory, '#67334d', 3); suit(ctx, i, 0, -37, 21, GAMBIT_SUIT_COLORS[i]); ctx.restore();
     }
     oval(ctx, 54, 95, 6, 5, gold, '#603b42');
-  } else {
+  } else if (id === 'lonely_crown') {
     polygon(ctx, [[54, 26], [28, 100], [82, 100]], '#52567e');
     frame(ctx, 37, 82, 34, 16, '#55416b', '#d4b775', 3); frame(ctx, 41, 92, 5, 9, '#d4b775', null, 1); frame(ctx, 63, 92, 5, 9, '#d4b775', null, 1);
     crown(ctx, 54, 57, 24); oval(ctx, 54, 56, 4, 6, '#bb4263'); star(ctx, 28, 35, 4, '#e8d3a5');
+  } else {
+    expandedJokerSymbol(ctx, id, accent);
   }
 }
 
-/** Twelve distinct illustrated modifiers, drawn as collectible cards rather than badges. */
+function littleCard(ctx, x, y, rank, kind, color = ivory) {
+  frame(ctx, x - 13, y - 20, 26, 40, color, '#243849', 3, 1.2);
+  label(ctx, rank, x, y - 5, 13, GAMBIT_SUIT_COLORS[kind], 22);
+  suit(ctx, kind, x, y + 8, 14, GAMBIT_SUIT_COLORS[kind]);
+}
+function littleCoin(ctx, x, y, r = 11) {
+  oval(ctx, x, y, r, r, '#e9c768', '#fff0b0');
+  label(ctx, '$', x, y + r * .4, r * 1.25, '#76532d', r * 1.5);
+}
+function littleBook(ctx, x, y, color = '#b6d5c8') {
+  polygon(ctx, [[x, y - 15], [x - 23, y - 20], [x - 23, y + 17], [x, y + 22], [x + 23, y + 17], [x + 23, y - 20]], color, '#263a4c', 1.4);
+  line(ctx, [[x, y - 15], [x, y + 21]], '#263a4c', 1.3);
+  for (let i = 0; i < 3; i++) { line(ctx, [[x - 17, y - 8 + i * 8], [x - 6, y - 6 + i * 8]], '#63877f', 1); line(ctx, [[x + 6, y - 6 + i * 8], [x + 17, y - 8 + i * 8]], '#63877f', 1); }
+}
+function littleMoon(ctx, x, y, r, color, background) {
+  oval(ctx, x, y, r, r, color); oval(ctx, x + r * .5, y - r * .3, r * .9, r * .9, background);
+}
+function littleJar(ctx, color = '#a7c9c5') {
+  frame(ctx, 35, 47, 39, 49, color, '#223b49', 6, 1.4);
+  frame(ctx, 39, 40, 31, 10, '#c8d5c5', '#223b49', 2);
+  line(ctx, [[41, 55], [41, 83]], '#edf4dc', 2);
+}
+
+/** Small individual illustrations carry the idea of a Joker even when its title is too small to read. */
+function personalJokerSymbol(ctx, id, accent, secondary, background) {
+  if (id === 'spade_scholar') {
+    littleBook(ctx, 54, 71, '#c9d4af'); suit(ctx, 2, 54, 42, 25, '#a5cae9');
+  } else if (id === 'scarlet_thread') {
+    frame(ctx, 37, 40, 34, 49, '#9a5871', '#efc2bb', 4);
+    frame(ctx, 31, 35, 46, 8, '#d9b596', '#263a4c', 2); frame(ctx, 31, 86, 46, 8, '#d9b596', '#263a4c', 2);
+    for (let i = 0; i < 6; i++) line(ctx, [[40, 47 + i * 6], [68, 43 + i * 6]], '#f0aaa9', 1.4);
+    suit(ctx, 3, 54, 62, 20, '#f7dac0');
+  } else if (id === 'clover_chain') {
+    for (let i = 0; i < 3; i++) { ctx.save(); ctx.translate(37 + i * 15, 50 + i * 15); ctx.rotate(-.55); oval(ctx, 0, 0, 11, 17, null, '#e6d69e'); ctx.restore(); }
+    suit(ctx, 0, 54, 65, 25, '#a6d5bc');
+  } else if (id === 'black_tie') {
+    polygon(ctx, [[29, 43], [49, 55], [49, 73], [29, 83]], '#b8c0d4', '#263448', 1.8);
+    polygon(ctx, [[79, 43], [59, 55], [59, 73], [79, 83]], '#b8c0d4', '#263448', 1.8);
+    frame(ctx, 47, 54, 14, 21, '#2c3a4f', '#e3d8bd', 3);
+    line(ctx, [[34, 53], [43, 60]], '#64758d', 2); line(ctx, [[73, 76], [65, 68]], '#64758d', 2);
+  } else if (id === 'red_letter' || id === 'final_notice') {
+    frame(ctx, 27, 43, 54, 42, '#efd5b5', '#52354e', 3, 1.6);
+    polygon(ctx, [[27, 44], [54, 66], [81, 44]], '#dba3a6', '#52354e', 1.5);
+    line(ctx, [[29, 83], [45, 66]], '#9b5b6b', 1.3); line(ctx, [[79, 83], [63, 66]], '#9b5b6b', 1.3);
+    if (id === 'red_letter') suit(ctx, 3, 54, 67, 18, '#a74461');
+    else { oval(ctx, 73, 37, 12, 12, '#dd845f', '#ffe0a2'); label(ctx, '!', 73, 44, 21, '#fef1c9', 13); }
+  } else if (id === 'prime_suspect') {
+    littleCard(ctx, 49, 60, '7', 2, '#d8cce2');
+    oval(ctx, 58, 60, 17, 17, '#b7dcd536', '#edcc8c');
+    line(ctx, [[69, 74], [80, 92]], '#e0b67c', 7); oval(ctx, 78, 90, 3, 3, '#654c66');
+  } else if (id === 'low_profile') {
+    polygon(ctx, [[52, 33], [72, 72], [61, 72], [61, 94], [43, 94], [43, 72], [32, 72]], '#c6a6e0', '#efe1bf', 1.5);
+    littleCard(ctx, 52, 65, '2', 0, '#f1dfc1');
+  } else if (id === 'royal_court') {
+    for (const [x, y, fill] of [[36, 70, '#dcaab7'], [72, 70, '#a7cbd9'], [54, 50, '#f1d47f']]) crown(ctx, x, y, 13, fill);
+    frame(ctx, 31, 83, 46, 8, '#a7b4c8', '#ecdbaf', 2);
+  } else if (id === 'ten_to_one') {
+    for (let i = 0; i < 3; i++) littleCoin(ctx, 37 + i * 15, 78 - i * 3, 11);
+    littleCard(ctx, 53, 48, '10', 1, '#f2dec0');
+  } else if (id === 'lucky_seven') {
+    ctx.beginPath(); ctx.arc(54, 60, 23, -.7, Math.PI + .7); ctx.strokeStyle = '#e4bf73'; ctx.lineWidth = 11; ctx.stroke();
+    for (let i = 0; i < 5; i++) { const a = i * Math.PI / 4; oval(ctx, 54 + Math.cos(a) * 23, 60 + Math.sin(a) * 23, 2, 2, '#796178'); }
+    label(ctx, '7', 54, 64, 27, '#f5e7b8', 28); star(ctx, 32, 35, 6, secondary);
+  } else if (id === 'twin_moons') {
+    littleMoon(ctx, 42, 59, 18, '#e6cf87', background); littleMoon(ctx, 68, 78, 15, '#a8d8df', background); star(ctx, 76, 38, 5, secondary);
+  } else if (id === 'crowded_house') {
+    polygon(ctx, [[28, 59], [54, 34], [80, 59]], '#dfb57f', '#243f50', 1.5);
+    frame(ctx, 33, 58, 42, 38, '#b3c8ce', '#243f50', 3); frame(ctx, 47, 75, 14, 21, '#5f7190', '#ecddb6', 2);
+    for (const x of [41, 67]) oval(ctx, x, 68, 4, 5, '#efe6bd');
+  } else if (id === 'three_wishes') {
+    polygon(ctx, [[29, 71], [42, 60], [69, 60], [77, 68], [69, 78], [45, 81]], '#d6b36c', '#f7df9f', 1.2);
+    oval(ctx, 77, 66, 10, 8, null, '#f7df9f'); frame(ctx, 44, 82, 23, 5, '#cbb579', null, 2);
+    for (const [x, y, size] of [[38, 39, 5], [55, 48, 7], [71, 29, 6]]) star(ctx, x, y, size, secondary);
+  } else if (id === 'square_deal') {
+    for (const [x, y, rank, kind] of [[40, 47, '4', 0], [68, 47, '4', 1], [40, 79, '4', 2], [68, 79, '4', 3]]) littleCard(ctx, x, y, rank, kind, '#edddbd');
+  } else if (id === 'double_trouble') {
+    for (const [x, color] of [[39, '#e9aeaa'], [69, '#b2d2dc']]) { oval(ctx, x, 66, 15, 24, color, '#263c4e'); crown(ctx, x, 43, 11, '#dec383'); oval(ctx, x - 4, 62, 2, 3, '#344256'); oval(ctx, x + 4, 62, 2, 3, '#344256'); line(ctx, [[x - 5, 77], [x, 72], [x + 5, 77]], '#6b4964', 2); }
+  } else if (id === 'royal_road') {
+    for (let i = 0; i < 4; i++) frame(ctx, 28 + i * 11, 81 - i * 13, 18, 15, ['#8facc8', '#b2bdc8', '#d4c79f', '#e3ca81'][i], '#253a4b', 2);
+    crown(ctx, 65, 35, 14, '#f1d58e');
+  } else if (id === 'long_weekend') {
+    frame(ctx, 30, 36, 49, 62, '#e7dcc3', '#293c50', 4, 1.5); frame(ctx, 30, 36, 49, 15, '#b86770', null, 3);
+    for (const x of [41, 67]) line(ctx, [[x, 30], [x, 43]], '#dfc28b', 3);
+    for (let i = 0; i < 6; i++) frame(ctx, 37 + i % 3 * 13, 59 + Math.floor(i / 3) * 15, 8, 8, i > 3 ? '#d7aa6d' : '#98b7c1', null, 1);
+  } else if (id === 'solitary_star') {
+    star(ctx, 54, 63, 29, '#f2d78e', '#fff0b3'); oval(ctx, 50, 60, 2.5, 3, '#476379'); oval(ctx, 60, 60, 2.5, 3, '#476379');
+    for (const [x, y] of [[30, 31], [81, 88], [29, 94]]) oval(ctx, x, y, 2, 2, '#b6cdd9');
+  } else if (id === 'five_alarm') {
+    polygon(ctx, [[34, 82], [39, 68], [39, 51], [45, 40], [62, 40], [69, 51], [69, 68], [75, 82]], '#e1bd70', '#fff0b0', 1.5);
+    oval(ctx, 54, 87, 6, 7, '#d6a066', '#e9cf93'); oval(ctx, 54, 36, 5, 5, '#c49a69');
+    line(ctx, [[30, 45], [24, 40]], '#f0d8a2', 2); line(ctx, [[76, 45], [82, 40]], '#f0d8a2', 2);
+  } else if (id === 'before_dawn') {
+    oval(ctx, 54, 68, 20, 20, '#e6b76e'); frame(ctx, 26, 69, 56, 25, background, null, 0);
+    for (let i = 0; i < 5; i++) { const a = Math.PI * (i + 1) / 6; line(ctx, [[54 + Math.cos(a) * 25, 68 - Math.sin(a) * 25], [54 + Math.cos(a) * 31, 68 - Math.sin(a) * 31]], '#e6c185', 2); }
+    for (let i = 0; i < 3; i++) line(ctx, [[29 + i * 5, 75 + i * 8], [79 - i * 5, 75 + i * 8]], '#9ccdd0', 2);
+  } else if (id === 'patience') {
+    frame(ctx, 34, 31, 40, 6, '#ceb18b', null, 2); frame(ctx, 34, 92, 40, 6, '#ceb18b', null, 2);
+    polygon(ctx, [[39, 38], [69, 38], [65, 55], [57, 65], [65, 75], [69, 91], [39, 91], [43, 75], [51, 65], [43, 55]], '#a9cdd055', '#d9e1cc', 1.5);
+    polygon(ctx, [[44, 43], [64, 43], [59, 54], [54, 60], [49, 54]], '#e4c37b'); polygon(ctx, [[42, 88], [54, 76], [66, 88]], '#e4c37b');
+    line(ctx, [[54, 65], [54, 75]], '#e4c37b', 1);
+  } else if (id === 'royal_reserve') {
+    littleCard(ctx, 54, 66, 'K', 2, '#d0d9df'); crown(ctx, 54, 38, 21, '#e8c682');
+    polygon(ctx, [[30, 83], [38, 96], [68, 96], [79, 82], [69, 87], [39, 88]], '#bad4d0', '#2d4155', 1.5);
+  } else if (id === 'cold_storage') {
+    frame(ctx, 32, 31, 43, 67, '#b6d5de', '#263e52', 4, 1.5); line(ctx, [[34, 62], [73, 62]], '#728ca1', 2);
+    frame(ctx, 64, 43, 3, 11, '#f2e8c5', null, 1); frame(ctx, 64, 70, 3, 15, '#f2e8c5', null, 1);
+    for (const a of [0, Math.PI / 3, Math.PI * 2 / 3]) line(ctx, [[52 - Math.cos(a) * 10, 47 - Math.sin(a) * 10], [52 + Math.cos(a) * 10, 47 + Math.sin(a) * 10]], '#f0fbeb', 1.4);
+  } else if (id === 'tea_break') {
+    oval(ctx, 75, 67, 11, 12, null, '#d8e7cb'); frame(ctx, 30, 51, 42, 35, '#d8e7cb', '#2b4053', 5, 1.4);
+    oval(ctx, 51, 51, 21, 6, '#b4c7b9', '#edf0d4'); oval(ctx, 51, 51, 16, 3, '#7b6655');
+    crown(ctx, 51, 69, 11, '#cba979'); for (const x of [42, 59]) { ctx.beginPath(); ctx.moveTo(x, 41); ctx.quadraticCurveTo(x - 5, 34, x, 27); ctx.strokeStyle = '#c1e1d2'; ctx.lineWidth = 1.7; ctx.stroke(); }
+    oval(ctx, 51, 91, 28, 4, '#b4d2ce');
+  } else if (id === 'curtain_call') {
+    frame(ctx, 28, 31, 53, 66, '#1f3544', '#ecd59c', 2);
+    polygon(ctx, [[29, 33], [49, 33], [43, 63], [33, 79], [40, 96], [29, 96]], '#c27b8e', '#ecd0ae', 1);
+    polygon(ctx, [[80, 33], [60, 33], [66, 63], [76, 79], [69, 96], [80, 96]], '#c27b8e', '#ecd0ae', 1);
+    star(ctx, 54, 66, 14, '#dfc077');
+  } else if (id === 'paper_trail') {
+    for (let i = 0; i < 3; i++) { frame(ctx, 29 + i * 10, 35 + i * 9, 31, 40, '#e4dfbf', '#34464b', 2); line(ctx, [[35 + i * 10, 44 + i * 9], [51 + i * 10, 44 + i * 9]], '#80a590', 1.4); }
+    for (const [x, y] of [[33, 91], [48, 98], [67, 92]]) { oval(ctx, x, y, 4, 2, '#b8dba3'); oval(ctx, x + 3, y - 4, 2, 2, '#b8dba3'); }
+  } else if (id === 'practice_makes') {
+    littleBook(ctx, 54, 73, '#d7dab3'); line(ctx, [[34, 76], [69, 34]], '#e1bf77', 7);
+    polygon(ctx, [[30, 80], [34, 69], [41, 75]], '#f1dfb5', '#7b6a4e'); frame(ctx, 66, 28, 8, 9, '#d89fa8', '#ece2b9', 1);
+  } else if (id === 'compost_heap') {
+    polygon(ctx, [[27, 91], [38, 74], [52, 67], [67, 71], [81, 91]], '#806d4c', '#cfbc82', 1.3);
+    for (let i = 0; i < 6; i++) { const x = 34 + i * 8, y = 72 + (i % 3) * 5; polygon(ctx, [[x, y], [x - 3, y - 12], [x + 8, y - 4]], i % 2 ? '#b7ce8d' : '#8db097', '#41664b', 1); }
+    for (const x of [42, 59, 70]) { ctx.beginPath(); ctx.moveTo(x, 58); ctx.quadraticCurveTo(x - 6, 51, x, 44); ctx.strokeStyle = '#c5ddb1'; ctx.lineWidth = 1.5; ctx.stroke(); }
+  } else if (id === 'second_thought') {
+    oval(ctx, 54, 54, 22, 23, '#e3d88d', '#f7edbd'); polygon(ctx, [[42, 70], [46, 84], [62, 84], [66, 70]], '#b8c5ac', '#e4dda9', 1);
+    for (let i = 0; i < 3; i++) line(ctx, [[45, 86 + i * 4], [63, 86 + i * 4]], '#bdceb2', 2);
+    line(ctx, [[46, 60], [51, 56], [56, 61], [62, 55]], '#a19165', 2); star(ctx, 27, 35, 5, secondary);
+  } else if (id === 'snowball') {
+    oval(ctx, 54, 72, 24, 24, '#e0eadf', '#b6d5de'); oval(ctx, 48, 65, 14, 14, '#f3f5d9');
+    for (const [x, y, r] of [[31, 43, 4], [72, 33, 3], [80, 90, 3], [27, 86, 2.5]]) star(ctx, x, y, r, '#d5e9d9');
+    line(ctx, [[43, 80], [55, 85], [66, 77]], '#aac9d2', 1.3);
+  } else if (id === 'growing_appetite') {
+    oval(ctx, 54, 67, 27, 28, '#9ebf91', '#deedb3'); oval(ctx, 54, 72, 18, 13, '#314d40');
+    polygon(ctx, [[40, 65], [45, 72], [50, 64], [57, 72], [63, 64], [68, 70], [68, 61], [40, 61]], '#f4e5b3');
+    oval(ctx, 43, 52, 3, 4, '#304e40'); oval(ctx, 64, 52, 3, 4, '#304e40');
+    littleCoin(ctx, 54, 30, 9);
+  } else if (id === 'skinny_dip') {
+    oval(ctx, 54, 71, 28, 18, '#a9d4ca', '#e2ecc0'); oval(ctx, 54, 71, 16, 9, background, '#668f87');
+    for (const x of [29, 43, 63]) line(ctx, [[x, 95], [x + 9, 95]], '#8bbdb0', 1.8);
+    ctx.beginPath(); ctx.moveTo(55, 31); ctx.bezierCurveTo(34, 52, 65, 56, 55, 31); ctx.fillStyle = '#b6e0d4'; ctx.fill();
+  } else if (id === 'crowd_funding' || id === 'tip_jar') {
+    littleJar(ctx, id === 'tip_jar' ? '#a1c4d3' : '#aac6a1'); littleCoin(ctx, 57, 73, 10);
+    for (const [x, y] of id === 'tip_jar' ? [[48, 29]] : [[33, 31], [58, 27], [78, 37]]) littleCoin(ctx, x, y, 7);
+  } else if (id === 'coin_cathedral') {
+    polygon(ctx, [[28, 96], [28, 58], [38, 49], [38, 38], [54, 24], [70, 38], [70, 49], [80, 58], [80, 96]], '#b99b63', '#ecd59a', 1.5);
+    for (const x of [36, 67]) frame(ctx, x, 64, 6, 21, '#604f43', '#f2d89a', 1);
+    littleCoin(ctx, 54, 49, 11); frame(ctx, 47, 76, 14, 20, '#614f43', '#e7ca87', 4);
+  } else if (id === 'frequent_flyer') {
+    polygon(ctx, [[27, 61], [82, 35], [63, 94], [51, 72]], '#d7dfb7', '#f6edbe', 1.4);
+    polygon(ctx, [[27, 61], [54, 64], [82, 35], [51, 72]], '#9ec5b5', '#486a5b', 1);
+    line(ctx, [[54, 64], [57, 84], [63, 94]], '#5e8b75', 1); line(ctx, [[27, 87], [37, 78]], accent, 1.5);
+  } else if (id === 'repeat_customer') {
+    frame(ctx, 28, 48, 51, 41, '#a4bfaf', '#d9d9a5', 3); frame(ctx, 28, 40, 51, 12, '#d2ba8a', '#374a3d', 2);
+    for (let i = 0; i < 4; i++) frame(ctx, 30 + i * 12, 41, 8, 14, i % 2 ? '#8bba9e' : '#e1d7ae', null, 1);
+    frame(ctx, 49, 65, 14, 24, '#476654', '#ded4ac', 2); oval(ctx, 38, 68, 6, 7, '#c8d5b2');
+    ctx.beginPath(); ctx.arc(57, 36, 17, 3.5, 6.2); ctx.strokeStyle = '#e8d991'; ctx.lineWidth = 2; ctx.stroke(); polygon(ctx, [[76, 29], [73, 39], [66, 33]], '#e8d991');
+  } else if (id === 'night_school' || id === 'book_worm') {
+    littleBook(ctx, 54, 74, '#c1d2b4');
+    if (id === 'night_school') { littleMoon(ctx, 58, 38, 15, '#e3d795', background); star(ctx, 31, 36, 4, '#b3d0c1'); }
+    else { for (let i = 0; i < 4; i++) oval(ctx, 39 + i * 9, 56 - Math.sin(i) * 6, 6, 6, i % 2 ? '#a6bf87' : '#c1d393', '#3e694d'); oval(ctx, 66, 50, 1.3, 2, '#365843'); }
+  } else if (id === 'rust_collector' || id === 'gold_digger') {
+    if (id === 'rust_collector') {
+      ctx.beginPath(); ctx.arc(54, 60, 23, 0, Math.PI); ctx.strokeStyle = '#b87e68'; ctx.lineWidth = 11; ctx.stroke();
+      frame(ctx, 26, 40, 10, 23, '#a5bec9', '#e3d9b7', 1); frame(ctx, 72, 40, 10, 23, '#a5bec9', '#e3d9b7', 1);
+      for (const [x, y] of [[40, 34], [59, 29], [74, 32]]) polygon(ctx, [[x, y - 4], [x + 4, y], [x, y + 4], [x - 4, y]], '#c69c72');
+    } else { line(ctx, [[33, 90], [68, 42]], '#c9b38c', 6); polygon(ctx, [[61, 37], [69, 31], [82, 45], [74, 53]], '#b3c5bd', '#3a4b42', 1.2); littleCoin(ctx, 39, 52, 12); littleCoin(ctx, 70, 85, 10); }
+  } else if (id === 'seal_of_approval') {
+    frame(ctx, 29, 69, 51, 22, '#c4d7d3', '#254153', 3); frame(ctx, 40, 59, 30, 14, '#ab6b77', '#f4dcb6', 3);
+    line(ctx, [[54, 36], [54, 61]], '#c5b38d', 11); oval(ctx, 54, 34, 13, 10, '#d8c89f', '#f1dfac');
+    polygon(ctx, [[44, 79], [51, 86], [67, 73]], null, '#a3566c', 3);
+  } else if (id === 'glass_menagerie') {
+    polygon(ctx, [[34, 51], [32, 31], [47, 43], [62, 43], [77, 31], [75, 54], [79, 71], [67, 90], [42, 90], [29, 71]], '#a8d9d66b', '#e1ecd4', 1.5);
+    polygon(ctx, [[34, 51], [54, 64], [75, 54], [67, 90], [54, 64], [42, 90]], null, '#83b6b6', 1);
+    oval(ctx, 42, 61, 3, 4, '#e1e9ca'); oval(ctx, 66, 61, 3, 4, '#e1e9ca'); polygon(ctx, [[49, 72], [59, 72], [54, 78]], '#ebd6ba');
+  } else if (id === 'steel_magnolia') {
+    line(ctx, [[55, 73], [52, 97]], '#a5c4c3', 3); polygon(ctx, [[53, 88], [33, 78], [36, 91]], '#6f8f9c', '#c9dfd0', 1);
+    for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(54, 58); ctx.rotate(i * Math.PI / 3); oval(ctx, 0, -14, 10, 18, i % 2 ? '#adc8ce' : '#789cae', '#d4e4d1'); ctx.restore(); }
+    oval(ctx, 54, 58, 8, 8, '#e5c886', '#f4e6bd');
+  } else if (id === 'rainy_day') {
+    polygon(ctx, [[27, 59], [34, 43], [48, 35], [61, 35], [76, 43], [83, 59], [69, 55], [54, 60], [40, 55]], '#95c0d3', '#e1e5c6', 1.3);
+    line(ctx, [[54, 34], [54, 84]], '#e2c68a', 2.5); ctx.beginPath(); ctx.arc(47, 84, 7, 0, Math.PI); ctx.strokeStyle = '#e2c68a'; ctx.lineWidth = 2.5; ctx.stroke();
+    for (const [x, y] of [[30, 77], [74, 83], [38, 30]]) line(ctx, [[x, y], [x - 3, y + 6]], '#b1d6d7', 2);
+  } else if (id === 'dividend_demon') {
+    polygon(ctx, [[34, 51], [30, 29], [47, 45], [63, 45], [79, 29], [74, 54]], '#d99b86', '#edcc9e', 1.2);
+    oval(ctx, 54, 64, 24, 25, '#c28776', '#edcc9e'); oval(ctx, 44, 60, 3, 4, '#f8dd9f'); oval(ctx, 65, 60, 3, 4, '#f8dd9f');
+    line(ctx, [[42, 76], [54, 81], [66, 75]], '#6f4654', 2); littleCoin(ctx, 54, 86, 10);
+  } else if (id === 'pack_rat') {
+    oval(ctx, 38, 47, 12, 12, '#a9b9c5', '#e3d4b5'); oval(ctx, 69, 47, 12, 12, '#a9b9c5', '#e3d4b5');
+    polygon(ctx, [[34, 47], [73, 47], [67, 72], [54, 82], [40, 70]], '#bac6c5', '#263e4c', 1.5); oval(ctx, 54, 75, 4, 3, '#d3959a');
+    oval(ctx, 42, 57, 2, 3, '#293f4b'); oval(ctx, 66, 57, 2, 3, '#293f4b'); frame(ctx, 33, 79, 43, 18, '#b88f6d', '#e8d9ae', 2); line(ctx, [[54, 80], [54, 96]], '#e1bd8e', 4);
+  } else if (id === 'spare_pocket' || id === 'deep_pockets') {
+    frame(ctx, 29, 35, 51, 61, '#6083a0', '#d3dfd2', 4, 1.6);
+    polygon(ctx, [[35, 51], [74, 51], [72, 78], [54, 91], [36, 78]], id === 'spare_pocket' ? '#86a6b4' : '#3d5979', '#e6cd97', 1.4);
+    if (id === 'spare_pocket') littleCard(ctx, 55, 52, 'A', 0, '#eee1bf');
+    else { oval(ctx, 54, 67, 12, 16, '#263e58', '#9bb7b9'); star(ctx, 54, 69, 4, '#dace9e'); }
+    line(ctx, [[35, 39], [74, 39]], '#e6cd97', 1);
+  } else if (id === 'second_helping') {
+    oval(ctx, 54, 64, 23, 23, '#d4dfd3', '#ecddb7'); oval(ctx, 54, 64, 16, 16, '#adc4c6', '#ecddb7');
+    littleCoin(ctx, 54, 64, 9); line(ctx, [[25, 42], [25, 91]], '#e5d9b7', 2); for (const x of [22, 25, 28]) line(ctx, [[x, 38], [x, 51]], '#e5d9b7', 1.5);
+    line(ctx, [[83, 62], [83, 91]], '#e5d9b7', 2); polygon(ctx, [[80, 39], [84, 39], [84, 65], [79, 65]], '#e5d9b7');
+  } else if (id === 'waste_not') {
+    for (let i = 0; i < 3; i++) { ctx.save(); ctx.translate(54, 65); ctx.rotate(i * Math.PI * 2 / 3); polygon(ctx, [[-16, -26], [2, -26], [9, -14], [14, -17], [14, -1], [0, -7], [4, -10], [-2, -19], [-16, -19]], '#b5d2bc', '#dce7c7', 1); ctx.restore(); }
+  } else if (id === 'coupon_ghoul') {
+    polygon(ctx, [[31, 38], [40, 42], [49, 38], [58, 42], [67, 38], [77, 42], [77, 91], [67, 87], [58, 92], [49, 87], [40, 92], [31, 88]], '#c4c9db', '#eadfc1', 1.2);
+    oval(ctx, 44, 59, 4, 6, '#495871'); oval(ctx, 64, 59, 4, 6, '#495871'); oval(ctx, 54, 75, 5, 7, '#495871');
+    for (const y of [47, 82]) line(ctx, [[37, y], [71, y]], '#8294ad', 1);
+  } else if (id === 'cut_corners') {
+    frame(ctx, 43, 31, 32, 50, '#e6d8b7', '#ebd39f', 2); polygon(ctx, [[64, 31], [75, 42], [64, 42]], '#9f7c95');
+    line(ctx, [[38, 74], [75, 44]], '#c1d1d1', 5); line(ctx, [[38, 74], [65, 96]], '#c1d1d1', 5);
+    oval(ctx, 34, 79, 8, 10, null, '#e0b180'); oval(ctx, 46, 87, 8, 10, null, '#e0b180'); oval(ctx, 43, 76, 3, 3, '#e4d6af');
+  } else if (id === 'wide_awake') {
+    ctx.beginPath(); ctx.moveTo(26, 64); ctx.quadraticCurveTo(54, 30, 82, 64); ctx.quadraticCurveTo(54, 98, 26, 64); ctx.fillStyle = '#ebdcc3'; ctx.fill(); ctx.strokeStyle = '#e8b8cf'; ctx.lineWidth = 1.5; ctx.stroke();
+    oval(ctx, 54, 64, 15, 19, '#bf94bc', '#6b4a76'); oval(ctx, 54, 64, 6, 12, '#3e3757'); oval(ctx, 49, 57, 3, 4, '#fff2cd');
+    for (const x of [36, 54, 72]) line(ctx, [[x, 41], [x + (x - 54) / 5, 33]], '#e8b8cf', 2);
+  } else return false;
+  return true;
+}
+
+/** Family colors organize the catalogue; individual emblems and constellations identify each card. */
+function expandedJokerSymbol(ctx, id, accent) {
+  const item = catalogJoker(id), index = Math.max(0, GAMBIT_JOKERS.findIndex(joker => joker.id === id));
+  const family = familyStyles[item?.family] ? item.family : 'utility';
+  const n = index % 5, secondary = ['#efaeaa', '#98d8d0', '#d8b1ee', '#edd68c', '#a1c7ee'][n];
+  // A small personal constellation is separate from the family's central silhouette.
+  const points = [[28 + index % 9, 29 + index % 7], [70 + index % 11, 35 + index % 6], [76 - index % 8, 91 - index % 9]];
+  line(ctx, points, '#ffffff32', .7);
+  points.forEach(([px, py], i) => star(ctx, px, py, i === index % 3 ? 3.8 : 2.5, accent));
+  if (personalJokerSymbol(ctx, id, accent, secondary, familyStyles[family][0])) return;
+  if (family === 'suit') {
+    const kind = /club/.test(id) ? 0 : /diamond/.test(id) ? 1 : /spade/.test(id) ? 2 : /heart/.test(id) ? 3 : index % 4;
+    polygon(ctx, [[27, 60], [29, 43], [43, 53], [54, 35], [65, 53], [79, 43], [81, 60], [69, 85], [54, 96], [39, 85]], '#122d3f', accent, 1.4);
+    suit(ctx, kind, 54, 63, 39, secondary);
+    for (let i = 0; i <= n; i++) oval(ctx, 39 + i * 7, 91, 2, 2, accent);
+  } else if (family === 'rank') {
+    for (let i = 0; i < 3; i++) {
+      const px = 27 + i * 11, py = 40 - i * 5;
+      frame(ctx, px, py, 35, 52, i === 2 ? ivory : '#c1c9d5', '#263746', 3, 1.2);
+    }
+    const rank = /ace/.test(id) ? 1 : /queen/.test(id) ? 12 : /king/.test(id) ? 13 : /jack/.test(id) ? 11 : 2 + index % 9;
+    label(ctx, ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' })[rank] || rank, 65, 52, 22, '#6b416d', 28);
+    for (let i = 0; i < 3 + n; i++) oval(ctx, 65 + Math.cos(i * 1.2) * 10, 70 + Math.sin(i * 1.2) * 9, 1.9, 1.9, '#69558b');
+    line(ctx, [[29, 95], [41 + n * 3, 100], [80, 91]], accent, 2);
+  } else if (family === 'hand') {
+    for (let i = 0; i < 3 + n % 3; i++) {
+      ctx.save(); ctx.translate(53, 92); ctx.rotate((i - (2 + n % 3) / 2) * .22);
+      frame(ctx, -13, -54, 27, 52, ivory, '#1e3549', 3);
+      suit(ctx, (index + i) % 4, 0, -31, 16, GAMBIT_SUIT_COLORS[(index + i) % 4]);
+      ctx.restore();
+    }
+    oval(ctx, 54, 91, 12 + n, 7, secondary, '#29384d');
+    star(ctx, 54, 89, 5, '#fff4ce');
+  } else if (family === 'held') {
+    polygon(ctx, [[34, 92], [31, 70], [25, 60], [28, 56], [39, 65], [39, 41], [44, 39], [46, 64], [48, 33], [53, 33], [55, 64], [59, 38], [64, 39], [62, 66], [70, 48], [75, 50], [70, 76], [63, 94]], '#bfd3d7', '#26384b', 1.4);
+    frame(ctx, 33, 89, 33, 10, '#557b94', accent, 2);
+    polygon(ctx, [[53, 49 - n], [66, 64], [53, 79 + n], [40, 64]], secondary, '#fff3cf', 1);
+    line(ctx, [[40, 64], [66, 64]], '#ffffffaa', .8);
+  } else if (family === 'retrigger') {
+    for (let i = 0; i < 2 + n % 3; i++) {
+      const px = 32 + i * 9, py = 43 + i * 5;
+      frame(ctx, px, py, 31, 42, i % 2 ? '#ede0ba' : '#c3b894', '#2b3b49', 3);
+      star(ctx, px + 15, py + 21, 8 + n * .7, '#826528');
+    }
+    ctx.beginPath(); ctx.arc(53, 63, 28, -.8, 2.3); ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.stroke();
+    polygon(ctx, [[27, 78], [28, 90], [40, 84]], accent);
+    ctx.beginPath(); ctx.arc(53, 63, 28, 2.6, 5.4); ctx.stroke();
+    polygon(ctx, [[80, 48], [77, 35], [67, 41]], accent);
+  } else if (family === 'growth') {
+    polygon(ctx, [[34, 81], [74, 81], [69, 101], [40, 101]], '#c59864', '#263c36', 1.4);
+    frame(ctx, 32, 78, 44, 8, '#e1bb7f', '#263c36', 2);
+    line(ctx, [[54, 79], [49 + n, 64], [58 - n, 48], [53, 28 + n]], '#a7d288', 3);
+    for (let i = 0; i < 3 + n; i++) {
+      const py = 39 + i * 6, sign = i % 2 ? 1 : -1, px = 54 + sign * 3;
+      polygon(ctx, [[px, py + 5], [px + sign * (13 + n), py - 4], [px + sign * 15, py + 5]], i % 2 ? '#8cbf91' : secondary, '#25473c', .8);
+    }
+    oval(ctx, 53, 32 + n, 6 + n * .4, 6 + n * .4, secondary, ivory);
+  } else if (family === 'economy') {
+    frame(ctx, 27, 63, 54, 32, '#415965', '#f3d992', 5, 2);
+    frame(ctx, 62, 69, 21, 16, '#af864b', '#f4dca0', 3);
+    oval(ctx, 69, 77, 2, 2, '#f4dca0');
+    for (let i = 0; i < 3 + n; i++) oval(ctx, 36 + i * 5, 61 - i * 4, 9, 4, '#edce74', '#7f6130');
+    oval(ctx, 63, 43, 13 + n, 13 + n, '#d9b55f', '#f6df9a');
+    label(ctx, '$', 63, 49, 19, '#72532d', 21);
+    star(ctx, 31, 36 + n * 2, 6, secondary);
+  } else if (family === 'rule') {
+    polygon(ctx, [[32, 32], [76, 27 + n], [74, 86], [66, 93], [58, 88], [49, 97], [39, 89], [30, 95]], '#edd5b7', '#392f4c', 1.4);
+    for (let i = 0; i < 3; i++) line(ctx, [[39, 43 + i * 15], [65, 40 + i * 15]], '#785275', 1.1);
+    const nodes = Array.from({ length: 4 + n }, (_, i) => {
+      const a = i * Math.PI * 2 / (4 + n) - Math.PI / 2;
+      return [54 + Math.cos(a) * 17, 64 + Math.sin(a) * 19];
+    });
+    line(ctx, [...nodes, nodes[0], nodes[2]], '#8d487d', 2);
+    nodes.forEach(([px, py]) => oval(ctx, px, py, 2.2, 2.2, '#f7edc4', '#8d487d'));
+  } else {
+    const teeth = 7 + n;
+    polygon(ctx, Array.from({ length: teeth * 4 }, (_, i) => {
+      const a = i * Math.PI * 2 / (teeth * 4), r = i % 4 < 2 ? 25 : 21;
+      return [54 + Math.cos(a) * r, 63 + Math.sin(a) * r];
+    }), '#9caec7', '#273448', 1.3);
+    oval(ctx, 54, 63, 14, 14, '#3b465c', accent);
+    ctx.save(); ctx.translate(54, 63); ctx.rotate(-.6 + n * .16);
+    frame(ctx, -4, -19, 8, 48, '#e3cba5', '#4e4052', 2);
+    oval(ctx, 0, -18, 9, 9, '#e3cba5', '#4e4052'); oval(ctx, 0, -18, 4, 4, '#3b465c');
+    polygon(ctx, [[0, 20], [15, 20], [15, 25], [8, 25], [8, 29], [0, 29]], '#e3cba5', '#4e4052');
+    ctx.restore(); star(ctx, 79, 37 + n, 5, secondary);
+  }
+}
+
+/** Collectible Jokers share a frame, with family badges, rarity marks and individual vector illustrations. */
 function drawGambitJoker(ctx, id, x, y, w, h, { selected = false } = {}) {
   if (!validRect(ctx, x, y, w, h)) return;
-  const [background, accent, names] = jokerStyles[id] || jokerStyles.lonely_crown;
+  const item = catalogJoker(id), family = familyStyles[item?.family] || familyStyles.utility;
+  const [background, accent, names] = jokerStyles[id] || [family[0], family[1], jokerTitle(item?.name || 'Unknown Joker')];
   ctx.save(); ctx.translate(x, y); ctx.scale(w / 100, h / 140);
   frame(ctx, 2, 4, 98, 136, '#10232d66', null, 6);
   frame(ctx, 0, 0, 98, 136, ivory, selected ? '#ffd763' : '#d3cfb7', 5, selected ? 3 : 1.4);
   frame(ctx, 5, 5, 88, 126, background, accent, 2, .7);
   // Original foil-like diagonal hatch, kept quieter than the central illustration.
   for (let yLine = 12; yLine < 100; yLine += 13) line(ctx, [[22, yLine], [86, yLine + 15]], '#ffffff0c', .6);
+  frame(ctx, 24, 8, 61, 10, '#101d2b80', null, 2);
+  label(ctx, family[2], 54.5, 15.5, 6.5, '#fff5d5', 56);
   for (let i = 0; i < 5; i++) label(ctx, 'JOKER'[i], 12, 22 + i * 11, 9, '#fff4ce', 10);
   ctx.save(); jokerSymbol(ctx, id, accent); ctx.restore();
   frame(ctx, 20, 106, 68, 23, '#fff1cf', accent, 2, .8);
   label(ctx, names[0], 54, 116, 8.7, background, 64); label(ctx, names[1], 54, 126, 8.7, background, 64);
+  const rarity = rarityColors[item?.rarity] || rarityColors.common;
+  if (item?.rarity === 'rare' || item?.rarity === 'legendary') star(ctx, 12, 119, 5, rarity);
+  else if (item?.rarity === 'uncommon') polygon(ctx, [[12, 113], [16, 119], [12, 125], [8, 119]], rarity);
+  else oval(ctx, 12, 119, 3.5, 3.5, rarity);
   ctx.restore();
 }
 
@@ -7386,36 +8039,66 @@ function cardBack(ctx, x, y, w, h) {
 }
 
 /** Backed draw pile, including a count contained within the supplied rectangle. */
-function drawGambitDeck(ctx, x, y, w, h, count) {
+function drawGambitDeck(ctx, x, y, w, h, count, total = 52) {
   if (!validRect(ctx, x, y, w, h)) return;
   ctx.save();
   const offset = Math.min(w * .06, h * .03, 4), labelHeight = Math.min(h * .18, Math.max(9, h * .11)), cardHeight = Math.max(.1, h - labelHeight - offset * 2);
   for (let i = 2; i >= 0; i--) cardBack(ctx, x + i * offset, y + i * offset, w - offset * 2, cardHeight);
-  const safeCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
-  label(ctx, safeCount + '/52', x + w / 2, y + h - 1, labelHeight * .85, '#f8efcf', w);
+  const safeTotal = Number.isFinite(total) ? Math.max(0, Math.min(4096, Math.floor(total))) : 52;
+  const safeCount = Number.isFinite(count) ? Math.max(0, Math.min(safeTotal, Math.floor(count))) : 0;
+  label(ctx, safeCount + '/' + safeTotal, x + w / 2, y + h - 1, labelHeight * .85, '#f8efcf', w);
   ctx.restore();
 }
 
 /** An unopened booster has a sealed wrapper silhouette, not a playing-card face. */
-function drawGambitPack(ctx, kind, x, y, w, h) {
+function drawGambitPack(ctx, kind, x, y, w, h, { size = 'normal' } = {}) {
   if (!validRect(ctx, x, y, w, h)) return;
-  const joker = kind === 'joker', background = joker ? '#734b86' : '#237ca0', accent = joker ? '#ef9dcd' : '#f0d365';
+  const styles = {
+    joker: ['#734b86', '#ef9dcd', '#503364', 'JOKER'], upgrade: ['#237ca0', '#f0d365', '#165b7c', 'UPGRADE'],
+    craft: ['#a64f49', '#f5c38c', '#733d43', 'CRAFT'], standard: ['#367158', '#cde6aa', '#234e46', 'STANDARD'],
+  };
+  const [background, accent, panel, name] = Object.hasOwn(styles, kind) ? styles[kind] : styles.upgrade;
+  const mega = size === 'mega';
   ctx.save(); ctx.translate(x, y); ctx.scale(w / 100, h / 140);
   const seam = Array.from({ length: 13 }, (_, i) => [8 + i * 7, i % 2 ? 8 : 4]);
   polygon(ctx, [...seam, [92, 132], ...seam.slice().reverse().map(([px, py]) => [px, 140 - py]), [8, 8]], background, '#f7e9c5', 1.5);
-  frame(ctx, 12, 14, 76, 111, joker ? '#503364' : '#165b7c', accent, 2, 1);
+  frame(ctx, 12, 14, 76, 111, panel, accent, 2, mega ? 2 : 1);
+  if (mega) {
+    for (let i = 0; i < 5; i++) polygon(ctx, [[13, 36 + i * 17], [87, 18 + i * 17], [87, 24 + i * 17], [13, 42 + i * 17]], '#ffffff13');
+    polygon(ctx, [[14, 14], [31, 14], [14, 31]], accent);
+    polygon(ctx, [[86, 125], [69, 125], [86, 108]], accent);
+  }
   for (let i = 0; i < 4; i++) line(ctx, [[18, 19 + i * 3], [82, 19 + i * 3]], '#ffffff29', 1);
-  if (joker) {
+  if (kind === 'joker') {
     polygon(ctx, [[28, 54], [26, 34], [44, 47], [54, 27], [64, 47], [81, 34], [79, 57]], '#e5be65', '#352844', 1.5);
     oval(ctx, 53, 64, 23, 24, '#f7e3c5', '#3e2d50');
     line(ctx, [[36, 61], [42, 57], [47, 61]], '#73425b', 2.5); line(ctx, [[59, 61], [65, 57], [71, 61]], '#73425b', 2.5);
     line(ctx, [[42, 74], [53, 80], [65, 73]], '#a74669', 3); oval(ctx, 53, 68, 3, 3, '#de728d');
+  } else if (kind === 'craft') {
+    polygon(ctx, [[31, 32], [77, 35], [72, 85], [29, 81]], '#f2d1a5', '#3e3441', 1.2);
+    for (let i = 0; i < 3; i++) line(ctx, [[38, 44 + i * 12], [64, 46 + i * 12]], '#b87f74', 1.5);
+    line(ctx, [[30, 83], [70, 40]], '#eac88c', 6);
+    polygon(ctx, [[56, 35], [65, 27], [82, 43], [74, 52]], '#adcad0', '#39374c', 1.5);
+    polygon(ctx, [[28, 82], [31, 91], [38, 87]], '#765354', '#eac88c');
+    star(ctx, 39, 39, 9, '#ffe5a4'); star(ctx, 76, 78, 6, '#f5b8a1');
+  } else if (kind === 'standard') {
+    for (let i = 0; i < 3; i++) {
+      ctx.save(); ctx.translate(51, 85); ctx.rotate((i - 1) * .22);
+      frame(ctx, -18, -54, 36, 58, ivory, '#20473c', 3, 1.5);
+      suit(ctx, i === 0 ? 3 : i === 1 ? 2 : 1, 0, -30, 21, GAMBIT_SUIT_COLORS[i === 0 ? 3 : i === 1 ? 2 : 1]);
+      ctx.restore();
+    }
+    oval(ctx, 51, 84, 8, 6, '#a4c978', '#f0e9ba');
   } else {
     star(ctx, 50, 58, 27, '#f1ce68');
     line(ctx, [[50, 74], [50, 44]], '#175f82', 6); polygon(ctx, [[36, 54], [50, 38], [64, 54]], '#175f82');
     for (const [px, py] of [[24, 38], [79, 72], [28, 85]]) star(ctx, px, py, 5, '#b8e9dc');
   }
-  label(ctx, joker ? 'JOKER' : 'UPGRADE', 50, 107, 13, ivory, 72);
+  if (mega) {
+    label(ctx, 'MEGA', 50, 96, 9, accent, 58);
+    star(ctx, 23, 93, 4, accent); star(ctx, 77, 93, 4, accent);
+  }
+  label(ctx, name, 50, 107, 13, ivory, 72);
   label(ctx, 'PACK', 50, 120, 10, accent, 65);
   for (let i = 0; i < 3; i++) line(ctx, [[18, 129 + i * 2], [82, 129 + i * 2]], '#ffffff32', 1);
   ctx.restore();
@@ -7427,20 +8110,43 @@ const {gambitActions,gambitHitAt,drawGambit}=(()=>{
 /** Familiar poker-table hierarchy, original card art, and shared input geometry. */
 
 
+
 const C = { ink:'#fff8e7', muted:'#bad3c9', gold:'#f6d97a', blue:'#139bea', red:'#ee5149', dark:'#243740', green:'#23634f', future:'#789c90' };
 const jokerBy = id => GAMBIT_JOKERS.find(item => item.id === id);
 const handBy = id => GAMBIT_HANDS.find(item => item.id === id);
-const number = n => Math.floor(Number(n)||0).toLocaleString('en-US');
-const cardName = id => (({1:'Ace',11:'Jack',12:'Queen',13:'King'})[id%13+1] || id%13+1)+' of '+['Clubs','Diamonds','Spades','Hearts'][Math.floor(id/13)];
+const number = n => { const value=Number(n)||0; return Math.abs(value)>=1e7?value.toExponential(2).replace('e+','e'):Math.floor(value).toLocaleString('en-US'); };
+const multNumber = n => Math.abs(n)>=1e7?number(n):Number(Number(n||0).toFixed(2)).toLocaleString('en-US');
+const face = (id,game) => gambitCardData(id,game?.cardMods||{});
+const cardName = (id,game) => {const data=face(id,game);return (({1:'Ace',11:'Jack',12:'Queen',13:'King'})[data.rank]||data.rank)+' of '+['Clubs','Diamonds','Spades','Hearts'][data.suit];};
+const cardView = (id,game,extra={}) => ({...face(id,game),boost:game.cardBoosts?.[id]||0,...extra});
+const enhancementCopy={bonus:'+30 chips when scoring',mult:'+4 Mult when scoring',glass:'X2 Mult per scoring trigger; 25% chance to break permanently after a played hand',steel:'X1.5 Mult while held outside the play',gold:'+3 run coins if held when the blind is cleared'};
+const sealCopy={red:'retrigger this scoring card once',blue:'level the winning poker hand if held when the blind clears',gold:'+2 run coins for each scoring trigger'};
+const traitCopy=data=>[data.enhancement?enhancementCopy[data.enhancement]:'',data.seal?data.seal+' seal: '+sealCopy[data.seal]:''].filter(Boolean).join('. ');
+const packName = (kind,size='normal') => (size==='mega'?'Mega ':'')+({joker:'Joker',upgrade:'Upgrade',craft:'Craft',standard:'Playing Card'}[kind]||kind)+' Pack';
+const slots = game => game.jokerSlots||3;
+function jokerGeometry(index,game){const n=slots(game),step=234/n,w=Math.min(66,step-5);return {x:113+index*step,y:27,w,h:Math.min(92,w*1.4)};}
+function optionGeometry(index,count){const w=count>3?44:72,step=count>3?48:80;return {x:111+index*step,y:111,w,h:count>3?68:104};}
+function catalogList(inspection){return GAMBIT_JOKERS.filter(joker=>!inspection.filter||inspection.filter==='all'||joker.rarity===inspection.filter);}
 const region = (kind,x,y,w,h,label,extra={}) => ({kind,x,y,w,h,label,enabled:true,...extra});
 const ownedOffer = (game,offer) => offer.kind==='joker'&&game.jokers.includes(offer.id);
 function optionCopy(option,game){
   if(option.kind==='joker'){const item=jokerBy(option.id);return {title:item?.name||'Joker',detail:item?.description||'',tag:item?.rarity||'Joker'};}
-  if(option.kind==='hand')return {title:(handBy(option.id)?.name||option.id)+' upgrade',detail:'Add 15 base chips and 1 base Mult to this hand for the run.',tag:'LEVEL '+((game.handLevels[option.id]||0)+1)+' TO '+((game.handLevels[option.id]||0)+2)};
-  return {title:cardName(option.id),detail:'This exact card gains 10 chips whenever it scores. The boost lasts for the run.',tag:'CARD ENHANCEMENT'};
+  if(option.kind==='hand')return {title:(handBy(option.id)?.name||option.id)+' upgrade',detail:'Permanently add 15 base chips and 1 base Mult to this poker hand. Stack levels to keep scaling.',tag:'LEVEL '+((game.handLevels[option.id]||0)+1)+' TO '+((game.handLevels[option.id]||0)+2)};
+  if(option.kind==='playing')return {title:cardName(option.id),detail:'Add to your permanent deck. '+traitCopy(option)+'.',tag:'NEW PLAYING CARD'};
+  if(option.kind==='remove')return {title:'Remove '+cardName(option.id,game),detail:'Permanently remove this card. A smaller deck makes your chosen hands easier to draw.',tag:'DECK CRAFTING'};
+  if(option.kind==='modify'){
+    const changes=[option.rank!==undefined?'rank becomes '+(({1:'Ace',11:'Jack',12:'Queen',13:'King'})[option.rank]||option.rank):'',option.suit!==undefined?'suit becomes '+['Clubs','Diamonds','Spades','Hearts'][option.suit]:'',option.enhancement?option.enhancement+': '+enhancementCopy[option.enhancement]:'',option.seal?option.seal+' seal: '+sealCopy[option.seal]:''].filter(Boolean);
+    return {title:cardName(option.id,game),detail:'Permanent change: '+changes.join('; ')+'.',tag:'DECK CRAFTING'};
+  }
+  return {title:cardName(option.id,game),detail:'This exact card gains 10 chips whenever it scores. The boost lasts for the run.',tag:'CARD ENHANCEMENT'};
 }
-function offerName(offer){return offer.kind==='joker'?jokerBy(offer.id)?.name||'Joker':offer.pack==='joker'?'Joker Pack':'Upgrade Pack';}
-function offerDetail(offer){return offer.kind==='joker'?jokerBy(offer.id)?.description||'':offer.pack==='joker'?'Reveal three different Jokers and choose one.':'Choose a hand-level upgrade or an enhancement for one playing card.';}
+function offerName(offer){return offer.kind==='joker'?jokerBy(offer.id)?.name||'Joker':packName(offer.pack,offer.size);}
+function offerDetail(offer){
+  if(offer.kind==='joker')return jokerBy(offer.id)?.description||'';
+  const catalog=GAMBIT_PACKS.find(pack=>pack.kind===offer.pack&&pack.size===(offer.size||'normal'));
+  const detail={joker:'different Jokers',upgrade:'poker-hand levels',craft:'permanent deck changes',standard:'new enhanced playing cards'}[offer.pack]||'upgrades';
+  return 'Reveal '+((catalog?.options||3)===3?'three':catalog?.options||3)+' '+detail+' and choose '+(catalog?.choose||1)+'.';
+}
 function offerLabel(game,offer){return (offer.sold?'Sold. ':ownedOffer(game,offer)?'Already equipped. ':game.money<offer.price?'Not enough run coins. ':'')+'Buy '+offerName(offer)+' for '+offer.price+' run coins. '+offerDetail(offer);}
 function handGeometry(game){
   const n=game.hand.length,step=n>1?192/(n-1):0;
@@ -7451,21 +8157,32 @@ function shopGeometry(index){const col=index%2,row=Math.floor(index/2);return {x
 
 /** The action list is paint order; overlapping hand cards receive taps from the top down. */
 function gambitActions(game,{inspection=null}={}){
-  if(game.status!=='playing')return [];
+  if(game.status!=='playing'){
+    if(game.status==='paused'||typeof game.chooseDeck!=='function')return [];
+    return [region('deckCycle',114,306,40,28,'PREV',{direction:-1}),region('deckCycle',306,306,40,28,'NEXT',{direction:1}),region('start',114,347,232,38,'START NEW RUN'),...(game.canContinueEndless?[region('endless',114,396,232,32,'CONTINUE ENDLESS')]:[])];
+  }
   if(inspection){
-    const index=typeof inspection==='string'?game.jokers.indexOf(inspection):-1;
+    if(inspection.collection&&!inspection.joker){
+      const list=catalogList(inspection),page=Math.min(Math.max(0,inspection.page||0),Math.max(0,Math.ceil(list.length/9)-1));
+      return [region('catalogFilter',112,49,236,26,'FILTER: '+(inspection.filter||'all').toUpperCase()),...list.slice(page*9,page*9+9).map((joker,index)=>region('catalogJoker',112+index%3*80,86+Math.floor(index/3)*88,72,80,'Inspect '+joker.name+'. '+joker.description,{id:joker.id})),region('catalogPage',112,358,112,25,'PREVIOUS',{page:page-1,enabled:page>0}),region('catalogPage',236,358,112,25,'NEXT',{page:page+1,enabled:(page+1)*9<list.length}),region('close',109,396,238,42,'BACK TO TABLE')];
+    }
+    if(inspection.breakdown){const count=game.lastResult?.steps.length||0,page=inspection.page||0;return [region('scorePage',112,354,112,26,'PREVIOUS',{page:page-1,enabled:page>0}),region('scorePage',236,354,112,26,'NEXT',{page:page+1,enabled:(page+1)*8<count}),region('close',109,396,238,42,'BACK TO SCORE')];}
+    if(inspection.info)return [region('collection',112,350,236,20,'JOKER COLLECTION · '+GAMBIT_JOKERS.length),region('cardHelp',112,374,236,20,'ENHANCEMENTS & SEALS'),region('close',109,402,238,36,'BACK TO TABLE')];
+    const id=typeof inspection==='string'?inspection:inspection.joker,index=game.jokers.indexOf(id);
     const offer=typeof inspection==='object'&&Number.isInteger(inspection.offer)?game.shop[inspection.offer]:null;
     const secondary=offer?'buy':game.phase==='shop'&&index>=0?'sell':null;
-    return [region('close',109,390,secondary?144:238,48,'BACK TO TABLE'),...(secondary?[region(secondary,261,390,86,48,offer?offerLabel(game,offer):'Sell '+jokerBy(inspection)?.name+' for 2 run coins',{displayLabel:offer?'BUY $'+offer.price:'SELL +$2',index:offer?inspection.offer:index,enabled:!offer||(!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price)})]:[])];
+    return [region(inspection.collection?'collection':'close',109,390,secondary?144:238,48,inspection.collection?'BACK TO COLLECTION':'BACK TO TABLE'),...(secondary?[region(secondary,261,390,86,48,offer?offerLabel(game,offer):'Sell '+jokerBy(id)?.name+' for 2 run coins',{displayLabel:offer?'BUY $'+offer.price:'SELL +$2',index:offer?inspection.offer:index,enabled:!offer||(!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price)})]:[])];
   }
   const info=region('info',12,402,82,35,'RUN INFO');
-  if(game.phase==='pack')return [info,...(game.pack?.options||[]).map((option,index)=>{const copy=optionCopy(option,game);return region('packOption',111+index*80,111,72,111,(game.pack.selected===index?'Selected: ':'Inspect ')+copy.title+'. '+copy.detail,{index});}),region('claim',109,390,150,48,'CHOOSE CARD',{enabled:Number.isInteger(game.pack?.selected)}),region('skip',269,390,78,48,'SKIP')];
-  if(game.phase==='replace')return [info,...game.jokers.map((id,index)=>region('replace',111+index*80,255,72,102,'Replace '+jokerBy(id)?.name+' with '+jokerBy(game.pendingJoker)?.name,{id,index})),region('skip',109,390,238,48,'KEEP CURRENT JOKERS')];
-  const jokers=game.jokers.map((id,index)=>region('joker',113+index*78,27,66,92,'Inspect '+jokerBy(id)?.name+'. '+jokerBy(id)?.description,{id,index}));
-  if(game.phase==='shop')return [info,...jokers,...game.shop.flatMap((offer,index)=>{const g=shopGeometry(index);return [region('offer',g.x,g.y,g.w,g.h,'Inspect '+offerName(offer)+'. '+offerDetail(offer),{index}),region('buy',g.x,g.buyY,g.w,22,offerLabel(game,offer),{displayLabel:offer.sold?'SOLD':ownedOffer(game,offer)?'OWNED':'BUY $'+offer.price,index,enabled:!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price})];}),region('next',109,412,238,26,'NEXT ROUND')];
-  if(game.phase==='score')return [info,...jokers,region('continue',109,390,238,48,'CONTINUE')];
+  if(game.phase==='victory')return [info,region('endless',112,310,236,48,'CONTINUE ENDLESS'),region('finish',112,386,236,48,'BANK THE WIN')];
+  if(game.phase==='pack')return [info,...(game.pack?.options||[]).map((option,index)=>{const copy=optionCopy(option,game),g=optionGeometry(index,game.pack.options.length),claimed=game.pack.claimed?.includes(index),available=typeof game.optionAvailable!=='function'||game.optionAvailable(option);return region('packOption',g.x,g.y,g.w,g.h+7,(claimed?'Already claimed. ':game.pack.selected===index?'Selected: ':'Inspect ')+copy.title+'. '+copy.detail,{index,enabled:!claimed&&available});}),region('claim',109,390,150,48,'CHOOSE CARD',{enabled:Number.isInteger(game.pack?.selected)&&!game.pack.claimed?.includes(game.pack.selected)&&(typeof game.optionAvailable!=='function'||game.optionAvailable(game.pack.options[game.pack.selected]))}),region('skip',269,390,78,48,'SKIP')];
+  if(game.phase==='replace')return [info,...game.jokers.map((id,index)=>{const g=jokerGeometry(index,game);return region('replace',g.x,255,g.w,g.h,'Replace '+jokerBy(id)?.name+' with '+jokerBy(game.pendingJoker)?.name,{id,index});}),region('skip',109,390,238,48,'KEEP CURRENT JOKERS')];
+  const jokers=game.jokers.map((id,index)=>{const g=jokerGeometry(index,game);return region('joker',g.x,g.y,g.w,g.h,'Inspect '+jokerBy(id)?.name+'. '+jokerBy(id)?.description,{id,index});});
+  if(game.phase==='shop')return [info,...jokers,...game.shop.flatMap((offer,index)=>{const g=shopGeometry(index);return [region('offer',g.x,g.y,g.w,g.h,'Inspect '+offerName(offer)+'. '+offerDetail(offer),{index}),region('buy',g.x,g.buyY,g.w,22,offerLabel(game,offer),{displayLabel:offer.sold?'SOLD':ownedOffer(game,offer)?'OWNED':'BUY $'+offer.price,index,enabled:!offer.sold&&!ownedOffer(game,offer)&&game.money>=offer.price})];}),...(typeof game.rerollShop==='function'?[region('reroll',109,386,238,22,'REROLL JOKERS $'+game.rerollPrice,{enabled:game.money>=game.rerollPrice})]:[]),region('next',109,412,238,26,'NEXT BLIND')];
+  if(game.phase==='score')return [info,...jokers,...((game.lastResult?.steps.length||0)>6?[region('breakdown',111,326,234,24,'FULL BREAKDOWN')]:[]),region('continue',109,390,238,48,'CONTINUE')];
   if(game.phase!=='play')return [info];
-  return [info,...jokers,region('deck',305,221,40,61,'Inspect remaining deck'),...handGeometry(game).map(g=>region('card',g.x,g.y,g.w,g.h,cardName(g.id)+', '+(game.selected.includes(g.id)?'selected':'unselected')+(game.cardBoosts[g.id]?'. Bonus '+game.cardBoosts[g.id]+' chips when scoring.':''),g)),region('play',109,390,76,48,'PLAY HAND',{enabled:game.selected.length>0&&game.playsLeft>0}),region('sort',193,390,68,22,'SORT RANK',{mode:'rank'}),region('sort',193,416,68,22,'SORT SUIT',{mode:'suit'}),region('discard',269,390,78,48,'DISCARD',{enabled:game.selected.length>0&&game.discardsLeft>0&&game.deck.length>0})];
+  const error=game.selectionError?.();
+  return [info,...jokers,region('deck',305,221,40,61,'Inspect remaining deck'),...handGeometry(game).map(g=>region('card',g.x,g.y,g.w,g.h,cardName(g.id,game)+', '+(game.selected.includes(g.id)?'selected':'unselected')+(game.cardBoosts[g.id]?'. Bonus '+game.cardBoosts[g.id]+' chips when scoring.':'')+(traitCopy(face(g.id,game))?'. '+traitCopy(face(g.id,game))+'.':''),g)),region('play',109,390,76,48,error||'PLAY HAND',{displayLabel:'PLAY HAND',enabled:game.selected.length>0&&game.playsLeft>0&&!error}),region('sort',193,390,68,22,'SORT RANK',{mode:'rank'}),region('sort',193,416,68,22,'SORT SUIT',{mode:'suit'}),region('discard',269,390,78,48,'DISCARD',{enabled:game.selected.length>0&&game.discardsLeft>0&&game.deck.length>0})];
 }
 function gambitHitAt(x,y,game,view={}){
   if(!Number.isFinite(x)||!Number.isFinite(y))return null;
@@ -7480,7 +8197,7 @@ function wrap(ctx,value,x,y,width,size=10,color=C.ink,maxLines=4,lineHeight=size
   lines.slice(0,maxLines).forEach((part,i)=>{if(i===maxLines-1&&lines.length>maxLines){while(part&&measure(part+'...')>width)part=part.slice(0,-1);part+='...';}text(ctx,part,x,y+i*lineHeight,size,color,'left',width);});
 }
 function button(ctx,a,focused=false){
-  const fill=a.kind==='play'||a.kind==='continue'||a.kind==='next'||a.kind==='claim'||a.kind==='buy'?C.blue:a.kind==='discard'||a.kind==='sell'?C.red:'#db8b18';
+  const fill=a.kind==='play'||a.kind==='continue'||a.kind==='next'||a.kind==='claim'||a.kind==='buy'||a.kind==='endless'||a.kind==='start'?C.blue:a.kind==='discard'||a.kind==='sell'?C.red:'#db8b18';
   box(ctx,a.x,a.y+3,a.w,a.h,a.enabled?'#132a2c':'#223c37',null,5);
   box(ctx,a.x,a.y,a.w,a.h-1,a.enabled?fill:'#466057',focused?'#fff4ac':'#ffffff42',5);
   const label=(a.displayLabel||a.label).replace('SORT ','');
@@ -7493,10 +8210,14 @@ function background(ctx){
   for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(103+i*58,-15);ctx.bezierCurveTo(230-i*13,99,100+i*40,250,375-i*26,465);ctx.stroke();}
   ctx.restore();box(ctx,5,5,96,442,'#293d42','#0e2628',5);box(ctx,105,5,250,442,'#205d4b00','#90b69735',5);
 }
+function railNumber(ctx,value,x,width){
+  if(value>=1000){const [mantissa,exponent]=value.toExponential(2).split('e');text(ctx,mantissa,x,259,12,C.ink,'center',width);text(ctx,'e'+Number(exponent),x,272,8,C.ink,'center',width);}
+  else text(ctx,value>=100?Number(value.toFixed(1)):Number(value.toFixed(2)),x,268,value>=100?12:17,C.ink,'center',width);
+}
 function reportFor(game){return game.phase==='score'?game.lastResult:game.phase==='play'?game.preview():null;}
 function rail(ctx,game,best){
-  box(ctx,11,12,84,23,game.phase==='shop'?'#c65f32':'#167cb4','#9bbcab66');text(ctx,game.phase==='shop'?'THE SHOP':'ROUND '+game.round,53,28,11,C.ink,'center',78);
-  box(ctx,11,41,84,79,'#173741','#48666b');text(ctx,'Score at least',53,56,8,C.ink,'center');
+  box(ctx,11,12,84,23,game.phase==='shop'?'#c65f32':game.boss?'#914c9e':'#167cb4','#9bbcab66');text(ctx,game.phase==='shop'?'THE SHOP':game.legacy?'ROUND '+game.round:'ANTE '+(game.ante||1),53,28,11,C.ink,'center',78);
+  box(ctx,11,41,84,79,'#173741','#48666b');text(ctx,game.blindName||'Score at least',53,56,8,C.ink,'center',78);
   ctx.beginPath();ctx.arc(53,80,15,0,Math.PI*2);ctx.fillStyle='#166e91';ctx.fill();ctx.strokeStyle='#93cbd1';ctx.lineWidth=2;ctx.stroke();text(ctx,'G',53,86,18,C.ink,'center');
   text(ctx,number(game.target),53,113,15,'#ff7465','center',78);
   box(ctx,11,128,84,54,'#1a2b30','#587275');text(ctx,'Round score',53,141,9,C.ink,'center');text(ctx,number(game.roundScore),53,169,22,C.ink,'center',78);
@@ -7504,7 +8225,7 @@ function rail(ctx,game,best){
   box(ctx,11,190,84,105,'#1c2e31','#52676b');
   wrap(ctx,report?.name||'Select cards',17,207,73,11,C.ink,2,13);text(ctx,report?'lvl.'+level:'1 to 5 cards',53,235,8,C.muted,'center');
   box(ctx,14,245,35,33,C.blue);box(ctx,58,245,34,33,C.red);
-  text(ctx,number(report?.chips||0),31.5,268,17,C.ink,'center',31);text(ctx,'X',53,267,11,C.ink,'center');text(ctx,report?Number(report.mult.toFixed(2)):0,75,268,17,C.ink,'center',29);
+  railNumber(ctx,report?.chips||0,31.5,31);text(ctx,'X',53,267,11,C.ink,'center');railNumber(ctx,report?.mult||0,75,29);
   text(ctx,'CHIPS',31,289,6.5,C.muted,'center');text(ctx,'MULT',75,289,6.5,C.muted,'center');
   box(ctx,11,304,40,47,'#1a2e32','#526a6d');box(ctx,55,304,40,47,'#1a2e32','#526a6d');
   text(ctx,'Hands',31,317,8,C.ink,'center');text(ctx,'Discards',75,317,7,C.ink,'center');text(ctx,game.playsLeft,31,343,24,C.blue,'center');text(ctx,game.discardsLeft,75,343,24,C.red,'center');
@@ -7512,12 +8233,14 @@ function rail(ctx,game,best){
   text(ctx,'RUN '+number(game.score),53,448,6.5,C.muted,'center',88);
 }
 function jokers(ctx,game){
-  for(let i=0;i<3;i++){const x=113+i*78,id=game.jokers[i];if(id)drawGambitJoker(ctx,id,x,27,66,92);else{box(ctx,x,27,66,92,'#0c342f70','#83a18b55',5);text(ctx,'JOKER',x+33,73,9,'#89ac98','center');}}
-  text(ctx,game.jokers.length+'/3',114,134,9,C.ink);text(ctx,'GABU\'S GAMBIT',345,18,8,C.ink,'right',231);
+  for(let i=0;i<slots(game);i++){const g=jokerGeometry(i,game),id=game.jokers[i];if(id)drawGambitJoker(ctx,id,g.x,g.y,g.w,g.h);else{box(ctx,g.x,g.y,g.w,g.h,'#0c342f70','#83a18b55',5);text(ctx,'JOKER',g.x+g.w/2,g.y+g.h/2,7,'#89ac98','center',g.w-4);}}
+  text(ctx,game.jokers.length+'/'+slots(game),114,slots(game)>3?107:134,9,C.ink);text(ctx,"GABU'S GAMBIT",345,18,8,C.ink,'right',231);
+  if(game.boss){box(ctx,111,113,236,35,'#4e2b55','#d18ca9');text(ctx,game.boss.name,117,125,8,C.gold,'left',224);wrap(ctx,game.boss.description,117,137,224,7.5,C.ink,2,10);}
+  else if(slots(game)>3)text(ctx,(game.endless?'ENDLESS · ':'')+'BLIND '+game.round+' / '+(game.campaignLength||24),345,107,8,C.muted,'right',198);
 }
 function optionArt(ctx,option,game,x,y,w,h,selected=false){
   if(option.kind==='joker')drawGambitJoker(ctx,option.id,x,y,w,h,{selected});
-  else if(option.kind==='card')drawGambitCard(ctx,option.id,x,y,w,h,{selected,boost:Math.min(30,(game.cardBoosts[option.id]||0)+10)});
+  else if(['card','playing','modify','remove'].includes(option.kind)){drawGambitCard(ctx,option.id,x,y,w,h,{...(option.kind==='playing'?gambitCardData(option.id):cardView(option.id,game)),...option,selected,boost:option.kind==='playing'?0:option.kind==='card'?(game.cardBoosts[option.id]||0)+10:game.cardBoosts[option.id]||0});if(option.kind==='remove')text(ctx,'REMOVE',x+w/2,y+h+12,8,C.red,'center',w);}
   else {box(ctx,x+2,y+4,w,h,'#123c35');box(ctx,x,y,w,h,'#d9ecf2',selected?C.gold:'#7196c8',5);box(ctx,x+5,y+5,w-10,h-10,'#486dae');text(ctx,'LEVEL',x+w/2,y+20,10,C.ink,'center',w-10);ctx.beginPath();ctx.arc(x+w/2,y+h*.52,w*.24,0,Math.PI*2);ctx.fillStyle='#f4cc69';ctx.fill();text(ctx,'+1',x+w/2,y+h*.52+5,14,'#263c65','center');wrap(ctx,handBy(option.id)?.name||option.id,x+6,y+h-26,w-12,9,C.ink,2,11);}
 }
 function playScreen(ctx,game,reduced){
@@ -7526,66 +8249,90 @@ function playScreen(ctx,game,reduced){
     const report=game.lastResult,steps=report?.steps||[],elapsed=Math.max(0,Math.min(1.2,game.scoreTime||0));
     text(ctx,report?.name||'HAND PLAYED',227,156,13,C.gold,'center',231);
     const played=game.lastPlay?.cards||report?.scoringCards||[],step=Math.min(43,216/Math.max(1,played.length));
-    played.forEach((id,index)=>drawGambitCard(ctx,id,227-(played.length*step+42-step)/2+index*step,169,42,61,{boost:game.cardBoosts[id]||0}));
+    played.forEach((id,index)=>drawGambitCard(ctx,id,227-(played.length*step+42-step)/2+index*step,169,42,61,cardView(id,game)));
     const active=reduced||elapsed>=1.2?-1:Math.min(steps.length-1,Math.floor(elapsed/1.2*steps.length));
-    steps.forEach((s,i)=>{const y=253+i*18,current=i===active,future=active>=0&&i>active;if(current)box(ctx,110,y-12,238,17,'#0d342d',C.gold,3);text(ctx,s.label,115,y,8,future?C.future:current?C.gold:C.ink,'left',157);text(ctx,number(s.chips)+' X '+Number(s.mult.toFixed(2)),343,y,9,future?C.future:C.ink,'right',72);});
+    steps.slice(0,6).forEach((s,i)=>{const y=242+i*13,current=i===active,future=active>=0&&i>active;if(current)box(ctx,110,y-12,238,17,'#0d342d',C.gold,3);text(ctx,s.label,115,y,8,future?C.future:current?C.gold:C.ink,'left',157);text(ctx,number(s.chips)+' X '+multNumber(s.mult),343,y,9,future?C.future:C.ink,'right',72);});
     text(ctx,'+'+number(report?.total||0),227,371,23,C.gold,'center',230);return;
   }
   const report=game.preview();
   text(ctx,report?.name||'BUILD YOUR HAND',115,174,13,report?C.gold:C.ink,'left',226);
-  text(ctx,report?number(report.total)+' projected':'Select up to five cards',115,197,report?17:10,report?'#aee5ff':C.muted,'left',183);
-  if(!report)wrap(ctx,'Match ranks, build a straight, or collect one suit.',115,224,169,10,C.muted,3,15);
-  drawGambitDeck(ctx,307,223,34,47,game.deck.length);
+  text(ctx,report?number(report.total)+' projected':game.selectionError?.()||'Select up to five cards',115,197,report?17:10,report?'#aee5ff':C.muted,'left',183);
+  if(!report)wrap(ctx,game.selectionError?.()||'Match ranks, build a straight, or collect one suit.',115,224,169,10,C.muted,3,15);
+  drawGambitDeck(ctx,307,223,34,47,game.deck.length,game.deckCards?.length||52);
   const geometry=handGeometry(game);
-  geometry.forEach(g=>drawGambitCard(ctx,g.id,g.x,g.y,g.w,g.h,{selected:game.selected.includes(g.id),boost:game.cardBoosts[g.id]||0,tilt:g.tilt}));
-  geometry.forEach(g=>text(ctx,g.index+1,g.x+8,385,7,C.muted,'center'));
+  geometry.forEach(g=>drawGambitCard(ctx,g.id,g.x,g.y,g.w,g.h,cardView(g.id,game,{selected:game.selected.includes(g.id),tilt:g.tilt})));
+  geometry.forEach(g=>text(ctx,g.index===9?'0':g.index+1,g.x+8,385,7,C.muted,'center'));
   text(ctx,game.selected.length+'/'+game.hand.length+' SELECTED',227,279,8,C.ink,'center');
 }
 function shopScreen(ctx,game){
   jokers(ctx,game);text(ctx,'IMPROVE YOUR RUN',227,150,10,C.gold,'center');
-  game.shop.forEach((offer,index)=>{const g=shopGeometry(index),owned=ownedOffer(game,offer);if(offer.kind==='joker')drawGambitJoker(ctx,offer.id,g.x+25,g.y,58,80);else drawGambitPack(ctx,offer.pack,g.x+28,g.y,52,66);
+  game.shop.forEach((offer,index)=>{const g=shopGeometry(index),owned=ownedOffer(game,offer);if(offer.kind==='joker')drawGambitJoker(ctx,offer.id,g.x+25,g.y,58,80);else drawGambitPack(ctx,offer.pack,g.x+28,g.y,52,66,{size:offer.size});
     if(index<2)text(ctx,offerName(offer),g.x+g.w/2,g.y+90,8,C.ink,'center',104);
     if(offer.sold||owned){box(ctx,g.x+15,g.y+20,g.w-30,23,'#1d3433e8','#b3c3a4');text(ctx,offer.sold?'SOLD':'OWNED',g.x+g.w/2,g.y+36,11,C.gold,'center');}
   });
 }
 function packScreen(ctx,game){
-  text(ctx,game.pack?.kind==='joker'?'JOKER PACK':'UPGRADE PACK',227,36,19,C.ink,'center',232);text(ctx,'CHOOSE 1',227,60,10,C.gold,'center');
-  (game.pack?.options||[]).forEach((option,index)=>optionArt(ctx,option,game,111+index*80,111,72,104,game.pack.selected===index));
+  text(ctx,packName(game.pack?.kind,game.pack?.size).toUpperCase(),227,36,17,C.ink,'center',232);text(ctx,'CHOOSE '+(game.pack?.remaining||1)+' MORE',227,60,10,C.gold,'center');
+  (game.pack?.options||[]).forEach((option,index)=>{const g=optionGeometry(index,game.pack.options.length);optionArt(ctx,option,game,g.x,g.y,g.w,g.h,game.pack.selected===index);if(game.pack.claimed?.includes(index)){box(ctx,g.x,g.y+15,g.w,20,'#17352ee8');text(ctx,'TAKEN',g.x+g.w/2,g.y+28,8,C.gold,'center',g.w-4);}});
   const chosen=game.pack?.options?.[game.pack.selected],copy=chosen?optionCopy(chosen,game):null;
-  box(ctx,110,242,238,132,'#143f35','#8bbaa2',5);
-  text(ctx,copy?.title||'Pick a card to inspect',119,264,12,C.gold,'left',220);
-  if(copy){text(ctx,copy.tag.toUpperCase(),119,284,8,'#a4d6ee','left',219);wrap(ctx,copy.detail,119,305,219,11,C.ink,4,16);}
-  else wrap(ctx,'Tap a card above to see its boost. Choose Card confirms your choice.',119,290,219,11,C.ink,4,16);
-  text(ctx,'Already paid. Skip discards this pack.',227,384,7,C.muted,'center',233);
+  box(ctx,110,242,238,132,'#143f35','#8bbaa2',5);text(ctx,copy?.title||'Pick a card to inspect',119,264,12,C.gold,'left',220);
+  if(copy){text(ctx,copy.tag.toUpperCase(),119,284,8,'#a4d6ee','left',219);wrap(ctx,copy.detail,119,301,219,9.5,C.ink,5,13);}
+  else wrap(ctx,'Inspect an option, then Choose Card to keep it. Mega packs let you claim two different options.',119,290,219,11,C.ink,4,16);
+  text(ctx,'Already paid. Skip discards remaining choices.',227,384,7,C.muted,'center',233);
 }
 function replaceScreen(ctx,game){
   text(ctx,'JOKER SLOTS FULL',227,36,16,C.ink,'center',232);text(ctx,'Incoming',227,57,9,C.gold,'center');
   if(game.pendingJoker)drawGambitJoker(ctx,game.pendingJoker,194,69,66,92,{selected:true});
   wrap(ctx,jokerBy(game.pendingJoker)?.description||'',115,184,228,10,C.ink,3,14);
   text(ctx,'CHOOSE ONE TO REPLACE',227,239,10,C.gold,'center');
-  game.jokers.forEach((id,index)=>drawGambitJoker(ctx,id,111+index*80,255,72,102));
+  game.jokers.forEach((id,index)=>{const g=jokerGeometry(index,game);drawGambitJoker(ctx,id,g.x,255,g.w,g.h);});
 }
 function infoScreen(ctx,game,inspection){
-  if(inspection.info){text(ctx,'RUN INFO',227,37,18,C.gold,'center');wrap(ctx,'Play 1 to 5 cards. Beat each target in four hands; three discards refresh your cards.',116,65,226,11,C.ink,4,15);
-    const rules=['High Card: highest card','Pair: 2 of one rank','Two Pair: two pairs','Three: 3 of one rank','Straight: 5 in order','Flush: 5 of one suit','Full House: trio + pair','Four: 4 of one rank','Straight Flush: both'];rules.forEach((line,i)=>text(ctx,line,116,143+i*22,9,C.ink,'left',225));text(ctx,'Run coins are separate from arcade tickets.',227,365,8,C.muted,'center',230);return;}
+  if(inspection.cardHelp){text(ctx,'CARD EFFECTS',227,32,17,C.gold,'center');let y=65;for(const [name,detail] of [...Object.entries(enhancementCopy),...Object.entries(sealCopy).map(([name,detail])=>[name+' seal',detail])]){text(ctx,name.toUpperCase(),116,y,9,C.gold,'left',225);wrap(ctx,detail,116,y+13,225,8.5,C.ink,2,11);y+=39;}return;}
+  if(inspection.collection&&!inspection.joker){
+    const list=catalogList(inspection),pages=Math.max(1,Math.ceil(list.length/9)),page=Math.min(Math.max(0,inspection.page||0),pages-1);
+    text(ctx,'JOKER COLLECTION',227,30,15,C.gold,'center',233);
+    list.slice(page*9,page*9+9).forEach((joker,index)=>{const x=112+index%3*80,y=86+Math.floor(index/3)*88;drawGambitJoker(ctx,joker.id,x+12,y,48,67);text(ctx,joker.rarity,x+36,y+78,7,C.muted,'center',70);});
+    text(ctx,'PAGE '+(page+1)+' / '+pages+' · '+list.length+' JOKERS',227,346,8,C.muted,'center',233);return;
+  }
+  if(inspection.breakdown){
+    text(ctx,'SCORING BREAKDOWN',227,32,15,C.gold,'center',232);const steps=game.lastResult?.steps||[],page=inspection.page||0;
+    steps.slice(page*8,page*8+8).forEach((step,index)=>{const y=71+index*33;wrap(ctx,step.label,114,y,231,9,C.ink,1,12);text(ctx,number(step.chips)+' CHIPS  X '+multNumber(step.mult),114,y+15,9,C.gold,'left',230);});
+    text(ctx,'TOTAL '+number(game.lastResult?.total),227,338,14,C.gold,'center',232);return;
+  }
+  if(inspection.info){
+    text(ctx,'RUN INFO',227,31,18,C.gold,'center');text(ctx,(game.legacy?'CLASSIC RUN':'ANTE '+(game.ante||1)+' · '+(game.blindName||'SMALL BLIND'))+' · ROUND '+game.round,227,52,9,C.ink,'center',229);
+    wrap(ctx,'Hand levels and crafted cards last for the run. Growth Jokers count your run history. Chips, then +Mult, then XMult; slot order does not matter.',115,72,230,9,C.ink,4,12);
+    const rules=['High Card: highest card','Pair: 2 of one rank','Two Pair: two pairs','Three: 3 of one rank','Straight: 5 in order','Flush: 5 of one suit','Full House: trio + pair','Four: 4 of one rank','Straight Flush: both','Five: 5 of one rank','Flush House: full house + suit','Flush Five: five + same suit'];rules.forEach((line,i)=>text(ctx,line,116,139+i*16,9,C.ink,'left',225));
+    text(ctx,'Win Ante 8 to unlock optional Endless.',227,336,8,C.muted,'center',230);return;
+  }
   if(inspection.deck){text(ctx,'YOUR DECK',227,37,18,C.gold,'center');text(ctx,game.deck.length+' cards left to draw',227,65,11,C.ink,'center');
-    for(let suit=0;suit<4;suit++){const ids=game.deck.filter(id=>Math.floor(id/13)===suit).sort((a,b)=>(b%13||13)-(a%13||13));box(ctx,113,90+suit*62,232,54,'#133f35','#7aa88b');text(ctx,['CLUBS','DIAMONDS','SPADES','HEARTS'][suit]+'  '+ids.length,121,108+suit*62,11,['#7ed8bd','#ffb36c','#a8c7ff','#ff8e98'][suit]);wrap(ctx,ids.map(id=>({0:'A',10:'J',11:'Q',12:'K'})[id%13]||id%13+1).join(' '),121,128+suit*62,215,10,C.ink,2,12);}
-    text(ctx,game.hand.length+' in hand / '+game.discard.length+' played or discarded',227,365,9,C.muted,'center',230);return;}
-  const offer=typeof inspection==='object'?game.shop[inspection.offer]:null,id=offer?.kind==='joker'?offer.id:typeof inspection==='string'?inspection:null;
+    for(let suit=0;suit<4;suit++){const ids=game.deck.filter(id=>face(id,game).suit===suit).sort((a,b)=>face(b,game).rank-face(a,game).rank);box(ctx,113,90+suit*62,232,54,'#133f35','#7aa88b');text(ctx,['CLUBS','DIAMONDS','SPADES','HEARTS'][suit]+'  '+ids.length,121,108+suit*62,11,['#7ed8bd','#ffb36c','#a8c7ff','#ff8e98'][suit]);wrap(ctx,ids.map(id=>({1:'A',11:'J',12:'Q',13:'K'})[face(id,game).rank]||face(id,game).rank).join(' '),121,128+suit*62,215,10,C.ink,2,12);}
+    text(ctx,(game.deckCards?.length||52)+' total / '+game.hand.length+' held / '+game.discard.length+' used',227,365,9,C.muted,'center',230);return;}
+  const offer=typeof inspection==='object'?game.shop[inspection.offer]:null,id=offer?.kind==='joker'?offer.id:typeof inspection==='string'?inspection:inspection.joker||null;
   const title=offer?offerName(offer):jokerBy(id)?.name||'Joker';text(ctx,title,227,37,17,C.gold,'center',229);
-  if(id)drawGambitJoker(ctx,id,184,59,86,121);else if(offer)drawGambitPack(ctx,offer.pack,188,65,78,109);
+  if(id)drawGambitJoker(ctx,id,184,59,86,121);else if(offer)drawGambitPack(ctx,offer.pack,188,65,78,109,{size:offer.size});
   const detail=offer?offerDetail(offer):jokerBy(id)?.description||'';wrap(ctx,detail,116,213,225,13,C.ink,6,19);
-  if(offer)text(ctx,'COST $'+offer.price,227,355,17,C.gold,'center');else text(ctx,'ACTIVE FOR THIS RUN',227,355,9,C.muted,'center');
+  if(!offer&&game.stats){text(ctx,game.stats.handsPlayed+' hands · '+game.stats.discardsUsed+' discards · '+game.stats.packsOpened+' packs',227,334,8,C.muted,'center',225);}
+  if(offer)text(ctx,'COST $'+offer.price,227,355,17,C.gold,'center');else text(ctx,game.jokers.includes(id)?'ACTIVE FOR THIS RUN':'FIND IN SHOPS AND JOKER PACKS',227,355,9,C.muted,'center',230);
 }
-function overlay(ctx,game){box(ctx,105,5,250,442,'#123a32e8');box(ctx,113,130,234,181,'#243d44','#d9e6c5',6);text(ctx,game.status==='dead'?game.won?'HOUSE OUTPLAYED':'THE HOUSE HOLDS':game.status==='paused'?'PAUSED':"GABU'S GAMBIT",230,160,17,C.gold,'center',220);wrap(ctx,game.status==='dead'?'Round '+game.round+' of 6. Run score '+number(game.score)+'.':'Build poker hands. Find Jokers. Turn small advantages into a winning run.',124,192,212,12,C.ink,4,18);text(ctx,game.status==='paused'?'PRESS PLAY TO RESUME':'PRESS PLAY TO START',230,285,10,'#b8dfff','center',217);}
+function victoryScreen(ctx,game){text(ctx,'THE HOUSE IS YOURS',227,69,17,C.gold,'center',230);text(ctx,'ANTE 8 CLEARED',227,105,13,C.ink,'center');text(ctx,number(game.score)+' RUN CHIPS',227,154,20,C.gold,'center',230);wrap(ctx,'Your campaign is won. Keep this deck and every boost in Endless, or bank the win and try a different starting deck.',119,196,219,12,C.ink,5,18);}
+function overlay(ctx,game){
+  box(ctx,105,5,250,442,'#123a32ed');box(ctx,113,120,234,315,'#243d44','#d9e6c5',6);
+  text(ctx,game.status==='dead'?game.won?'HOUSE OUTPLAYED':'THE HOUSE HOLDS':game.status==='paused'?'PAUSED':"GABU'S GAMBIT",230,150,17,C.gold,'center',220);
+  wrap(ctx,game.status==='dead'?'Blind '+game.round+'. Run score '+number(game.score)+'.':game.status==='paused'?'Your deck, purchases and paid pack choices are saved. Press the cabinet Play button to resume.':'75 Jokers. Five slots. Build a deck that can outgrow the house.',124,182,212,12,C.ink,4,18);
+  if(game.status==='paused')return;
+  const preset=GAMBIT_DECKS.find(deck=>deck.id===game.deckPreset)||GAMBIT_DECKS[0];text(ctx,preset?.name||'Classic deck',230,276,13,C.gold,'center',216);wrap(ctx,preset?.description||'',160,306,138,8.5,C.ink,3,11);
+}
 
 function drawGambit(canvas,game,{best=0,reduced=false,cursor=-1,inspection=null}={}){
   const ctx=canvas?.getContext?.('2d');if(!ctx)return;
   ctx.save();ctx.setTransform(canvas.width/360,0,0,canvas.height/452,0,0);ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.globalAlpha=1;ctx.lineCap='round';ctx.lineJoin='round';
   background(ctx);rail(ctx,game,best);
-  if(inspection)infoScreen(ctx,game,inspection);else if(game.phase==='shop')shopScreen(ctx,game);else if(game.phase==='pack')packScreen(ctx,game);else if(game.phase==='replace')replaceScreen(ctx,game);else playScreen(ctx,game,reduced);
-  const actions=gambitActions(game,{inspection});actions.forEach((a,index)=>{if(['info','play','sort','discard','continue','next','buy','claim','skip','close','sell'].includes(a.kind))button(ctx,a,index===cursor);if(index===cursor){ctx.strokeStyle=C.gold;ctx.lineWidth=2;ctx.strokeRect(a.x-2,a.y-2,a.w+4,a.h+4);}});
-  if(game.status!=='playing')overlay(ctx,game);ctx.restore();
+  if(inspection)infoScreen(ctx,game,inspection);else if(game.phase==='shop')shopScreen(ctx,game);else if(game.phase==='pack')packScreen(ctx,game);else if(game.phase==='replace')replaceScreen(ctx,game);else if(game.phase==='victory')victoryScreen(ctx,game);else playScreen(ctx,game,reduced);
+  if(game.status!=='playing')overlay(ctx,game);
+  const actions=gambitActions(game,{inspection});actions.forEach((a,index)=>{if(['info','play','sort','discard','continue','next','buy','claim','skip','close','sell','reroll','collection','cardHelp','catalogFilter','catalogPage','scorePage','breakdown','endless','finish','start','deckCycle'].includes(a.kind))button(ctx,a,index===cursor);if(index===cursor){ctx.strokeStyle=C.gold;ctx.lineWidth=2;ctx.strokeRect(a.x-2,a.y-2,a.w+4,a.h+4);}});
+  ctx.restore();
 }
 
 return {gambitActions,gambitHitAt,drawGambit};
@@ -8188,12 +8935,12 @@ export function setup(ctx) {
     const current=active();
     if(canvas)canvas.dataset.mode=activeMode;
     if(gameStage)gameStage.dataset.game=activeMode;
-    if(footerEl)footerEl.textContent=activeMode==='gambit'?'1–8 SELECT / SPACE PLAY / D DISCARD':activeMode==='chess'?'PICK, THEN MOVE':activeMode==='berry'?'TAP A COLUMN':activeMode==='tictac'?'TAP A SQUARE':activeMode==='cake'?'TAP TO DROP':activeMode==='bubble'?'DRAG TO AIM':activeMode==='boop'?'BOOP THE BUNS':activeMode==='wafer'?'PULL A WAFER':activeMode==='memory'?'FIND THE PAIRS':activeMode==='tetris'?'ARROWS / TOUCH · SPACE TO DROP':activeMode==='solitaire'?'TAP SOURCE, THEN DESTINATION':activeMode==='froggy'?'ARROWS / WASD / TOUCH PAD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
+    if(footerEl)footerEl.textContent=activeMode==='gambit'?'1–9 / 0 SELECT · SPACE PLAY · D DISCARD':activeMode==='chess'?'PICK, THEN MOVE':activeMode==='berry'?'TAP A COLUMN':activeMode==='tictac'?'TAP A SQUARE':activeMode==='cake'?'TAP TO DROP':activeMode==='bubble'?'DRAG TO AIM':activeMode==='boop'?'BOOP THE BUNS':activeMode==='wafer'?'PULL A WAFER':activeMode==='memory'?'FIND THE PAIRS':activeMode==='tetris'?'ARROWS / TOUCH · SPACE TO DROP':activeMode==='solitaire'?'TAP SOURCE, THEN DESTINATION':activeMode==='froggy'?'ARROWS / WASD / TOUCH PAD':activeMode==='plinko'?(tickets?'FICTIONAL TICKETS ONLY':'FREE PRACTICE'):activeMode==='simon'?'TAP COLORS / KEYS 1–4':activeMode==='duck'?'TAP THE DUCKS':activeMode==='slots'?'FICTIONAL TICKETS ONLY':activeMode==='snake'?'ARROWS / SWIPE':activeMode==='2048'?'SWIPE / ARROWS':activeMode==='match3'?'TAP / DRAG TO SWAP':game.mode==='gabi'?'HOLD TO THRUST':'TAP TO FLAP';
     if(gambitAnnounce){gambitAnnounce.hidden=activeMode!=='gambit';if(activeMode==='gambit'){
       const preview=gambit.preview(),focused=gambitActions(gambit,{inspection:gambitInspection})[gambitCursor];
       const packChoice=gambit.pack&&Number.isInteger(gambit.pack.selected)?gambitActions(gambit).find(action=>action.kind==='packOption'&&action.index===gambit.pack.selected):null;
-      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide.':null;
-      gambitAnnounce.textContent=`Round ${gambit.round} of 6. ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
+      const inspectionText=typeof gambitInspection==='string'?GAMBIT_JOKERS.find(item=>item.id===gambitInspection)?.description:gambitInspection?.offer!==undefined?gambitActions(gambit).find(action=>action.kind==='offer'&&action.index===gambitInspection.offer)?.label:gambitInspection?.deck?`${gambit.deck.length} cards remain in the deck.`:gambitInspection?.info?'Run information and poker hand guide. Joker Collection is available here.':gambitInspection?.joker?GAMBIT_JOKERS.find(item=>item.id===gambitInspection.joker)?.description:gambitInspection?.cardHelp?'Card effects. Glass doubles Mult per scoring trigger but may break permanently. Steel boosts held cards. Enhancements and seals are explained on screen.':gambitInspection?.collection?`Joker collection. ${gambitInspection.filter||'all'} rarities, page ${(gambitInspection.page||0)+1}.`:gambitInspection?.breakdown?`Full scoring breakdown, page ${(gambitInspection.page||0)+1}.`:null;
+      gambitAnnounce.textContent=`Ante ${gambit.ante}, ${gambit.blindName}. Blind ${gambit.round} of ${gambit.campaignLength}.${gambit.boss?` ${gambit.boss.name}: ${gambit.boss.description}`:''} ${gambit.status}, ${gambit.phase}. ${gambit.roundScore} of ${gambit.target} points. ${gambit.playsLeft} plays and ${gambit.discardsLeft} discards left. ${gambit.money} run coins. ${gambit.selected.length} cards selected.${preview?` ${preview.name}, ${preview.total} points.`:''}${gambit.lastResult?` ${gambit.lastResult.name} scored ${gambit.lastResult.total}. ${gambit.lastResult.steps.map(step=>step.label).join('. ')}.`:''}${packChoice?` Selected pack choice: ${packChoice.label}.`:''}${inspectionText?` ${inspectionText}`:''}${focused?` Focus: ${focused.label}.`:''}`;
     }}
     if(playButton){const isSlot=activeMode==='slots';const playing=current.status==='playing';
       const label=isSlot?(slots.pending?(playing?'Pause':'Resume'):'Spin'):playing?'Pause':current.status==='paused'?'Resume':activeMode==='plinko'?'Drop':current.status==='dead'&&activeMode==='match3'?'New Board':current.status==='dead'?'Again':'Play';
@@ -8279,7 +9026,7 @@ export function setup(ctx) {
       // Do not reset an existing bird/Gabi run just because the player opens another tab.
       if(game.mode!==mode){settings.mode=mode;game.reset(mode,settings.difficulty,bests[mode]);}
     }
-    phoneOpen=false;shopOpen=false;if(launch){show();if(mode==='duck'&&duck.status==='dead')duck.reset(duckTimerSeconds,duckSpeed);if(presetFresh(classicGames[mode]))resetRun(classicGames[mode]);if(mode!=='plinko'&&mode!=='slots'&&!(mode==='match3'&&match3.status==='dead'))active().start();canvas?.focus?.({preventScroll:true});}save();refresh();refreshReaction();
+    phoneOpen=false;shopOpen=false;if(launch){show();if(mode==='duck'&&duck.status==='dead')duck.reset(duckTimerSeconds,duckSpeed);if(presetFresh(classicGames[mode]))resetRun(classicGames[mode]);if(mode!=='plinko'&&mode!=='slots'&&!(mode==='match3'&&match3.status==='dead')&&!(mode==='gambit'&&['idle','dead'].includes(gambit.status)))active().start();canvas?.focus?.({preventScroll:true});}save();refresh();refreshReaction();
   }
   function openMode(mode){switchMode(mode,true);}
   function openPhone(){active().pause();if(activeMode==='bird'||activeMode==='gabi'){game.release();keyHeld=false;}phoneOpen=true;shopOpen=false;refresh();save();}
@@ -8328,11 +9075,28 @@ export function setup(ctx) {
     if(adjacent){match3.swap(a,cell);selectedCell=-1;save();}else selectedCell=cell;
   }
   function gambitAction(action){
-    if(!action||action.enabled===false||gambit.status!=='playing')return;
-    if(action.kind==='joker')gambitInspection=action.id;
+    if(!action||action.enabled===false)return;
+    if(action.kind==='start'){gambit.reset();gambit.start();gambitInspection=null;}
+    else if(action.kind==='deckCycle'){
+      const index=GAMBIT_DECKS.findIndex(deck=>deck.id===gambit.deckPreset);
+      gambit.chooseDeck(GAMBIT_DECKS[(index+action.direction+GAMBIT_DECKS.length)%GAMBIT_DECKS.length].id);
+    }
+    else if(action.kind==='endless'){gambit.continueEndless();gambitInspection=null;}
+    else if(gambit.status!=='playing')return;
+    else if(action.kind==='joker')gambitInspection=action.id;
     else if(action.kind==='offer')gambitInspection={offer:action.index};
     else if(action.kind==='info')gambitInspection={info:true};
     else if(action.kind==='deck')gambitInspection={deck:true};
+    else if(action.kind==='cardHelp')gambitInspection={cardHelp:true};
+    else if(action.kind==='collection')gambitInspection={collection:true,page:0,filter:'all'};
+    else if(action.kind==='catalogJoker')gambitInspection={...gambitInspection,joker:action.id};
+    else if(action.kind==='catalogFilter'){
+      const filters=['all','common','uncommon','rare'];
+      gambitInspection={collection:true,page:0,filter:filters[(filters.indexOf(gambitInspection?.filter||'all')+1)%filters.length]};
+    }
+    else if(action.kind==='catalogPage')gambitInspection={...gambitInspection,page:action.page};
+    else if(action.kind==='breakdown')gambitInspection={breakdown:true,page:0};
+    else if(action.kind==='scorePage')gambitInspection={breakdown:true,page:action.page};
     else if(action.kind==='close')gambitInspection=null;
     else if(action.kind==='sort')gambit.sortHand(action.mode);
     else if(action.kind==='card')gambit.toggleCard(action.id);
@@ -8340,6 +9104,8 @@ export function setup(ctx) {
     else if(action.kind==='discard')gambit.discardSelected();
     else if(action.kind==='continue')gambit.continueScore();
     else if(action.kind==='next')gambit.nextRound();
+    else if(action.kind==='reroll')gambit.rerollShop();
+    else if(action.kind==='finish')gambit.finishRun();
     else if(action.kind==='buy'){gambit.buy(action.index);gambitInspection=null;}
     else if(action.kind==='packOption')gambit.selectPack(action.index);
     else if(action.kind==='claim')gambit.claimPack();
@@ -8349,10 +9115,9 @@ export function setup(ctx) {
     gambitCursor=-1;flushGambit();save();refresh();
   }
   function gambitKey(e){
-    const recognized=/^(?:Digit|Numpad)[1-8]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
+    const recognized=/^(?:Digit|Numpad)[0-9]$/.test(e.code)||['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Space','KeyD','KeyP','KeyR','KeyS','KeyI','Escape'].includes(e.code);
     if(!recognized)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
     if(e.code==='KeyP'){play();return;}
-    if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
     if(e.code==='Escape'){gambitInspection=null;gambitCursor=-1;refresh();return;}
     const actions=gambitActions(gambit,{inspection:gambitInspection});
     if(/^Arrow/.test(e.code)){
@@ -8360,14 +9125,15 @@ export function setup(ctx) {
       if(actions.length)gambitCursor=gambitCursor<0?0:(gambitCursor+step+actions.length)%actions.length;
       refresh();return;
     }
-    if(e.code==='Enter'){
+    if(e.code==='Enter'&&actions.length){
       if(gambitCursor<0){gambitCursor=0;refresh();return;}
       gambitAction(actions[gambitCursor]);return;
     }
+    if(gambit.status!=='playing'){if(e.code==='Enter'||e.code==='Space')play();return;}
     if(gambitInspection)return;
     if(e.code==='KeyI'){gambitInspection={info:true};refresh();return;}
     if(e.code==='KeyR'||e.code==='KeyS'){gambit.sortHand(e.code==='KeyR'?'rank':'suit');gambitCursor=-1;flushGambit();save();refresh();return;}
-    if(/^(?:Digit|Numpad)[1-8]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[Number(e.code.slice(-1))-1]);
+    if(/^(?:Digit|Numpad)[0-9]$/.test(e.code)&&gambit.phase==='play')gambit.toggleCard(gambit.hand[(Number(e.code.slice(-1))+9)%10]);
     else if(e.code==='Space'){if(gambit.phase==='score')gambit.continueScore();else if(gambit.phase==='play')gambit.playHand();}
     else if(e.code==='KeyD')gambit.discardSelected();
     gambitCursor=-1;flushGambit();save();refresh();
@@ -8491,9 +9257,9 @@ export function setup(ctx) {
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();canvas?.focus?.({preventScroll:true});
     if(activeMode==='gambit'){
-      if(gambit.status!=='playing'){play();return;}
       const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
-      gambitAction(gambitHitAt((e.clientX-rect.left)*360/rect.width,(e.clientY-rect.top)*452/rect.height,gambit,{inspection:gambitInspection}));return;
+      const action=gambitHitAt((e.clientX-rect.left)*360/rect.width,(e.clientY-rect.top)*452/rect.height,gambit,{inspection:gambitInspection});
+      if(action)gambitAction(action);else if(gambit.status==='paused')play();return;
     }
     if(classicGames[activeMode]){classicPointer(e);return;}
     if(activeMode==='plinko'){const rect=canvas.getBoundingClientRect();plinkoAim=Math.max(26,Math.min(334,((e.clientX??rect.left+rect.width/2)-rect.left)*360/rect.width));doPlinkoDrop(plinkoAim);return;}
@@ -8667,7 +9433,7 @@ export function setup(ctx) {
     // The host drags the widget from any touch that moves, so claim touches here and let the phone scroll. The header still drags.
     bind(phoneEl,'pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
     canvas=create('canvas','bb-canvas');canvas.width=720;canvas.height=904;canvas.tabIndex=0;
-    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Gambit: 1 through 8 selects cards, Space plays, D discards, P pauses. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Gacha Match: tap two capsules. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
+    canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Funzone playfield. Gambit: 1 through 9 and 0 select up to ten cards, Space plays, D discards, P pauses. Use Run Info for the Joker Collection. R sorts ranks, S sorts suits, I opens Run Info. Arrows focus any action and Enter activates it. Escape closes details. Tetris: arrows, Space to drop, C to hold. Solitaire: tap source then destination, arrows and Enter to select, D to draw, Z to undo. Froggy: arrows or WASD to hop. P pauses these games. Chess: tap a piece then a square, or arrows and Enter. Berry Drop: tap a column or keys 1 to 7. Tic Tac Treats: tap a square or keys 1 to 9. Cake Tower: tap or Space to drop. Bubble Bloom: drag to aim and release, or arrows and Space. Boop-a-Bun: tap a burrow or keys 1 to 9. Wobbly Wafers: tap a wafer, then tap again on green. Gacha Match: tap two capsules. Simon: tap colors or 1 through 4. Duck Hunt: tap ducks. Slots: tap or Space to spin fictional tickets. Plinko: tap or Space to drop. Match-3: tap or drag. Snake/2048: arrows or swipe. Bird/Jetpack: tap or hold.');
     gameStage=create('div','bb-game-stage');gameStage.append(canvas);
     gambitAnnounce=create('p','bb-sr-only');gambitAnnounce.setAttribute('role','status');gambitAnnounce.setAttribute('aria-live','polite');gameStage.append(gambitAnnounce);
     const plinkoHost=create('div','bb-plinko-host');
@@ -8866,9 +9632,10 @@ export function setup(ctx) {
     tip(memoryInfo,'Each new tray starts with every capsule open for a few seconds so you can memorize the charms (3 on Cozy, 3.5 on Classic, 4 on Busy); tap to start early. Then open two capsules at a time to find matching pairs. Matches in a row build a streak bonus, and finishing the tray adds a bonus that shrinks with every miss. Tap a capsule, or use the arrows and Space. Every 100 new personal-best points earns a ticket.');
     presetSelects.set('memory',makeSelect(memoryInfo,'Board size','Cozy has 6 pairs, Classic 8 and Busy 10. Changes apply to your next new tray.',[['cozy','Cozy · 6 pairs'],['classic','Classic · 8 pairs'],['busy','Busy · 10 pairs']],toyPaces.memory,'Gacha Match board size',v=>{toyPaces.memory=v;save();refresh();}));
     const gambitInfo=drawerGamePanel('gambit');
-    tip(gambitInfo,'A six-round poker roguelike with twelve original Jokers. Select one to five cards from your eight-card hand, then Play or Discard. Only cards contributing to the detected poker hand score. You get four plays and three discards per round. Score preview includes all current boosts; add-chip effects apply before added Mult, then multiplier boosts. Joker position does not change scoring.');
-    tip(gambitInfo,'Clear the target to earn run coins and visit the shop. Buy Jokers or reveal three booster choices and keep one. Upgrade Packs improve a hand category or one particular card. You may equip three Jokers; replace one explicitly when full. Sell Jokers for two run coins. Run coins reset on a new run and never spend or award arcade tickets. All pack choices and purchases survive reload.');
-    tip(gambitInfo,'Keyboard: 1–8 selects cards, Space plays or continues score counting, D discards, P pauses, R sorts ranks, S sorts suits, I opens Run Info, arrows focus any visible action, Enter activates it, and Escape closes details. Tap a Joker or shop card for its full effect; use the separate Buy button to purchase. Tap the deck to inspect remaining cards. Saved games resume paused. A new run clears run coins and upgrades; personal best remains.');
+    tip(gambitInfo,'An eight-Ante poker roguelike with 75 original Jokers, five equipped slots, and three blinds per Ante. Beat Ante 8 to bank a win or continue in Endless. Starting decks favor different play styles; choose one before starting a fresh run. Existing classic saves retain their six-round rules until the run ends.');
+    tip(gambitInfo,'Combine immediate chips, added Mult, multiplicative boosts, retriggers, held-card effects, and Jokers that grow with your run history. Permanent hand levels, enhanced cards, and crafted decks let your score scale. Chips apply before added Mult, then XMult; Joker slot order does not change scoring. Open Run Info for all 75 Joker descriptions.');
+    tip(gambitInfo,'Each shop has two Jokers and two packs. Paid rerolls replace only the Joker offers; packs stay spent. Save run coins for interest or spend to build combos. Joker Packs add modifiers; Upgrade Packs raise poker-hand levels; Craft Packs change or remove specific cards; Playing Card Packs add new cards. Mega packs let you choose two. Paid choices survive reload and never affect arcade tickets.');
+    tip(gambitInfo,'Keys 1–9 and 0 select cards, Space plays or continues scoring, D discards, P pauses, R sorts ranks, S sorts suits, and I opens Run Info. Arrows focus every action; Enter activates it; Escape closes details. Inspect Jokers and shop items before buying. Boss rules appear above the hand. All saved games resume paused.');
     const scoreHeader=create('div','bb-drawer-topline bb-drawer-scores-header');scoreHeader.append(create('h3','bb-drawer-category','PERSONAL BESTS'));
     panel.append(scoreHeader);highs=create('div','bb-bests');
     for(const [id,label,art] of GAME_ROSTER){

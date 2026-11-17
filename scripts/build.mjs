@@ -26,12 +26,12 @@ const shop=read('src/shop.js');
 const miniGames=read('src/mini-games.js');
 const miniRender=read('src/mini-games-render.js');
 const rewards=read('src/rewards.js');
-const gambitModules=[['gambit-rules','GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand'],['gambit','GambitGame'],['gambit-art','GAMBIT_SUIT_COLORS, drawGambitCard, drawGambitJoker, drawGambitDeck, drawGambitPack'],['gambit-render','drawGambit, gambitActions, gambitHitAt']];
+const gambitModules=[['gambit-rules','GAMBIT_HANDS, GAMBIT_JOKERS, scoreGambitHand, gambitCardData, GAMBIT_SCORE_LIMIT, GAMBIT_LEVEL_LIMIT, gambitJokerModifiers, gambitJokerPayout'],['gambit','GambitGame, GAMBIT_DECKS, GAMBIT_PACKS, GAMBIT_BOSSES'],['gambit-art','GAMBIT_SUIT_COLORS, drawGambitCard, drawGambitJoker, drawGambitDeck, drawGambitPack'],['gambit-render','drawGambit, gambitActions, gambitHitAt']];
 function bundleGambitModule(name){
   const source=read(`src/${name}.js`);
   const names=[...source.matchAll(/^export\s+(?:const|let|class|function)\s+(\w+)/gm)].map(match=>match[1]);
   if(!names.length)throw Error(`No public exports in ${name}`);
-  const body=source.replace(/^import\s+\{[^}]*\}\s+from\s+['"]\.\/gambit-(?:rules|art)\.js['"];?\s*$/gm,'').replace(/^export\s+/gm,'');
+  const body=source.replace(/^import\s+\{[^}]*\}\s+from\s+['"]\.\/gambit(?:-(?:rules|art))?\.js['"];?\s*$/gm,'').replace(/^export\s+/gm,'');
   return `const {${names.join(',')}}=(()=>{\n${body}\nreturn {${names.join(',')}};\n})();`;
 }
 const classicModules=[

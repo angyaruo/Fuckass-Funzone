@@ -1,58 +1,75 @@
-# Gabu's Gambit — playable prototype
+# Gabu's Gambit — expanded prototype
 
-An original, dependency-free poker roguelike for Funzone's 360 × 452 logical canvas. This branch incorporates upstream 2.7.0's twenty games, including the merged Tetris/Solitaire/Froggy contribution, and adds Gambit as the twenty-first game. The working title, vector artwork, and twelve Joker effects are original to this prototype.
+Gambit is an original, dependency-free poker roguelike for Funzone's 360 × 452 logical canvas. The branch includes upstream 2.7.0's twenty games and adds Gambit as game twenty-one. This expansion adds 75 original Jokers, five equipped slots, four starting decks, eight booster variants, a 24-blind campaign, boss rules, and optional Endless continuation.
 
-## The run
+## Starting and continuing a run
 
-Each round shuffles a standard 52-card deck and draws eight cards. Select one to five, then play the selection or discard it. Played and discarded cards stay out of that round's draw pile. You have four plays and three discards; discarding requires cards left to draw. Only the cards contributing to the recognized poker category score, so a Pair's unrelated kickers do not receive suit or card enhancements.
+New runs have eight Antes, each containing a Small Blind, Big Blind, and Boss Blind. The base targets by Ante are 180, 450, 1,100, 2,500, 5,500, 11,000, 20,000, and 35,000; Big Blinds require ×1.5 and bosses ×2, before a boss-specific target adjustment. A win at Ante 8 offers Bank the Win or Continue Endless. Endless keeps the build and increases the Ante base by ×2.2 each Ante. The engine supports finite scores up to 1e100 and 9,999 blinds; large values use scientific notation in the table.
 
-The six targets are 180, 350, 600, 1,000, 1,500, and 2,200. Scores accumulate toward the current target, while the run total is recorded as a personal best. Clearing round six wins. Failing a target after the final play ends the run. The scoring breakdown waits for Continue, so there is time to read the calculation. A new run clears its money, deck enhancements, and Jokers.
+Choose a starting deck on the idle or finished-run screen. Gremlin starts with Pair Gremlin and eight run coins; Velvet starts with Velvet Flush, six coins, and a deck containing only Hearts and Clubs; Scholar starts with Pair Gremlin, four coins, and Pair/High Card at level three; Merchant starts with twenty coins and no Joker. Starting a new run clears that run's purchases and progress. Run coins never spend or award arcade tickets, and personal bests survive restarts.
 
-The first run starts with Pair Gremlin and eight run coins. A cleared round awards six coins plus one for each remaining play, then opens the shop. Run coins never spend or award arcade tickets. Targets were eased after an early heuristic simulation struggled in later rounds; this is an initial balance pass, not a measured claim of difficulty or player win rate.
+Each blind begins with eight cards, four plays, and three discards before resource modifiers or boss rules. Select one to five cards to play. Only contributing cards score unless an effect explicitly changes that rule. Played/discarded cards stay out of the draw pile until the next blind. Deck crafting, added cards, hand levels, and Jokers persist across blinds. Every physical card has its own identity, so two cards can share a rank and suit without sharing enhancements.
 
-## Scoring and Jokers
+## Scoring and build directions
 
-The scoring order is hand base and hand level, contributing card chips, flat Joker chips, added Mult, then multiplied Mult. Final points are floored. Joker position does not change the result. Aces are high except in A–2–3–4–5 straights; Ace contributes 11 chips, face cards 10, other cards their rank. A hand level adds 15 base chips and one base Mult, capped at five purchased levels.
+Scoring applies hand base and purchased levels, scoring-card chips, chip boosts, added Mult, then multiplied Mult. Slot order does not affect scoring. Each hand level adds 15 base chips and one base Mult; categories can receive up to 999 purchased levels. The twelve categories include the ordinary nine poker categories plus Five of a Kind, Flush House, and Flush Five, enabled by deck construction. Aces can be low in a straight but cannot wrap between King and Two.
 
-| Joker | Effect |
+Jokers cover immediate chips and Mult, rank/suit specialization, hand categories, held cards, retriggers, economy, extra resources, rule changes, and growth from run history. Growth descriptions explicitly count earlier events across the whole run, including events before buying the Joker. For example, Paper Trail counts cards already played, Repeat Customer counts previous plays of the current category, Growing Appetite counts boosters opened, and Snowball counts cleared blinds. Combining a source of base growth with XMult and retriggers gives a build room to scale.
+
+The score preview is a pure read: it does not consume randomness, pay income, increment growth, or break Glass. Committing a hand freezes its pre-play context, then awards the score and updates counters once. Continue waits for the player; reopening a saved scoring screen reproduces the same report. Long reports have a Full Breakdown action with pages rather than drawing over the controls. The [75-Joker catalog](GAMBIT-JOKERS.md) lists every implemented effect. All effects and rarities can also be browsed in Run Info → Joker Collection, with rarity filtering and inspectable cards.
+
+## Shops and economy
+
+Clearing a non-final blind pays six coins plus unused plays, interest, and applicable income effects. Interest pays one coin per five saved coins, capped at five before modifiers; Locked Purse suppresses it. Unused hands therefore reward efficient clears, while interest creates a reason to save. Jokers sell for two coins. Shop Joker prices are four/common, six/uncommon, and eight/rare; generation weights are 68%, 26%, and 6% with no equipped duplicates.
+
+Every shop offers two Jokers and two boosters. The first shop guarantees normal Joker and Upgrade packs. Later packs vary by family and size. Rerolls start at three coins, rise by one within that shop, and replace only the two Joker offers. Sold boosters and their payment remain unchanged. Coupon Ghoul reduces reroll cost, to a minimum of one. The next shop resets the reroll price.
+
+## Boosters and permanent deck changes
+
+There are four pack families, each with Normal and Mega variants. Normal packs show three choices and keep one; Mega packs show five and keep two different options. Normal Upgrade packs cost three coins, other Normal packs four, and Mega packs seven. Inspect an option, then Choose Card to confirm; selecting alone does not claim it. Skip discards any remaining paid choices.
+
+| Family | What it changes |
 | --- | --- |
-| Pair Gremlin | +4 Mult if any played rank repeats. |
-| Heart Hoarder | +20 chips per scoring Heart. |
-| Last Laugh | ×1.5 Mult on the final available play. |
-| Growing Suspicion | +5 chips per previously cleared round. |
-| Pocket Ace | +3 Mult if an Ace scores. |
-| Club Regular | +12 chips per scoring Club. |
-| Face Value | +8 chips per scoring Jack, Queen, or King. |
-| Clean Slate | +3 Mult while no discards have been used that round. |
-| Little Scheme | +3 Mult when playing three or fewer cards. |
-| Straight Talker | ×1.6 Mult on Straight or Straight Flush. |
-| Velvet Flush | ×1.5 Mult on Flush or Straight Flush. |
-| Lonely Crown | +35 chips on High Card. |
+| Joker | Adds an original Joker, requiring an explicit replacement when all five slots are full. |
+| Upgrade | Permanently levels a poker category for the run. |
+| Craft | Changes a specific card's rank or suit, adds an enhancement/seal, or removes a specific card from the deck. |
+| Playing Card | Adds a new physical playing card with an enhancement and sometimes a seal. Duplicate faces are valid. |
 
-Three Jokers can be equipped at once. Identical Jokers cannot be stacked. Each shop has two direct Joker offers, one Joker Pack, and one Upgrade Pack; direct Jokers and Joker Packs cost four coins, Upgrade Packs three. Equipped Jokers sell for two coins in the shop. Rarity labels describe the initial catalog; offers currently sample available Jokers uniformly.
+A Mega pack saves its generated options, claimed indices, remaining choices, highlighted option, and originating purchase. Replacing or declining an incoming Joker returns to any remaining claim. Reload cannot charge again, reroll the contents, or claim the same option twice. Decks may contain eight to 128 physical cards. Craft options target explicit cards so changes are understandable before purchase or confirmation.
 
-## Boosters
+| Card effect | Behavior |
+| --- | --- |
+| Bonus | +30 chips for each scoring trigger. |
+| Mult | +4 Mult for each scoring trigger. |
+| Glass | ×2 Mult for each scoring trigger; a played Glass card has a seeded 25% chance to break permanently after the hand. |
+| Steel | ×1.5 Mult while held outside the selected play. |
+| Gold | +3 run coins if held when the winning hand was played. |
+| Red seal | Retriggers that scoring card once, including chips, enhancement, and per-card Joker effects. |
+| Blue seal | Levels the winning poker category if held when the winning hand was played. |
+| Gold seal | +2 run coins per scoring trigger. |
 
-A Joker Pack reveals three different, unequipped Jokers and keeps one. An Upgrade Pack offers two different hand upgrades and one specific playing-card enhancement. A card enhancement gives that exact card +10 chips whenever it contributes to a hand, up to +30, and stays through round reshuffles. Tap a pack option to highlight it, then Choose Card to claim it. Skipping spends the already-purchased pack. If a claimed or purchased Joker meets a full row, explicitly choose an existing Joker to replace or keep the current row and discard the incoming one.
+Glass break results are rolled once when the hand commits, saved, and applied on Continue. Held effects use the cards outside the selected play, not cards drawn to refill afterward. Enhancements and seals are separate properties and can coexist. The table distinguishes them visually; Run Info → Enhancements & Seals explains their effects and risk.
 
-The purchase charge, generated offers, and RNG state are saved before the interface reveals a pack. Reload returns to the same options and selection. Claims and replacements cannot be repeated to grant extra items. Persisted state validates card conservation, phases, Joker limits, levels, and purchased-pack provenance, and ignores unknown fields rather than replacing methods or callbacks.
+## Bosses
+
+Each seeded campaign shuffles eight original bosses, one per Ante: Short Fuse removes one play; Dry Well removes two discards; Narrow Gate permits at most three selected cards; Full Table requires five; Echo Chamber permits each poker category only once during that blind; Heavy Blind raises its target by fifty percent; The Toll charges one coin per played hand; Locked Purse disables interest. The boss rule appears above the hand, and an illegal selection explains why Play Hand is unavailable.
 
 ## Controls and preview
 
-The table keeps target, round score, blue Chips, red Mult, remaining hands/discards, and run money in a persistent left panel. Jokers are illustrated cards along the top. Playing cards have corner indices, correct suit pips, mirrored court portraits, and a raised/fanned selection. Clubs are green, diamonds orange, spades blue, and hearts red; the normal suit shapes remain visible as well. Shop cards and sealed boosters have separate Inspect and Buy actions. Tap the draw pile for a remaining-deck summary, or Run Info for the poker guide.
+Tap cards and buttons, or use 1–9 and 0 for hand positions one through ten. Space plays or continues scoring, D discards, P pauses, R sorts ranks, S sorts suits, and I opens Run Info. Arrows focus every visible action and Enter activates it; Escape closes details. Rank/Suit sorting preserves physical card selection. Inspect Jokers and shop cards before their separate Buy/Sell actions. Tap the deck for remaining rank/suit counts. New-run deck choices, the collection, score pages, packs, and Endless decisions support keyboard focus.
 
-Touch uses the visible cards and buttons. Rank and Suit sorting sit between Play Hand and Discard and preserve selected card identities. Keyboard uses 1–8 for cards, Space for Play/Continue, D for Discard, P for Pause, R for rank sorting, S for suit sorting, I for Run Info, arrows for action focus, Enter for activation, and Escape for closing details. The main cabinet button also pauses and resumes. Keyboard input only controls the focused game canvas. The accessibility status describes selection, preview, score calculation, currency, inspected offers, and focused action.
+The table retains four suit colors, mirrored court portraits, raised/fanned selection, illustrated Joker cards, sealed booster wrappers, and blue Chips/red Mult. Canvas hit testing uses the same geometry as painting. Detailed booster descriptions remain readable when their five card thumbnails are small. Accessibility status reports the blind, resources, preview, focused actions, inspections, and selected pack choice. Blur, hiding, and reload pause the game.
 
-Run `npm run check`, then serve the repository with `python -m http.server 8766 --bind 127.0.0.1`. Open `http://127.0.0.1:8766/demo-gambit-qa.html`. Its selector includes shop/Joker Pack/Upgrade Pack examples generated through legal first-round plays, in separate local save namespaces. Those examples regenerate on page reload; the ordinary playable run retains its progress.
+Run `npm run check`, then serve this checkout with `python -m http.server 8766 --bind 127.0.0.1` and open `http://127.0.0.1:8766/demo-gambit-qa.html`. The preview includes separate, disposable shop/pack/victory examples; the ordinary playable-run namespace is preserved. Example fixtures are QA aids, not evidence of natural progression. The production bundle embeds its own assets and has no new runtime dependency.
 
-## Verification and remaining work
+## Existing saves and verification
 
-Automated checks cover all poker categories and Ace-low straights; contributing-card identity; score order and preview equality; levels and enhancements; seeded deck conservation; complete win/loss transitions; pause; every key save phase; atomic purchases; replacement/skip behavior; malformed saves; high-DPI rendering; touch/keyboard routing; production-bundle teardown; and preservation of old and unknown game saves/bests. The redesign also checks topmost-card hits in overlapping fans, selection lift, resource-preserving sorting, inspect-before-buy, four suit colors, distinct Joker artwork, and mirrored/pipped cards. Browser QA covered the prototype and the redesigned hand. Direct Canvas rendering verified all redesigned screens and the narrow cabinet after browser access became unavailable; remaining live browser/device checks are still required.
+Version-one saves migrate atomically. An ongoing classic run keeps its six original targets, three Joker slots, old pack choices, prices, and scoring phase until it ends. A classic win can continue into expanded play at blind seven. A fresh run uses the new campaign. Version-two saves preserve physical card conservation, valid effects and phases, paid pack provenance, partial Mega choices, RNG state, growth, frozen scoring context, and boss order. Unknown fields cannot overwrite callbacks or methods. Other upstream games, records, settings, presets, and future save namespaces remain independent.
 
-Before release, check a live Lumiverse install on desktop and a touch device: generation start/end/stop, minimizing/reopening, blur and visibility changes, unload/re-enable, shop/pack reload, and a full natural six-round run. Playtest the late-round curve and modifier usefulness with people. Joker editions, copying/retrigger effects, boss rules, deck additions, meta progression, additional content, and audio polish remain future work; they are not represented as implemented features.
+Automated checks cover scoring and all content families, preview purity, high-score scaling, copied/modified cards, all pack variants, partial claims, replacement, Glass, held payouts, bosses, campaign/Endless transitions, true old-version fixtures, malformed saves, geometry, narrow/high-DPI rendering, all collection pages, and production-bundle input and lifecycle. A seeded legal-run heuristic also checks campaign reach and logs reproducible traces; its results are not player win rates or proof of final balance. Browser QA checks the real self-contained bundle; live Lumiverse and real touch-device acceptance still remain necessary. Balance and usefulness across all 75 Jokers will benefit from player feedback.
 
-## Upstream 2.7.0 compatibility
+## Design references and boundaries
 
-The combined branch retains Catmate Chess, Berry Drop, Tic Tac Treats, Cake Tower, Bubble Bloom, Boop-a-Bun, Wobbly Wafers, and Gacha Match, with their saved opponent levels, toy paces, board sizes, reactions, sounds, and ticket milestones. It also retains the screen-height-capped phone launcher and touch scrolling that keeps swipes from dragging the cabinet. Gambit's run currency and pending booster choices remain separate from arcade tickets and the other game snapshots.
+The requested [Balatro Joker wiki](https://balatrogame.fandom.com/wiki/Jokers) documents 150 Jokers across scoring, economy, growth, and other roles. Gambit's target of 75 is half that catalog, with original names, descriptions, artwork, and implementation. The [booster reference](https://balatrogame.fandom.com/wiki/Booster_Packs) describes five families across three sizes; Gambit's eight variants use four families and two sizes. The [Ante/blind reference](https://balatrogame.fandom.com/wiki/Blinds_and_Antes) and [shop reference](https://balatrogame.fandom.com/wiki/The_Shop) informed the longer campaign, optional continuation, and separation of rerolls from pack purchases. Fandom direct fetches were restricted during research; indexed wiki text supplied the tables.
 
-The installation identifier, `ui_panels` permission, `fuckass_funzone:v1:<extensionInstallationId>` storage namespace, and upstream 2.7.0 release metadata are preserved. Continue editing source and rebuilding the self-contained `dist/frontend.js`; the upstream changelog and update manifest describe the upstream release and are retained as historical release records.
+This remains a deliberately smaller game. It does not implement every Balatro Joker, Spectral consumables, vouchers, skip tags, Joker editions, Joker copying, order-sensitive reordering, unlock progression, or every boss/deck. The upstream installation identifier, `ui_panels` permission, browser storage namespace, and 2.7.0 release records remain unchanged. Continue editing source and rebuilding `dist/frontend.js` rather than editing the generated bundle.

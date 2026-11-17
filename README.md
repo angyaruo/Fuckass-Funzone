@@ -40,7 +40,7 @@ Open **Funzone OS** from the arcade drawer to launch any of the twenty-one games
 | **Boop-a-Bun** | Boop bunnies as they pop out of their burrows. Golden ones pay extra; skip Gabu's robot decoys. |
 | **Wobbly Wafers** | Take turns with Gabu pulling wafers from the tower. Tap a wafer, then tap again while the meter is green. Don't topple it. |
 | **Gacha Match** | Memorize the open capsules, then open two at a time to find every pair of matching charms. Choose a cozy, classic, or busy tray. |
-| **Gabu's Gambit** | Build poker hands across six rounds, equip three original Jokers, and open Joker or Upgrade booster packs between rounds. |
+| **Gabu's Gambit** | Build a deck across eight Antes, combine five of 75 original Jokers, open eight booster variants, and continue into Endless. |
 
 Tetris, Solitaire, Froggy, Gambit, and the eight games added in upstream 2.7.0 pause with **P** or the cabinet's main button. They also pause when the window loses focus; saved games resume paused. Solitaire supports keyboard play: arrows choose cards/piles, Enter selects, D draws, F moves the selected top card to its foundation, Z/U undoes, and Escape cancels selection. Undo history lasts for the current session; the board itself survives reloads.
 
@@ -48,9 +48,9 @@ Catmate Chess, Berry Drop, Tic Tac Treats, and Wobbly Wafers are played against 
 
 ### Gabu's Gambit prototype
 
-Select one to five cards from an eight-card hand; your score preview includes your equipped boosts. Beat each target in four plays, with three optional discards. Between rounds, buy Jokers and booster packs with run coins; arcade tickets are separate. Packs reveal three options and require an explicit choice. Runs, purchases, and revealed packs survive reload; the cabinet restores them paused.
+Choose one of four starting decks, then beat 24 blinds across eight Antes. Combine five of 75 original Jokers with permanent hand levels, enhanced cards, retriggers, and deck crafting. Eight booster variants offer Jokers, hand levels, deck changes, or added cards; Mega packs let you claim two. Paid shop rerolls and interest create ways to build and save. Defeat the final boss to bank a win or continue in Endless. Run coins stay separate from arcade tickets; purchases and partial pack choices survive reload. Existing classic runs retain their original rules until they end.
 
-Use taps or keys **1–8** to select cards, **Space** to play or continue a scoring breakdown, **D** to discard, and **P** to pause. **R** sorts by rank, **S** by suit, and **I** opens Run Info. Arrow keys focus every visible action; **Enter** activates it and **Escape** closes details. The card-table layout uses four distinct suit colors, illustrated Joker cards, and a persistent Chips/Mult panel. See [the full rules and development notes](docs/GABUS-GAMBIT.md).
+Use taps or keys **1–9 and 0** to select cards, **Space** to play or continue a scoring breakdown, **D** to discard, and **P** to pause. **R** sorts by rank, **S** by suit, and **I** opens Run Info, the full Joker Collection, and card-effect help. Arrow keys focus every visible action; **Enter** activates it and **Escape** closes details. The card-table layout uses four distinct suit colors, illustrated Joker cards, and a persistent Chips/Mult panel. See [the full rules and development notes](docs/GABUS-GAMBIT.md).
 
 This prototype lives on `codex/gabus-gambit` and incorporates the upstream 2.7.0 update, including the merged Tetris, Solitaire, and Froggy contribution and the eight newest games. Gambit development remains on its own branch.
 

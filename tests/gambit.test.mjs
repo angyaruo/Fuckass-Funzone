@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { GambitGame, GAMBIT_TARGETS } from '../src/gambit.js';
 
+const legacyFixtures=JSON.parse(fs.readFileSync(new URL('./fixtures/gambit-v1.json',import.meta.url),'utf8'));
 const create = (options = {}) => new GambitGame({ seed: 12345, ...options });
 const allCards = () => Array.from({ length: 52 }, (_, id) => id);
 function assertDeck(game) {
@@ -20,7 +22,7 @@ function clearRound(game) {
   // Set up one known legal scoring hand; do not bypass the scoring/clear transition.
   handFixture(game, [0, 9, 10, 11, 12]);
   game.roundScore = game.target - 1; game.score = Math.max(game.score, game.roundScore);
-  select(game, [0, 9, 10, 11, 12]); assert.equal(game.playHand(), true);
+  select(game, game.boss?.id==='narrow_gate'?[0,9,10]:[0,9,10,11,12]); assert.equal(game.playHand(), true);
   assert.equal(game.phase, 'score'); assert.equal(game.continueScore(), true);
 }
 function shopping(options = {}) { const game = create(options); game.start(); clearRound(game); return game; }
@@ -95,20 +97,20 @@ test('discard choices spend one resource, refill the hand, and stop at the round
   assert.equal(game.discardSelected(), false); assert.deepEqual(game.snapshot(), before);
 });
 
-test('round success pays once, redeals for the next target, and six completed rounds win', () => {
+test('round success pays once, redeals for each blind, and eight Antes unlock optional Endless', () => {
   const game = create(); game.start();
-  for (let round = 1; round <= 6; round++) {
-    const money = game.money; assert.equal(game.round, round); assert.equal(game.target, GAMBIT_TARGETS[round - 1]);
+  for (let round = 1; round <= 24; round++) {
+    const money = game.money; assert.equal(game.round, round); assert.ok(game.target >= GAMBIT_TARGETS[round - 1]);
     clearRound(game); assertDeck(game);
-    if (round < 6) {
-      assert.equal(game.phase, 'shop'); assert.equal(game.money, money + 9);
+    if (round < 24) {
+      assert.equal(game.phase, 'shop'); assert.ok(game.money >= money + 6 + game.playsLeft);
       const save = game.snapshot(); assert.equal(game.continueScore(), false);
       assert.deepEqual(game.snapshot(), save, 'a cleared round cannot pay again');
-      assert.equal(game.nextRound(), true); assert.equal(game.playsLeft, 4); assert.equal(game.discardsLeft, 3);
+      assert.equal(game.nextRound(), true); assert.equal(game.playsLeft, game.maxPlays); assert.equal(game.discardsLeft, game.maxDiscards);
       assert.equal(game.roundScore, 0); assert.equal(game.hand.length, 8); assert.equal(game.phase, 'play');
     }
   }
-  assert.equal(game.status, 'dead'); assert.equal(game.won, true);
+  assert.equal(game.phase, 'victory'); assert.equal(game.won, true); assert.equal(game.finishRun(),true);
   assert.equal(game.nextRound(), false); assert.equal(game.playHand(), false);
   const restored = create({ saved: game.snapshot() }); assert.equal(restored.won, true); assert.equal(restored.status, 'dead');
 });
@@ -137,13 +139,14 @@ test('paid booster choices and seeded future offers survive reload without a sec
 });
 
 test('a full Joker row requires replacement, paid skips stay spent, and upgrades persist', () => {
-  const game = shopping(); assert.equal(game.buy(0), true); assert.equal(game.buy(1), true);
-  assert.equal(game.jokers.length, 3); assert.equal(game.buy(2), true);
+  const game = shopping(); game.money=99; assert.equal(game.buy(0), true); assert.equal(game.buy(1), true);
+  game.jokers.push(...game.availableJokers().slice(0,2));
+  assert.equal(game.jokers.length, 5); assert.equal(game.buy(2), true);
   const offered = game.pack.options[0].id, old = [...game.jokers]; game.selectPack(0); game.claimPack();
   assert.equal(game.phase, 'replace'); assert.equal(game.pendingJoker, offered); assert.deepEqual(game.jokers, old);
   const saved = game.snapshot(), restored = create({ saved }); restored.start();
   assert.equal(restored.replaceJoker(1), true); assert.equal(restored.jokers[1], offered);
-  assert.equal(restored.phase, 'shop'); assert.equal(restored.jokers.length, 3);
+  assert.equal(restored.phase, 'shop'); assert.equal(restored.jokers.length, 5);
   assert.equal(restored.replaceJoker(1), false); assert.equal(restored.money, saved.money);
   assert.equal(game.skipPack(), true); assert.deepEqual(game.jokers, old); assert.equal(game.money, saved.money);
   assert.equal(game.buy(2), false, 'abandoning a paid pack does not make it buyable again');
@@ -152,11 +155,11 @@ test('a full Joker row requires replacement, paid skips stay spent, and upgrades
   assert.equal(game.handLevels[upgrade.id], 1); assert.equal(game.pack, null);
   const upgraded = create({ saved: game.snapshot() }); assert.equal(upgraded.handLevels[upgrade.id], 1);
   const beforeSale = game.money; assert.equal(game.sellJoker(0), true); assert.equal(game.money, beforeSale + 2);
-  assert.equal(game.jokers.length, 2); assert.equal(game.sellJoker(99), false);
+  assert.equal(game.jokers.length, 4); assert.equal(game.sellJoker(99), false);
 });
 
 test('a card enhancement remains tied to its card across reload and the next shuffled round', () => {
-  const game = shopping(); game.buy(3);
+  const game = create({saved:legacyFixtures.shop}); game.start(); game.buy(3);
   const index = game.pack.options.findIndex(option => option.kind === 'card'); assert.ok(index >= 0);
   const id = game.pack.options[index].id; game.selectPack(index); game.claimPack();
   assert.equal(game.cardBoosts[id], 10);
@@ -172,7 +175,7 @@ test('corrupt saves fail atomically, unknown fields cannot overwrite game behavi
   const game = create(), before = game.snapshot();
   const invalid = [null, {}, { ...before, rngState: 0 }, { ...before, money: NaN },
     { ...before, hand: before.hand.slice(1) }, { ...before, selected: [99] },
-    { ...before, jokers: ['pair_gremlin', 'pair_gremlin'] }, { ...before, handLevels: { pair: 6 } },
+    { ...before, jokers: ['pair_gremlin', 'pair_gremlin'] }, { ...before, handLevels: { pair: 1000 } },
     { ...before, cardBoosts: { 0: 15 } }, { ...before, phase: 'shop' }, { ...before, won: true }];
   const sparse = structuredClone(before); delete sparse.hand[0]; invalid.push(sparse);
   for (const data of invalid) { assert.equal(game.restore(data), false); assert.deepEqual(game.snapshot(), before); }
@@ -182,7 +185,7 @@ test('corrupt saves fail atomically, unknown fields cannot overwrite game behavi
   const buyer = shopping(); buyer.buy(2); const pack = buyer.snapshot(); pack.shop[2].sold = false;
   assert.equal(game.restore(pack), false, 'reload cannot claim a pack without its persisted purchase');
   const maxed = buyer.snapshot(); maxed.pack = { kind: 'upgrade', options: [{ kind: 'hand', id: 'pair' }], selected: 0 };
-  maxed.shop[3].sold = true; maxed.handLevels.pair = 5;
+  maxed.shop[3].sold = true; maxed.handLevels.pair = 999;
   assert.equal(game.restore(maxed), false, 'packs cannot promise an already capped upgrade');
 });
 
@@ -195,7 +198,7 @@ test('significant game events expose coherent snapshots, including packs and ter
   } });
   game.start(); clearRound(game); game.buy(0); game.buy(1); game.buy(2); game.selectPack(0); game.claimPack(); game.replaceJoker(0);
   game.buy(3); game.selectPack(0); game.claimPack(); game.sellJoker(0); game.nextRound();
-  for (let round = 2; round <= 6; round++) { clearRound(game); if (round < 6) game.nextRound(); }
+  for (let round = 2; round <= 24; round++) { clearRound(game); if (round < 24) game.nextRound(); }
   assert.ok(events.includes('win')); assert.ok(events.includes('purchase')); assert.ok(events.includes('upgrade'));
   game.reset(1); game.start(); game.jokers = [];
   for (let i = 0; i < 4; i++) { select(game, [game.hand[0]]); game.playHand(); game.continueScore(); }

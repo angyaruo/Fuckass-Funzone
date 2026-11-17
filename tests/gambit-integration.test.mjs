@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setup } from '../dist/frontend.js';
-import { GambitGame } from '../src/gambit.js';
+import { GambitGame, GAMBIT_PACKS } from '../src/gambit.js';
 import { gambitActions } from '../src/gambit-render.js';
 
 class ElementMock {
@@ -59,10 +59,11 @@ function withHost(initial, run) {
   const findClass = name => nodes().find(node => node.className.split(' ').includes(name));
   const api = {
     save: () => JSON.parse(cache.get(key)), window,
-    pick(id = 'gambit') {
+    pick(id = 'gambit', autoStart = true) {
       findClass('bb-phone-button').dispatch('click');
       const app = nodes().find(node => node.className === 'bb-app' && node.dataset.game === id);
       assert.ok(app, `${id} has an entry in the production launcher`); app.dispatch('click');
+      if(id==='gambit'&&autoStart&&api.save().puzzles.gambit.status==='idle')api.key('Space');
     },
     key(code, target) { findClass('bb-float').dispatch('keydown', { target: target || findClass('bb-canvas'), code }); },
     tap(x, y) {
@@ -70,14 +71,14 @@ function withHost(initial, run) {
       canvas.dispatch('pointerup', { pointerId: 1, clientX: x, clientY: y });
     },
     action(kind, index, view) {
-      const game = new GambitGame({ saved: api.save().puzzles.gambit }); game.start();
-      const item = gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index));
+      const game = new GambitGame({ saved: api.save().puzzles.gambit }); if(game.status==='paused')game.start();
+      const item = gambitActions(game, view).find(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index || action.direction === index));
       assert.ok(item?.enabled, `${kind} is an enabled visible control`); api.tap(item.hitX ?? item.x + item.w / 2, item.hitY ?? item.y + item.h / 2);
     },
     keyboardAction(kind, index, view) {
-      const game = new GambitGame({ saved: api.save().puzzles.gambit }); game.start();
+      const game = new GambitGame({ saved: api.save().puzzles.gambit }); if(game.status==='paused')game.start();
       const actions = gambitActions(game, view);
-      const focusIndex = actions.findIndex(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index));
+      const focusIndex = actions.findIndex(action => action.kind === kind && (index === undefined || action.index === index || action.mode === index || action.direction === index));
       assert.ok(focusIndex >= 0 && actions[focusIndex].enabled, `${kind} is available to keyboard focus`);
       api.key('Escape');
       for (let step = 0; step <= focusIndex; step++) api.key('ArrowRight');
@@ -233,5 +234,71 @@ test('shop offer inspection explains an item before its separate purchase contro
     assert.equal(after.money, before.money - before.shop[0].price);
     assert.ok(after.jokers.includes(before.shop[0].id));
     assert.equal(after.shop[0].sold, true); assert.equal(h.save().tickets, 25);
+  });
+});
+
+
+test('a fresh bundled run offers deck selection and starts the chosen preset through keyboard controls', () => {
+  withHost({},h=>{
+    h.pick('gambit',false);assert.equal(h.save().puzzles.gambit.status,'idle');
+    h.action('deckCycle',1);assert.equal(h.save().puzzles.gambit.deckPreset,'velvet');
+    h.keyboardAction('start');const run=h.save().puzzles.gambit;
+    assert.equal(run.deckPreset,'velvet');assert.equal(h.primary().attributes.get('aria-label'),'Pause');
+    assert.equal(run.jokers[0],'velvet_flush');assert.ok(Object.keys(run.cardMods).length>0);
+    h.reload();assert.equal(h.save().puzzles.gambit.deckPreset,'velvet');
+    assert.equal(h.primary().attributes.get('aria-label'),'Resume');
+  });
+});
+
+test('the bundled collection exposes all rarities and Joker inspections without altering the run', () => {
+  withHost({puzzles:{gambit:knownRun().snapshot()}},h=>{
+    h.pick();const before=h.save().puzzles.gambit;h.key('KeyI');
+    h.action('collection',undefined,{inspection:{info:true}});
+    assert.match(h.announcements(),/Joker collection/);
+    h.action('catalogFilter',undefined,{inspection:{collection:true,page:0,filter:'all'}});
+    assert.match(h.announcements(),/common rarities/);
+    h.action('catalogJoker',undefined,{inspection:{collection:true,page:0,filter:'common'}});
+    h.key('Space');h.key('Digit1');h.key('KeyD');
+    assert.deepEqual(h.save().puzzles.gambit,before,'collection browsing never plays or spends');
+    h.key('Escape');h.key('Digit1');assert.equal(h.save().puzzles.gambit.selected.length,1);
+  });
+});
+
+test('bundled Mega packs keep their first choice, remaining claim, charge and physical cards across reload', () => {
+  for(const kind of ['joker','upgrade','craft','standard']){
+    const game=shopRun(),pack=GAMBIT_PACKS.find(pack=>pack.kind===kind&&pack.size==='mega');
+    game.shop[2]={kind:'pack',pack:kind,size:'mega',price:pack.price,sold:false};
+    withHost({tickets:64,puzzles:{gambit:game.snapshot()}},h=>{
+      h.pick();h.action('buy',2);let paid=h.save().puzzles.gambit;
+      assert.equal(paid.pack.remaining,2);assert.equal(paid.pack.options.length,5);
+      h.action('packOption',0);h.action('claim');const partial=h.save().puzzles.gambit;
+      assert.equal(partial.pack.remaining,1);assert.deepEqual(partial.pack.claimed,[0]);
+      if(kind==='standard')assert.equal(partial.deckCards.length,53);
+      h.reload();assert.deepEqual(h.save().puzzles.gambit,partial);
+      h.key('Space');const restored=new GambitGame({saved:partial});restored.start();
+      const second=restored.pack.options.findIndex((option,index)=>!restored.pack.claimed.includes(index)&&restored.optionAvailable(option));
+      assert.ok(second>=0);h.action('packOption',second);h.action('claim');
+      const claimed=h.save().puzzles.gambit;
+      assert.equal(claimed.phase,'shop');assert.equal(claimed.pack,null);
+      assert.equal(claimed.money,paid.money);assert.equal(h.save().tickets,64);
+      if(kind==='standard')assert.equal(claimed.deckCards.length,54);
+      h.reload();assert.deepEqual(h.save().puzzles.gambit,claimed);
+    });
+  }
+});
+
+test('shop rerolls preserve booster charges and the bundled victory screen continues the saved build into Endless', () => {
+  const game=shopRun();game.money=100;
+  withHost({puzzles:{gambit:game.snapshot()}},h=>{
+    h.pick();h.action('buy',2);h.action('skip');const before=h.save().puzzles.gambit;
+    h.action('reroll');const after=h.save().puzzles.gambit;
+    assert.deepEqual(after.shop.slice(2),before.shop.slice(2));assert.equal(after.rerollsInShop,1);assert.ok(after.money<before.money);
+  });
+  const won=shopRun();won.round=24;won.roundScore=won.target;won.score=won.roundScore;won.phase='victory';won.won=true;won.shop=[];
+  withHost({puzzles:{gambit:won.snapshot()}},h=>{
+    h.pick();h.action('endless');let after=h.save().puzzles.gambit;
+    assert.equal(after.endless,true);assert.deepEqual(after.jokers,won.jokers);assert.equal(after.round,24);
+    h.action('next');assert.equal(h.save().puzzles.gambit.round,25);
+    h.reload();assert.equal(h.save().puzzles.gambit.round,25);assert.equal(h.save().puzzles.gambit.endless,true);
   });
 });
